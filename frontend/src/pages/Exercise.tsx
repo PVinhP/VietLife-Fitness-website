@@ -222,6 +222,52 @@ function Exercise() {
             </div>
         );
     };
+    const renderForearmRules = () => {
+        if (!isMuscleGroupSelected('cẳng tay')) return null;
+        
+        return (
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
+            <h2 className="text-2xl font-bold mb-4 text-teal-400">
+                **Quy tắc quan trọng khi tập luyện cẳng tay dành cho bạn**
+            </h2>
+            <p className="mb-4 text-white">
+                Cẳng tay là nhóm cơ rất quan trọng đối với nam giới và các bài tập cẳng tay sẽ luôn có những tác động đến các nhóm cơ tay trước, sau. Do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến cẳng tay để tránh chấn thương ngoài ý muốn, vừa ảnh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn cẳng tay phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. Gymlab đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
+            </p>
+            <ul className="list-disc ml-6 space-y-2 text-white">
+                <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm khớp tay, cổ tay, cẳng tay và vai trong vòng 5 phút.</li>
+                <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đối với những người mới bắt đầu tập cẳng tay, không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là vẫn có thể đạt được hiệu quả tốt nhé.</li>
+            </ul>
+            </div>
+        );
+        };
+    const renderBackRules = () => {
+        if (!isMuscleGroupSelected('lưng xô')) return null;
+        
+        return (
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
+            <h2 className="text-2xl font-bold mb-4 text-teal-400">
+                **CÁC BÀI TẬP LƯNG XÔ TỐT NHẤT TẠI PHÒNG GYM DÀNH BẠN**
+            </h2>
+            <p className="mb-4 text-white">
+                Cơ lưng là nhóm cơ thể hiện sự mạnh mẽ của phái mạnh, bất cứ người đàn ông nào cũng mong muốn sử hữu một bộ lưng rộng và to, là điểm tựa vững chắc cho bất cứ ai. Sở hữu bộ lưng to luôn khiến thân trên nhìn rộng, dày và mạnh mẽ hơn. Lưng được cấu tạo từ 2 phần cơ chính là lưng xô, giúp cải thiện độ rộng của lưng, và lưng giữa, giúp cải thiện độ dày của lưng. Ở bài viết này chúng ta sẽ tập trung chủ yếu vào lưng xô, tất cả đều là các bài tập rất cơ bản, các bạn chỉ cần thực hiện đúng form tập, mức tạ vừa sức thì đảm bảo sau 2-3 tháng độ rộng của lưng sẽ thay đổi đáng kể.
+            </p>
+            
+            <h3 className="text-xl font-bold mb-3 text-teal-400">
+                **Quy tắc quan trọng khi tập luyện cơ lưng cho bạn**
+            </h3>
+            <p className="mb-4 text-white">
+                Cơ lưng là nhóm cơ rất khó cảm nhận, nhiều bạn tập các bài lưng nhưng không chú ý form tập nên vào cơ rất ít mà đa số thấy mỏi bắp tay, làm như vậy sẽ khiến cơ lưng chậm phát triển. Rất nhiều bạn mới tập rất mong muốn cơ lưng to dày lên sau vài tuần tập luyện và khi không đạt được kết quả các bạn thường dễ nản và bỏ cuộc. Gymlab đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
+            </p>
+            
+            <ul className="list-disc ml-6 space-y-2 text-white">
+                <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Các bài kéo cần dùng rất nhiều sức của bắp tay và cổ tay, cần làm nóng kỹ để cơ và dây chằng không bị shock do tập luyện nặng quá sớm.</li>
+                <li>Kích thích cơ lưng trước khi tập set chính, tập các bài lưng cơ bản với mức tạ nhẹ, chú ý cánh tay ép hơi sát với cơ thể để kích thích được phần cơ xô, làm vậy sẽ giúp cơ lưng dễ cảm nhận hơn khi vào set tập chính</li>
+                <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, có 1 mẹo nhỏ là cũng không nên tập quá nhẹ sẽ không hiệu quả. Gymlab có mức tạ tham khảo theo trình độ đối với mỗi bài tập, các bạn tham khảo trước khi tập nhé</li>
+            </ul>
+            </div>
+        );
+        };
+
     // Hiển thị danh sách bài tập
     const renderExercisesList = () => {
         if (filteredExercises.length !== 0) {
@@ -324,6 +370,8 @@ function Exercise() {
                     {/* Hiển thị quy tắc tập ngực hoặc bụng tùy vào nhóm cơ đã chọn */}
                     {renderChestRules()}
                     {renderAbsRules()}
+                    {renderBackRules()}
+                    {renderForearmRules()}
                     {renderIntercostalRules()}
                     {renderExercisesList()}
                 </>
