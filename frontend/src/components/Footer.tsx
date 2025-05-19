@@ -29,7 +29,7 @@ const Footer = () => {
                   <h2 className="mb-6 text-sm font-semibold uppercase text-white">Follow us</h2>
                   <ul className="text-gray-400 font-medium">
                       <li className="mb-4">
-                          <a href="https://github.com/themesberg/flowbite" className="hover:underline ">Github</a>
+                          <a href="https://github.com/PVinhP/VietLife-Fitness-website" className="hover:underline ">Github</a>
                       </li>
                       <li>
                           <a href="https://discord.gg/4eeurUVvTy" className="hover:underline">Discord</a>
