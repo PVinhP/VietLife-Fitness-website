@@ -152,6 +152,44 @@ function Exercise() {
         );
     };
 
+    // Kiểm tra xem có phải đang hiển thị nhóm cơ ngực không
+    const isChestMuscleGroupSelected = () => {
+        return selectedMuscleGroup.toLowerCase().includes('ngực');
+    };
+
+    // Hiển thị quy tắc tập ngực nếu đang chọn nhóm cơ ngực
+    const renderChestRules = () => {
+        if (!isChestMuscleGroupSelected()) return null;
+
+        return (
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
+                <h2 className="text-2xl font-bold mb-4 text-teal-400">
+                    **Quy tắc quan trọng khi tập luyện cơ ngực cho phái mạnh**
+                </h2>
+                <p className="mb-4 text-white">
+                    Tập luyện phát triển cơ bắp là một quá trình dài đòi hỏi nỗ lực và sự kiên trì, không hề có đốt cháy giai đoạn để đạt được kết quả sớm hơn. Rất nhiều bạn mới tập rất mong muốn cơ ngực phát triển ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. Gymlab đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
+                </p>
+                <ul className="list-disc ml-6 space-y-2 text-white">
+                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu.</li>
+                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Gymlab có mức tạ tham khảo theo trình độ đối với mỗi bài tập, các bạn tham khảo trước khi tập nhé</li>
+                </ul>
+                <h2 className="text-2xl font-bold mb-4 text-teal-400">
+                    **Kiến thức cơ bản bạn cần nắm**
+                </h2>
+                <ol className="list-decimal ml-6 space-y-2 text-white">
+                    <li><strong>Nhóm cơ chính tham gia vào chuyển động đẩy: Ngực - Tay Sau.</strong> Khi thực hiện động tác đẩy ngực, tay sau cũng góp phần tham gia vào chuyển động, nhưng đối với người mới tập, mục tiêu ban đầu là làm quen và hiểu các chuyển động của từng nhóm cơ, nên các bạn có thể tập trung vào 1 nhóm cơ ngực thôi nhé</li>
+                    <li><strong>Cơ ngực bao gồm:</strong> Ngực trên (đẩy chéo lên) - Ngực giữa (đẩy ngang) - Ngực dưới (đẩy chéo xuống) - Bài tập bổ sung (Ép ngực)</li>
+                </ol>
+                <p className="mt-4 text-white"><strong>Note:</strong></p>
+                <ol className="list-decimal ml-6 space-y-2 text-white">
+                    <li>Cơ ngực là 1 thể thống nhất, mình chia ra ngực trên - ngực giữa - ngực dưới để các bạn mới dễ hiểu bản chất nhé.</li>
+                    <li>Mỗi bài tập mình đưa ra 2-3 biến thể, các bạn chỉ lựa chọn 1 biến thể phù hợp với trình độ để tập thôi nhé.</li>
+                </ol>
+            </div>
+            
+        );
+    };
+
     // Hiển thị danh sách bài tập
     const renderExercisesList = () => {
         if (filteredExercises.length !== 0) {
@@ -250,6 +288,9 @@ function Exercise() {
                             ))}
                         </div>
                     )}
+
+                    {/* Hiển thị quy tắc tập ngực nếu đang chọn nhóm cơ ngực */}
+                    {renderChestRules()}
 
                     {renderExercisesList()}
                 </>
