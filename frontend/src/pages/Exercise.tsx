@@ -186,7 +186,6 @@ function Exercise() {
                     <li>Mỗi bài tập mình đưa ra 2-3 biến thể, các bạn chỉ lựa chọn 1 biến thể phù hợp với trình độ để tập thôi nhé.</li>
                 </ol>
             </div>
-            
         );
     };
 
