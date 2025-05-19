@@ -152,20 +152,23 @@ function Exercise() {
         );
     };
 
-    // Kiểm tra xem có phải đang hiển thị nhóm cơ ngực không
-    const isChestMuscleGroupSelected = () => {
-        return selectedMuscleGroup.toLowerCase().includes('ngực');
+    // Kiểm tra xem có phải đang hiển thị nhóm cơ ngực hoặc bụng không
+    const isMuscleGroupSelected = (muscleType: string) => {
+        return selectedMuscleGroup.toLowerCase().includes(muscleType.toLowerCase());
     };
 
     // Hiển thị quy tắc tập ngực nếu đang chọn nhóm cơ ngực
     const renderChestRules = () => {
-        if (!isChestMuscleGroupSelected()) return null;
+        if (!isMuscleGroupSelected('ngực')) return null;
 
         return (
             <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
                 <h2 className="text-2xl font-bold mb-4 text-teal-400">
-                    **Quy tắc quan trọng khi tập luyện cơ ngực cho phái mạnh**
+                    **CÁC BÀI TẬP NGỰC TỐT NHẤT TẠI PHÒNG GYM DÀNH CHO BẠN**
                 </h2>
+                <h3 className="text-2xl font-bold mb-4 text-teal-400">
+                    **Quy tắc quan trọng khi tập luyện cơ ngực **
+                </h3>
                 <p className="mb-4 text-white">
                     Tập luyện phát triển cơ bắp là một quá trình dài đòi hỏi nỗ lực và sự kiên trì, không hề có đốt cháy giai đoạn để đạt được kết quả sớm hơn. Rất nhiều bạn mới tập rất mong muốn cơ ngực phát triển ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. Gymlab đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
                 </p>
@@ -173,22 +176,52 @@ function Exercise() {
                     <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu.</li>
                     <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Gymlab có mức tạ tham khảo theo trình độ đối với mỗi bài tập, các bạn tham khảo trước khi tập nhé</li>
                 </ul>
-                <h2 className="text-2xl font-bold mb-4 text-teal-400">
-                    **Kiến thức cơ bản bạn cần nắm**
-                </h2>
-                <ol className="list-decimal ml-6 space-y-2 text-white">
-                    <li><strong>Nhóm cơ chính tham gia vào chuyển động đẩy: Ngực - Tay Sau.</strong> Khi thực hiện động tác đẩy ngực, tay sau cũng góp phần tham gia vào chuyển động, nhưng đối với người mới tập, mục tiêu ban đầu là làm quen và hiểu các chuyển động của từng nhóm cơ, nên các bạn có thể tập trung vào 1 nhóm cơ ngực thôi nhé</li>
-                    <li><strong>Cơ ngực bao gồm:</strong> Ngực trên (đẩy chéo lên) - Ngực giữa (đẩy ngang) - Ngực dưới (đẩy chéo xuống) - Bài tập bổ sung (Ép ngực)</li>
-                </ol>
-                <p className="mt-4 text-white"><strong>Note:</strong></p>
-                <ol className="list-decimal ml-6 space-y-2 text-white">
-                    <li>Cơ ngực là 1 thể thống nhất, mình chia ra ngực trên - ngực giữa - ngực dưới để các bạn mới dễ hiểu bản chất nhé.</li>
-                    <li>Mỗi bài tập mình đưa ra 2-3 biến thể, các bạn chỉ lựa chọn 1 biến thể phù hợp với trình độ để tập thôi nhé.</li>
-                </ol>
             </div>
         );
     };
+    
+    // Hiển thị quy tắc tập bụng nếu đang chọn nhóm cơ bụng
+    const renderAbsRules = () => {
+        if (!isMuscleGroupSelected('bụng')) return null;
 
+        return (
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
+                <h2 className="text-2xl font-bold mb-4 text-teal-400">
+                    **CÁC BÀI TẬP BỤNG TỐT NHẤT TẠI PHÒNG GYM DÀNH CHO NAM**
+                </h2>
+                
+                <h3 className="text-xl font-semibold mb-3 text-teal-400">
+                    **Quy tắc quan trọng khi tập luyện bụng dành cho phái mạnh**
+                </h3>
+                <p className="mb-4 text-white">
+                    Bụng là bộ phận rất quan trọng đối với nam giới, tuy nhiên các bài tập bụng sẽ luôn có những tác động đến các nhóm cơ khác trên cơ thể như lưng và cơ liên sườn. Do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến bụng để tránh chấn thương ngoài ý muốn, vừa anh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn bụng phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. Gymlab đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
+                </p>
+                <ul className="list-disc ml-6 space-y-2 text-white">
+                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm nóng các khớp eo và lưng trong vòng 5 phút.</li>
+                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đối với những người mới bắt đầu tập bụng, không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là vẫn có thể đạt được hiệu quả tốt nhé.</li>
+                </ul>
+            </div>
+        );
+    };
+    // Hiển thị quy tắc tập cơ liên sườn
+    const renderIntercostalRules = () => {
+        if (!isMuscleGroupSelected('liên sườn')) return null;
+
+        return (
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
+                <h2 className="text-2xl font-bold mb-4 text-teal-400">
+                    **Quy tắc quan trọng khi tập luyện cơ liên sườn dành cho bạn**
+                </h2>
+                <p className="mb-4 text-white">
+                    Cơ liên sườn là nhóm cơ rất quan trọng đối với nam giới, tuy nhiên các bài tập cơ liên sườn sẽ luôn có những tác động đến các nhóm cơ bụng. Do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến cơ liên sườn để tránh chấn thương ngoài ý muốn, vừa anh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn cơ liên sườn phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. Gymlab đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
+                </p>
+                <ul className="list-disc ml-6 space-y-2 text-white">
+                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm nóng eo, hông và lưng trong vòng 5 phút.</li>
+                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đối với những người mới bắt đầu tập cơ liên sườn, không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là vẫn có thể đạt được hiệu quả tốt nhé.</li>
+                </ul>
+            </div>
+        );
+    };
     // Hiển thị danh sách bài tập
     const renderExercisesList = () => {
         if (filteredExercises.length !== 0) {
@@ -288,9 +321,10 @@ function Exercise() {
                         </div>
                     )}
 
-                    {/* Hiển thị quy tắc tập ngực nếu đang chọn nhóm cơ ngực */}
+                    {/* Hiển thị quy tắc tập ngực hoặc bụng tùy vào nhóm cơ đã chọn */}
                     {renderChestRules()}
-
+                    {renderAbsRules()}
+                    {renderIntercostalRules()}
                     {renderExercisesList()}
                 </>
             )}
