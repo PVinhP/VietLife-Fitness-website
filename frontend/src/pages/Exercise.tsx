@@ -170,11 +170,11 @@ function Exercise() {
                     **Quy tắc quan trọng khi tập luyện cơ ngực **
                 </h3>
                 <p className="mb-4 text-white">
-                    Tập luyện phát triển cơ bắp là một quá trình dài đòi hỏi nỗ lực và sự kiên trì, không hề có đốt cháy giai đoạn để đạt được kết quả sớm hơn. Rất nhiều bạn mới tập rất mong muốn cơ ngực phát triển ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. Gymlab đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
+                    Tập luyện phát triển cơ bắp là một quá trình dài đòi hỏi nỗ lực và sự kiên trì, không hề có đốt cháy giai đoạn để đạt được kết quả sớm hơn. Rất nhiều bạn mới tập rất mong muốn cơ ngực phát triển ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
                 </p>
                 <ul className="list-disc ml-6 space-y-2 text-white">
                     <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu.</li>
-                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Gymlab có mức tạ tham khảo theo trình độ đối với mỗi bài tập, các bạn tham khảo trước khi tập nhé</li>
+                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. VietLife có mức tạ tham khảo theo trình độ đối với mỗi bài tập, các bạn tham khảo trước khi tập nhé</li>
                 </ul>
             </div>
         );
@@ -194,7 +194,7 @@ function Exercise() {
                     **Quy tắc quan trọng khi tập luyện bụng dành cho phái mạnh**
                 </h3>
                 <p className="mb-4 text-white">
-                    Bụng là bộ phận rất quan trọng đối với nam giới, tuy nhiên các bài tập bụng sẽ luôn có những tác động đến các nhóm cơ khác trên cơ thể như lưng và cơ liên sườn. Do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến bụng để tránh chấn thương ngoài ý muốn, vừa anh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn bụng phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. Gymlab đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
+                    Bụng là bộ phận rất quan trọng đối với nam giới, tuy nhiên các bài tập bụng sẽ luôn có những tác động đến các nhóm cơ khác trên cơ thể như lưng và cơ liên sườn. Do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến bụng để tránh chấn thương ngoài ý muốn, vừa anh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn bụng phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
                 </p>
                 <ul className="list-disc ml-6 space-y-2 text-white">
                     <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm nóng các khớp eo và lưng trong vòng 5 phút.</li>
@@ -213,11 +213,37 @@ function Exercise() {
                     **Quy tắc quan trọng khi tập luyện cơ liên sườn dành cho bạn**
                 </h2>
                 <p className="mb-4 text-white">
-                    Cơ liên sườn là nhóm cơ rất quan trọng đối với nam giới, tuy nhiên các bài tập cơ liên sườn sẽ luôn có những tác động đến các nhóm cơ bụng. Do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến cơ liên sườn để tránh chấn thương ngoài ý muốn, vừa anh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn cơ liên sườn phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. Gymlab đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
+                    Cơ liên sườn là nhóm cơ rất quan trọng đối với nam giới, tuy nhiên các bài tập cơ liên sườn sẽ luôn có những tác động đến các nhóm cơ bụng. Do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến cơ liên sườn để tránh chấn thương ngoài ý muốn, vừa anh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn cơ liên sườn phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
                 </p>
                 <ul className="list-disc ml-6 space-y-2 text-white">
                     <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm nóng eo, hông và lưng trong vòng 5 phút.</li>
                     <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đối với những người mới bắt đầu tập cơ liên sườn, không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là vẫn có thể đạt được hiệu quả tốt nhé.</li>
+                </ul>
+            </div>
+        );
+    };
+    const renderForearmRule = () => {
+        if (!isMuscleGroupSelected('Tay trước')) return null;
+        
+        return (
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
+                <h2 className="text-2xl font-bold mb-4 text-teal-400">
+                    **CÁC BÀI TẬP TAY TRƯỚC TỐT NHẤT TẠI PHÒNG GYM DÀNH CHO BẠN**
+                </h2>
+                <p className="mb-4 text-white">
+                    Tay trước là nhóm cơ rất quan trọng đối với nam giới và các bài tập tay trước sẽ luôn có những tác động đến nhóm cơ cẳng tay. Vì thế, các bạn không nên thử sức với các bài tập tay trước quá phức tạp, quá nặng khi mới bắt đầu để tránh chấn thương nhé.
+                </p>
+                
+                <h3 className="text-xl font-bold mb-3 text-teal-400">
+                    **Quy tắc quan trọng khi tập luyện tay trước**
+                </h3>
+                <p className="mb-4 text-white">
+                    Tay trước là nhóm cơ rất quan trọng trong đời sống hằng ngày, do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến tay trước để tránh chấn thương ngoài ý muốn, vừa ảnh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn tay trước phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
+                </p>
+                
+                <ul className="list-disc ml-6 space-y-2 text-white">
+                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm khớp tay, cổ tay, cẳng tay và vai trong vòng 5 phút.</li>
+                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đối với những người mới bắt đầu tập tay trước, không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là vẫn có thể đạt được hiệu quả tốt nhé.</li>
                 </ul>
             </div>
         );
@@ -231,7 +257,7 @@ function Exercise() {
                 **Quy tắc quan trọng khi tập luyện cẳng tay dành cho bạn**
             </h2>
             <p className="mb-4 text-white">
-                Cẳng tay là nhóm cơ rất quan trọng đối với nam giới và các bài tập cẳng tay sẽ luôn có những tác động đến các nhóm cơ tay trước, sau. Do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến cẳng tay để tránh chấn thương ngoài ý muốn, vừa ảnh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn cẳng tay phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. Gymlab đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
+                Cẳng tay là nhóm cơ rất quan trọng đối với nam giới và các bài tập cẳng tay sẽ luôn có những tác động đến các nhóm cơ tay trước, sau. Do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến cẳng tay để tránh chấn thương ngoài ý muốn, vừa ảnh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn cẳng tay phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
             </p>
             <ul className="list-disc ml-6 space-y-2 text-white">
                 <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm khớp tay, cổ tay, cẳng tay và vai trong vòng 5 phút.</li>
@@ -256,18 +282,70 @@ function Exercise() {
                 **Quy tắc quan trọng khi tập luyện cơ lưng cho bạn**
             </h3>
             <p className="mb-4 text-white">
-                Cơ lưng là nhóm cơ rất khó cảm nhận, nhiều bạn tập các bài lưng nhưng không chú ý form tập nên vào cơ rất ít mà đa số thấy mỏi bắp tay, làm như vậy sẽ khiến cơ lưng chậm phát triển. Rất nhiều bạn mới tập rất mong muốn cơ lưng to dày lên sau vài tuần tập luyện và khi không đạt được kết quả các bạn thường dễ nản và bỏ cuộc. Gymlab đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
+                Cơ lưng là nhóm cơ rất khó cảm nhận, nhiều bạn tập các bài lưng nhưng không chú ý form tập nên vào cơ rất ít mà đa số thấy mỏi bắp tay, làm như vậy sẽ khiến cơ lưng chậm phát triển. Rất nhiều bạn mới tập rất mong muốn cơ lưng to dày lên sau vài tuần tập luyện và khi không đạt được kết quả các bạn thường dễ nản và bỏ cuộc. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
             </p>
             
             <ul className="list-disc ml-6 space-y-2 text-white">
                 <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Các bài kéo cần dùng rất nhiều sức của bắp tay và cổ tay, cần làm nóng kỹ để cơ và dây chằng không bị shock do tập luyện nặng quá sớm.</li>
                 <li>Kích thích cơ lưng trước khi tập set chính, tập các bài lưng cơ bản với mức tạ nhẹ, chú ý cánh tay ép hơi sát với cơ thể để kích thích được phần cơ xô, làm vậy sẽ giúp cơ lưng dễ cảm nhận hơn khi vào set tập chính</li>
-                <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, có 1 mẹo nhỏ là cũng không nên tập quá nhẹ sẽ không hiệu quả. Gymlab có mức tạ tham khảo theo trình độ đối với mỗi bài tập, các bạn tham khảo trước khi tập nhé</li>
+                <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, có 1 mẹo nhỏ là cũng không nên tập quá nhẹ sẽ không hiệu quả. VietLife có mức tạ tham khảo theo trình độ đối với mỗi bài tập, các bạn tham khảo trước khi tập nhé</li>
             </ul>
             </div>
         );
         };
-
+        const renderGluteRules = () => {
+        if (!isMuscleGroupSelected('mông')) return null;
+        
+        return (
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
+                <h2 className="text-2xl font-bold mb-4 text-teal-400">
+                    **CÁC BÀI TẬP MÔNG TỐT NHẤT TẠI PHÒNG GYM DÀNH CHO NAM**
+                </h2>
+                <p className="mb-4 text-white">
+                    Có một điều hiển nhiên là nam giới khi sở hữu một vòng 3 săn chắc, căng tròn sẽ trông có sức hút hơn đối với các bạn nam không có điều đấy. Cơ mông săn chắc sẽ giúp phái mạnh trở nên tự tin hơn khi diện bất kỳ loại trang phục nào, đồng thời còn gây được sự chú ý đến phái yếu. Vì thế, VietLife đã tổng hợp các bài tập mông tốt nhất tại phòng gym dành cho nam giới để các anh em có thể tham khảo và luyện tập theo.
+                </p>
+                
+                <h3 className="text-xl font-bold mb-3 text-teal-400">
+                    **Quy tắc quan trọng khi tập luyện mông dành cho phái mạnh**
+                </h3>
+                <p className="mb-4 text-white">
+                    Mông là bộ phận rất quan trọng đối với nam giới, tuy nhiên các bài tập mông sẽ luôn có những tác động đến các nhóm cơ khác trên cơ thể như đùi trước, đùi sau và lưng dưới. Do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến mông để tránh chấn thương ngoài ý muốn, vừa ảnh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn mông phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
+                </p>
+                
+                <ul className="list-disc ml-6 space-y-2 text-white">
+                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm nóng các khớp gối, cổ chân, hông và lưng trong vòng 5 phút.</li>
+                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đối với những người mới bắt đầu tập mông, không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là vẫn có thể đạt được hiệu quả tốt nhé.</li>
+                </ul>
+            </div>
+        );
+        };
+        const renderThighRules = () => {
+        if (!isMuscleGroupSelected('đùi trước')) return null;
+        
+        return (
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
+            <h2 className="text-2xl font-bold mb-4 text-teal-400">
+                **CÁC BÀI TẬP ĐÙI TRƯỚC TỐT NHẤT TẠI PHÒNG GYM DÀNH CHO NAM**
+            </h2>
+            <p className="mb-4 text-white">
+                Đùi trước là một nhóm cơ rất quan trọng ở phần thân dưới của đàn ông, một cơ đùi săn chắc chắc chắn sẽ giúp bạn tự tin hơn gấp 10 khi mặc các loại quần tây, jeans, đùi hoặc quần jogger. Vì khi sở hữu một cơ đùi săn chắc, trông bạn sẽ trở nên nam tính và thu hút ánh nhìn của người đối diện hơn. Hiểu được điều đấy, VietLife đã cho ra top các bài tập đùi vừa chi tiết, cụ thể, vừa đơn giản, dễ thực hiện theo tại phòng gym dành cho các bạn nam đây. Tuy nhiên, bạn hãy lưu ý rằng, cơ đùi là nhóm cơ rất quan trọng trong cuộc sống hằng ngày, nó phụ thuộc rất nhiều ở các hoạt động thường ngày như đi, đứng, ... của cơ thể. Vì thế, các bạn không nên thử sức với các bài tập đùi trước quá phức tạp, quá nặng khi mới bắt đầu để tránh chấn thương nhé.
+            </p>
+            
+            <h3 className="text-xl font-bold mb-3 text-teal-400">
+                **Quy tắc quan trọng khi tập luyện đùi trước cho phái mạnh**
+            </h3>
+            <p className="mb-4 text-white">
+                Đùi trước là cơ đùi rất quan trọng trong đời sống hằng ngày, do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến đùi trước (Squat, các bài tập sử dụng dụng cụ hỗ trợ) để tránh chấn thương ngoài ý muốn, vừa ảnh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn đùi trước phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
+            </p>
+            
+            <ul className="list-disc ml-6 space-y-2 text-white">
+                <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu, xoay nhẹ và làm nóng cổ chân, khớp gối trong 5 phút.</li>
+                <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đối với những người mới bắt đầu, không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là có thể đạt được hiệu quả tốt nhé.</li>
+            </ul>
+            </div>
+        );
+        };
+        
     // Hiển thị danh sách bài tập
     const renderExercisesList = () => {
         if (filteredExercises.length !== 0) {
@@ -343,7 +421,7 @@ function Exercise() {
             ) : (
                 // Hiển thị danh sách bài tập nếu chưa chọn bài tập nào
                 <>
-                    <h1 className="text-4xl font-bold mb-4 text-center mt-5">Các Bài Tập Thể Dục</h1>
+                    <h1 className="text-4xl font-bold mb-4 text-center mt-5">Các Bài Tập Sức Mạnh</h1>
                     <p className="text-gray-600 mb-4 mx-20 text-white text-xl">
                         Danh sách bài tập này bao gồm nhiều bài tập nhằm vào các nhóm cơ khác nhau. Nhấn vào một bài tập để xem thông tin chi tiết và các bước thực hiện.
                     </p>
@@ -371,7 +449,10 @@ function Exercise() {
                     {renderChestRules()}
                     {renderAbsRules()}
                     {renderBackRules()}
-                    {renderForearmRules()}
+                    {renderForearmRule()} {/* Tay trước */}
+                    {renderForearmRules()}  {/* cẳng tay */}
+                    {renderGluteRules()}  {/* mông */}
+                    {renderThighRules()}
                     {renderIntercostalRules()}
                     {renderExercisesList()}
                 </>
