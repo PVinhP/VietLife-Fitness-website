@@ -562,12 +562,13 @@ function Exercise() {
                         Không có lịch tập cố định phù hợp cho tất cả mọi người vì bài tập phụ thuộc vào thể trạng từng người. Tuy nhiên, bạn có thể tham khảo lịch tập gym 5 ngày/tuần dưới đây từ VietLife, kết hợp cardio nhẹ 15-30 phút sau mỗi buổi để đốt calo và giảm mỡ hiệu quả:
                     </p>
                     <ul className="list-disc ml-6 space-y-2 text-white">
-                        <li><strong>Thứ 2:</strong> Ngực</li>
-                        <li><strong>Thứ 3:</strong> Lưng</li>
-                        <li><strong>Thứ 4:</strong> Chân</li>
-                        <li><strong>Thứ 5:</strong> Vai</li>
-                        <li><strong>Thứ 6:</strong> Tay + Bụng</li>
-                        <li><strong>Thứ 7 & Chủ nhật:</strong> Nghỉ ngơi</li>
+                        <li><strong>Thứ 2:</strong> 💪 Tập thân trên (ngực, vai, tay) + 15’ cardio</li>
+                        <li><strong>Thứ 3:</strong> 🏃 Cardio chính + Core (bụng/lưng dưới)</li>
+                        <li><strong>Thứ 4:</strong> 🦵 Chân + Mông</li>
+                        <li><strong>Thứ 5:</strong> 🧘 Nghỉ / đi bộ nhẹ / yoga phục hồi</li>
+                        <li><strong>Thứ 6:</strong> 💪 Thân trên (lưng + xô + tay sau) + core</li>
+                        <li><strong>Thứ 7:</strong> 🏃 Cardio đốt mỡ + bài full-body nhẹ</li>
+                        <li><strong>Chủ nhật:</strong> 🧘 Nghỉ / kéo giãn / đi bộ</li>
                     </ul>
 
                     <h3 className="text-xl font-bold mb-3 text-teal-400">

@@ -278,7 +278,7 @@ function Nutriton() {
                                             <li>• Thử tên đơn giản hơn (VD: "gà" thay vì "gà rán")</li>
                                             <li>• Kiểm tra chính tả</li>
                                             <li>• Thử từ khóa tiếng Việt hoặc tiếng Anh</li>
-                                            <li>• VD: gà, cơm, trứng, bánh mì, sữa...</li>
+                                            <li>• VD: thịt gà, cơm, trứng, bánh mì, sữa...</li>
                                         </ul>
                                     </div>
                                 </div>

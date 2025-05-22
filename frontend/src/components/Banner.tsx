@@ -32,16 +32,18 @@ const Banner = () => {
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6 ">
             <a
-              href="/plan"
+              //href="/plan"
+              href="/exercise"
               className="rounded-md bg-teal-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             >
-              Khám phá các gói tập →
+              Khám phá các bài tập →
             </a>
             <a
-              href="/goals"
+              //href="/goals"
+              href="/nutrition"
               className="rounded-md bg-teal-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             >
-              Theo dõi mục tiêu →
+              Tìm hiểu về dinh dưỡng →
             </a>
           </div>
         </div>
