@@ -65,7 +65,7 @@ function Nutriton() {
         {
             id: 1,
             title: "Giới thiệu về dinh dưỡng",
-            content: "Dinh dưỡng đóng vai trò quan trọng trong việc duy trì sức khỏe và hoạt động của cơ thể. BMR (Basal Metabolic Rate) là lượng năng lượng cơ thể cần để duy trì các chức năng cơ bản khi nghỉ ngơi. TDEE (Total Daily Energy Expenditure) là tổng năng lượng bạn tiêu thụ trong một ngày, bao gồm BMR, hoạt động thể chất và tiêu hóa thức ăn.",
+            content: " Dinh dưỡng là một phần quan trọng của sức khỏe và sự phát triển. Dinh dưỡng tốt hơn có liên quan đến sức khỏe của trẻ sơ sinh, trẻ em và bà mẹ được cải thiện, hệ thống miễn dịch mạnh hơn, thai kỳ và sinh nở an toàn hơn, nguy cơ mắc các bệnh không lây nhiễm thấp hơn (như bệnh tiểu đường và bệnh tim mạch) và tuổi thọ cao hơn. Trẻ em khỏe mạnh học tốt hơn. Những người có chế độ dinh dưỡng đầy đủ sẽ làm việc hiệu quả hơn và có thể tạo ra cơ hội để dần dần phá vỡ chu kỳ đói nghèo. Suy dinh dưỡng, dưới mọi hình thức, đều gây ra những mối đe dọa đáng kể đối với sức khỏe con người. Ngày nay, thế giới phải đối mặt với gánh nặng kép của tình trạng suy dinh dưỡng bao gồm cả suy dinh dưỡng và thừa cân, đặc biệt là ở các nước có thu nhập thấp và trung bình. Có nhiều dạng suy dinh dưỡng, bao gồm suy dinh dưỡng (suy dinh dưỡng hoặc còi cọc), thiếu vitamin hoặc khoáng chất, thừa cân, béo phì và các bệnh không lây nhiễm liên quan đến chế độ ăn uống.Dinh dưỡng đóng vai trò quan trọng trong việc duy trì sức khỏe và hoạt động của cơ thể. BMR (Basal Metabolic Rate) là lượng năng lượng cơ thể cần để duy trì các chức năng cơ bản khi nghỉ ngơi. TDEE (Total Daily Energy Expenditure) là tổng năng lượng bạn tiêu thụ trong một ngày, bao gồm BMRn hoạt động thể chất và tiêu hóa thức ăn.",
             examples: [
                 "BMR nam: 88.362 + (13.397 × cân nặng kg) + (4.799 × chiều cao cm) - (5.677 × tuổi)",
                 "BMR nữ: 447.593 + (9.247 × cân nặng kg) + (3.098 × chiều cao cm) - (4.330 × tuổi)",
@@ -130,7 +130,7 @@ function Nutriton() {
         {
             id: 7,
             title: "Chế độ ăn theo mục tiêu",
-            content: "Mỗi mục tiêu tập luyện cần chiến lược dinh dưỡng khác nhau. Tăng cơ cần thặng dư calo, giảm mỡ cần thâm hụt calo, giữ dáng cần cân bằng.",
+            content: "Mỗi mục tiêu tập luyện cần chiến lược dinh dưỡng khác nhau. \t Tăng cơ cần thặng dư calo, giảm mỡ cần thâm hụt calo, giữ dáng cần cân bằng.",
             examples: [
                 "Tăng cơ: +300-500 kcal/ngày, protein 1.6-2.2g/kg",
                 "Giảm mỡ: -300-500 kcal/ngày, protein 2-2.5g/kg",
@@ -211,7 +211,7 @@ function Nutriton() {
                                     <input 
                                         className="w-full p-3 border border-gray-600 bg-gray-800 text-white rounded-lg placeholder:text-gray-400 focus:ring-2 focus:ring-teal-300 focus:border-transparent" 
                                         type="text" 
-                                        placeholder='Nhập tên thực phẩm (VD: gà, cơm, trứng...)'
+                                        placeholder='Nhập tên thực phẩm (VD: thịt gà, cơm, trứng...)'
                                         value={Query}
                                         onChange={(e) => setQuery(e.target.value)} 
                                     />

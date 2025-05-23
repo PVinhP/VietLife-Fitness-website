@@ -119,13 +119,11 @@ function Navbar() {
                 Nutrition
               </a>
             </li>
-            {isAuth ?
-              <li>
+            <li>
                 <a href="/exercise" className="text-white">
                   Exercises
                 </a>
-              </li> : null
-            }
+            </li>
 
             <li>
               {/* <a href="/customexercise" className="text-white">

@@ -30,8 +30,8 @@ const Yoga = () => {
 {/* Phần 2: Căng cơ là bắt buộc */}
 <div className="flex flex-wrap justify-around my-10 mx-4 lg:mx-auto">
   <div className="w-full md:w-1/2 lg:w-5/12 text-white" data-aos="fade-right">
-    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mt-5 md:mt-0 mb-8 md:mb-10 lg:mb-12 text-left">Căng cơ là bắt buộc</h2>
-    <p className="text-lg md:text-xl lg:text-2xl mb-6 lg:mb-10 leading-8 lg:leading-9">Các bài tập căng cơ thường xuyên giúp tăng độ linh hoạt của cơ và khớp. Điều này giúp cơ có thể co giãn hiệu quả hơn, từ đó cải thiện tư thế, khả năng vận động và sự thoải mái khi di chuyển. Tăng độ linh hoạt cũng giúp giảm nguy cơ căng cơ và chấn thương khi vận động.</p>
+    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mt-5 md:mt-0 mb-8 md:mb-10 lg:mb-12 text-left">Giãn cơ là bắt buộc</h2>
+    <p className="text-lg md:text-xl lg:text-2xl mb-6 lg:mb-10 leading-8 lg:leading-9">Các bài tập giãn cơ thường xuyên giúp tăng độ linh hoạt của cơ và khớp. Điều này giúp cơ có thể co giãn hiệu quả hơn, từ đó cải thiện tư thế, khả năng vận động và sự thoải mái khi di chuyển. Tăng độ linh hoạt cũng giúp giảm nguy cơ căng cơ và chấn thương khi vận động.</p>
     <p className="text-lg md:text-xl lg:text-2xl leading-8 lg:leading-9">Căng cơ giúp ngăn ngừa chấn thương bằng cách tăng độ đàn hồi và dẻo dai cho cơ và gân. Khi cơ linh hoạt hơn, khả năng bị kéo căng hay rách trong những chuyển động đột ngột hoặc hoạt động nặng sẽ giảm đi. Việc đưa các bài tập căng cơ vào thói quen luyện tập có thể giúp duy trì sự cân bằng cơ bắp, cải thiện sự ổn định của khớp và giảm nguy cơ chấn thương.</p>
   </div>
   <div className="w-full md:w-1/2 lg:w-5/12" data-aos="fade-left">
@@ -80,13 +80,13 @@ const Yoga = () => {
 
 {/* Video YouTube */}
 <div className="grid grid-cols-2 gap-4 m-5">
-  <iframe data-aos="fade-right" className="w-full h-80" src="https://www.youtube.com/embed/sOuKeVuej9E" title="YouTube video player"  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ></iframe>
+  <iframe data-aos="fade-right" className="w-full h-80" src="https://www.youtube.com/embed/DlKKS94866A" title="YouTube video player"  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ></iframe>
 
-  <iframe data-aos="fade-left" className="w-full h-80" src="https://www.youtube.com/embed/DulNz2CkoHI" title="YouTube video player"  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ></iframe>
+  <iframe data-aos="fade-left" className="w-full h-80" src="https://www.youtube.com/embed/TE9chndRGcY" title="YouTube video player"  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ></iframe>
 
-  <iframe data-aos="fade-right" className="w-full h-80" src="https://www.youtube.com/embed/3XVGDYuPay4" title="YouTube video player"  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ></iframe>
+  <iframe data-aos="fade-right" className="w-full h-80" src="https://www.youtube.com/embed/UBY1HbmClKc" title="YouTube video player"  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ></iframe>
 
-  <iframe data-aos="fade-left" className="w-full h-80" src="https://www.youtube.com/embed/sSiA25XlG_A" title="YouTube video player"  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ></iframe>
+  <iframe data-aos="fade-left" className="w-full h-80" src="https://www.youtube.com/embed/CrRQalmcQec" title="YouTube video player"  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ></iframe>
 </div>
 
         </div>
