@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import bot from "../images/chatbot.png"
 import { useNavigate } from 'react-router-dom'
+import ReactMarkdown from 'react-markdown';
 
 interface Blog {
   id: number;
@@ -260,17 +261,18 @@ const Blogs = () => {
                                 {formatDate(blog.ngay_tao)}
                             </div>
 
-                            <div className="mb-4">
+                            <div className="mb-4text-gray-300 mb-2 italic">
                                 {blog.tom_tat && (
-                                    <p className="text-gray-300 mb-2 italic">{blog.tom_tat}</p>
-                                )}
-                                
-                                <p>
+                                    <ReactMarkdown >
+                                        {blog.tom_tat}
+                                    </ReactMarkdown>
+                                    )}
+                                    
+                                    <ReactMarkdown>
                                     {expandedBlogs.has(blog.id) 
                                         ? blog.noi_dung 
-                                        : `${truncateText(blog.noi_dung || blog.tom_tat || '')}...`
-                                    }
-                                </p>
+                                        : `${truncateText(blog.noi_dung || blog.tom_tat || '')}...`}
+                                    </ReactMarkdown>
                             </div>
                             
                             <button 

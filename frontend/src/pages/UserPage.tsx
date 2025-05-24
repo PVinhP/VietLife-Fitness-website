@@ -90,7 +90,7 @@ setstate(!state)
 }
 
 
-const hanlerun=()=>{
+const handlerun=()=>{
 localStorage.removeItem("running")
 setstate(!state)
 }
@@ -191,7 +191,8 @@ const data={
                   <div className="flex items-center">
                     <span className="text-white-500 text-lg mr-2">{running.running} km</span>
                     <span className="text-white-500 text-lg">{running.rtime} mins</span>
-                    <button className="bg-red-500 text-white px-3 py-1 rounded-md" onClick={hanlerun} >Remove</button>
+                    <button className="bg-red-500 text-white px-3 py-1 rounded-md" onClick={handlerun}>Remove</button>
+
                   </div>
                 </div>:"" }
                 
