@@ -13,7 +13,7 @@ import PrivateRoute from './PrivateRoute'
 import UserPage from '../pages/UserPage'
 import Addworkout from '../components/Addworkout'
 import CardioGuide from '../pages/Cardio'     /* Thêm mới */
-import { Chatbot } from '../components/Chatbot'
+import Chatbotapi from '../components/Chatbot'
 
 function Allroutes() {
   return (
@@ -28,7 +28,7 @@ function Allroutes() {
       <Route path='/exercise' element={<Exercise />} />
       <Route path='/goals' element={<PrivateRoute><UserPage/></PrivateRoute>} />
       <Route path='/addworkout' element={<PrivateRoute><Addworkout/></PrivateRoute>} />
-      <Route path='/expert' element={<Chatbot/>} />
+      <Route path='/expert' element={<Chatbotapi/>} />
       <Route path='/plan' element={<PrivateRoute><Plan /></PrivateRoute>} />
       <Route path="/cardio" element={<CardioGuide />} /> {/* Thêm tuyến đường mới */}
     </Routes>

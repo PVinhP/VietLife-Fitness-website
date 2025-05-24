@@ -105,23 +105,23 @@ function Navbar() {
           <ul className="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:flex-row md:space-x-8 md:mt-0 md:border-0 ">
             <li>
               <a href="/" className="text-white">
-                Home
+                Trang chủ
               </a>
             </li>
 
             <li>
               <a href="/blogs" className="text-white">
-                Blogs
+                Tin tức
               </a>
             </li>
             <li>
               <a href="/nutrition" className="text-white">
-                Nutrition
+                Dinh dưỡng
               </a>
             </li>
             <li>
                 <a href="/exercise" className="text-white">
-                  Exercises
+                  Bài tập
                 </a>
             </li>
 

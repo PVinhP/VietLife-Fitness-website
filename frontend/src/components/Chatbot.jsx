@@ -1,107 +1,157 @@
-
-
-//import { useEffect, useRef, useState } from "react";
-
-
-import {useRef, useState } from "react";
-// import logo from "../images/HD-Logo.png"
+import { useRef, useState } from "react";
 import axios from "axios";
-// import "./css/chatbot.css";
-// import { Box, Button, Flex, Image, Spinner, Text, Textarea } from "@chakra-ui/react";
-// import {Dictaphone} from "./Dictaphone";
 
 const init = {
   role: "system",
-  content: " I am Fitness Expert from VietLife "
-}
+  content: "I am Fitness Expert from VietLife, here to help with nutrition and exercise advice. Ask me about food nutrition or workouts!"
+};
 
-
-export const Chatbot = () => {
+const Chatbotapi = () => {
   const inputRef = useRef(null);
-  const [input, setinput] = useState("")
-  const [bot, setbot] = useState([init])
+  const chatBodyRef = useRef(null);
+  const [input, setInput] = useState("");
+  const [bot, setBot] = useState([init]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-
-  const handlesubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!input.trim()) return;
+
     const message = { role: "user", content: input };
-    const newdata = [...bot, message];
+    const newData = [...bot, message];
+    setBot(newData);
+    setInput("");
+    setIsLoading(true);
 
-    setbot(newdata);
     try {
-
-      const response = await axios.post(
-        "https://api.openai.com/v1/chat/completions",
+      // Kiểm tra nếu input chứa từ khóa về thực phẩm
+      const foodQuery = input.toLowerCase().trim();
+      const response = await axios.get(
+        `https://api.nal.usda.gov/fdc/v1/foods/search`,
         {
-          model: "gpt-3.5-turbo",
-          messages: newdata,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.REACT_APP_OPENAI_SECRET}`,
+          params: {
+            query: foodQuery,
+            api_key: process.env.REACT_APP_USDA_API_KEY || "DEMO_KEY",
+            pageSize: 1,
           },
         }
       );
 
-      const chatbotMessage = response.data.choices[0].message.content;
+      const foodData = response.data.foods[0];
+      let botResponse;
+
+      if (foodData) {
+        const nutrients = foodData.foodNutrients
+          .filter(n => ["Energy", "Protein", "Total lipid (fat)", "Carbohydrate, by difference"].includes(n.nutrientName))
+          .map(n => `${n.nutrientName}: ${n.value} ${n.unitName.toLowerCase()}`)
+          .join(", ");
+        botResponse = `Nutrition info for ${foodData.description}: ${nutrients || "No detailed nutrition data available."}`;
+      } else {
+        botResponse = "Sorry, I couldn't find nutrition info for that. Try asking about a specific food like 'apple' or 'chicken', or ask about workouts!";
+      }
+
       const updatedChatHistory = [
-        ...newdata,
-        { role: "assistant", content: chatbotMessage },
+        ...newData,
+        { role: "assistant", content: botResponse },
       ];
 
-      setbot(updatedChatHistory);
-      setinput("");
+      setBot(updatedChatHistory);
       inputRef.current.focus();
+      if (chatBodyRef.current) {
+        chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
+      }
     } catch (error) {
-      // console.error(error);
+      console.error("Error fetching USDA data:", error);
+      setBot([
+        ...newData,
+        { role: "assistant", content: "Xin lỗi, có lỗi khi tìm dữ liệu. Vui lòng thử lại!" },
+      ]);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-  }
-
-
-
-
+  const toggleChatbox = () => {
+    setIsOpen(!isOpen);
+  };
 
   return (
-    <div className="mb-10">
-      <div class="chat">
-        <div class="flex items-center avatar">
+    <>
+      {/* Toggle Button */}
+      <button
+        onClick={toggleChatbox}
+        className="fixed bottom-5 right-5 bg-green-500 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:bg-green-600 z-50"
+      >
+        💬
+      </button>
+
+      {/* Chatbox */}
+      <div
+        className={`fixed bottom-16 right-5 w-80 bg-white rounded-lg shadow-xl flex flex-col transition-all duration-300 ${
+          isOpen ? "opacity-100 visible" : "opacity-0 invisible"
+        }`}
+      >
+        {/* Header */}
+        <div className="bg-green-500 text-white p-3 rounded-t-lg flex justify-between items-center">
+          <h3 className="text-lg font-semibold">VietLife Fitness Expert</h3>
+          <button onClick={toggleChatbox} className="text-white">
+            ✕
+          </button>
         </div>
-      </div>
-      <div class="messages mt-2">
-        <div class="messages-content">
+
+        {/* Chat Body */}
+        <div
+          ref={chatBodyRef}
+          className="flex-1 p-4 h-96 overflow-y-auto bg-gray-100"
+        >
           {bot.map((message, index) => (
-            <div key={index} class={`message ${message.role === 'user' ? 'message-user self-end bg-teal-400 text-white' : 'message-assistant bg-[#171A26] mt-2 text-white'}`}>
-              <div class="message-content p-3 rounded-md shadow-md">
-                <p class="text-base">
-                  {message.content}
-                </p>
+            <div
+              key={index}
+              className={`mb-3 flex ${
+                message.role === "user" ? "justify-end" : "justify-start"
+              }`}
+            >
+              <div
+                className={`max-w-[80%] p-3 rounded-lg shadow-md ${
+                  message.role === "user"
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-200 text-gray-800"
+                }`}
+              >
+                <p className="text-base">{message.content}</p>
               </div>
-              {message.role === 'user' && (
-                <div class="absolute right-0 mr-2 mt-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M12.293 3.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 9H2a1 1 0 110-2h12.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                  </svg>
-                </div>
-              )}
             </div>
           ))}
+          {isLoading && (
+            <div className="flex justify-center">
+              <div className="animate-spin h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full"></div>
+            </div>
+          )}
         </div>
-      </div>
-      <form class="mt-24" onSubmit={handlesubmit}>
-        <div class="flex items-center message-box w-3/4 m-auto">
-          <textarea style={{width:"90%"}} class="mt-40 flex-1 h-12 py-2 px-3 text-black border-2 border-gray-300 rounded-lg mr-2 focus:outline-none focus:border-blue-400" placeholder="Ask a question..." value={input} onChange={(e) => setinput(e.target.value)} ref={inputRef}></textarea>
-          <div class="w-20 mt-40">
-            <button type="submit" class="w-full py-2 px-4 bg-black text-white rounded-lg text-center focus:outline-none hover:bg-gray-800">
-              Send
+
+        {/* Input Area */}
+        <form onSubmit={handleSubmit} className="p-3 border-t border-gray-200">
+          <div className="flex items-center">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Hỏi về dinh dưỡng hoặc bài tập..."
+              className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 resize-none h-12"
+            />
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="ml-2 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 disabled:bg-gray-400"
+            >
+              Gửi
             </button>
           </div>
-        </div>
-      </form>
-    </div>
+        </form>
+      </div>
+    </>
+  );
+};
 
-
-
-  )
-}
+export default Chatbotapi;
