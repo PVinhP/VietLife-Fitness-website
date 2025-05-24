@@ -6,6 +6,7 @@ const {UserRouter} = require("./routes/UserRoutes")
 const {AuthMiddleware}= require("./middlewares/AuthMiddleware");
 const { exerciseRouter } = require("./routes/ExerciseRoute");
 const { nutritionRouter } = require("./routes/NutritionRoutes"); // Import route mới
+const { blogRouter } = require("./routes/BlogRoute"); // Import route mới
 const app = express();
 app.use(cors({ origin: "http://localhost:3000" })) // Chỉnh sửa cor
 app.use(express.json())
@@ -19,7 +20,7 @@ app.use("/user",UserRouter)
 app.use("/workouts",workoutRouter);
 app.use("/exercise",exerciseRouter);
 app.use("/nutrition", nutritionRouter); // Gắn API vào endpoint /nutrition // mới: Thêm API thực phẩm
-
+app.use("/blogs", blogRouter); // Gắn API vào endpoint /blogs // mới: Thêm API blog
 app.listen(8080, async()=>{
   
     try {
