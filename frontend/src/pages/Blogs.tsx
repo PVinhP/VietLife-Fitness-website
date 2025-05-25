@@ -19,7 +19,6 @@ const Blogs = () => {
     const [filteredBlogs, setFilteredBlogs] = useState<Blog[]>([])
     const [loading, setLoading] = useState<boolean>(true)
     const [error, setError] = useState<string>('')
-    const [expandedBlogs, setExpandedBlogs] = useState<Set<number>>(new Set())
     
     // Search states
     const [searchTerm, setSearchTerm] = useState<string>('')
@@ -85,16 +84,6 @@ const Blogs = () => {
         setFilteredBlogs(filtered)
     }, [searchTerm, selectedCategory, blogs])
 
-    const toggleReadMore = (blogId: number) => {
-        const newExpandedBlogs = new Set(expandedBlogs)
-        if (expandedBlogs.has(blogId)) {
-            newExpandedBlogs.delete(blogId)
-        } else {
-            newExpandedBlogs.add(blogId)
-        }
-        setExpandedBlogs(newExpandedBlogs)
-    }
-
     const formatDate = (dateString: string) => {
         const date = new Date(dateString)
         return date.toLocaleDateString('vi-VN', {
@@ -102,11 +91,6 @@ const Blogs = () => {
             month: 'long',
             day: 'numeric'
         })
-    }
-
-    const truncateText = (text: string, maxLength: number = 200) => {
-        if (text.length <= maxLength) return text
-        return text.substr(0, maxLength)
     }
 
     const getImageUrl = (hinh_anh: string) => {
@@ -125,6 +109,10 @@ const Blogs = () => {
     const clearFilters = () => {
         setSearchTerm('')
         setSelectedCategory('')
+    }
+
+    const handleBlogClick = (blogId: number) => {
+        navigate(`/blog/${blogId}`)
     }
 
     if (loading) {
@@ -230,60 +218,62 @@ const Blogs = () => {
                     </div>
                 )}
 
-                {/* Blog List */}
-                {filteredBlogs.map((blog, index) => (
-                    <div key={blog.id} className={`flex ${index % 2 === 1 ? 'flex-col-reverse md:flex-row-reverse' : 'flex-col md:flex-row'} m-5 pb-5 border-b-2 border-gray-300`}>
-                        <div className='md:w-2/5'>
-                            <img 
-                                className='rounded-lg w-full h-64 object-cover' 
-                                src={getImageUrl(blog.hinh_anh)} 
-                                alt={blog.tieu_de}
-                                onError={(e) => {
-                                    e.currentTarget.src = "https://images.pexels.com/photos/2247179/pexels-photo-2247179.jpeg?auto=compress&cs=tinysrgb&w=600"
-                                }}
-                            />
-                        </div>
-                        <div className={`md:w-3/5 ${index % 2 === 1 ? 'md:pr-10' : 'md:pl-10'}`}>
-                            <h1 className='font-bold text-3xl mb-5'>{blog.tieu_de}</h1>
+                {/* Blog Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredBlogs.map((blog) => (
+                        <div 
+                            key={blog.id} 
+                            className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer"
+                            onClick={() => handleBlogClick(blog.id)}
+                        >
+                            <div className="aspect-video overflow-hidden">
+                                <img 
+                                    className='w-full h-full object-cover hover:scale-110 transition-transform duration-300' 
+                                    src={getImageUrl(blog.hinh_anh)} 
+                                    alt={blog.tieu_de}
+                                    onError={(e) => {
+                                        e.currentTarget.src = "https://images.pexels.com/photos/2247179/pexels-photo-2247179.jpeg?auto=compress&cs=tinysrgb&w=600"
+                                    }}
+                                />
+                            </div>
                             
-                            {blog.danh_muc && (
-                                <div className="mb-3">
-                                    <span 
-                                        className="bg-blue-500 text-white px-2 py-1 rounded text-sm cursor-pointer hover:bg-blue-600 transition-colors"
-                                        onClick={() => setSelectedCategory(blog.danh_muc)}
-                                    >
-                                        {blog.danh_muc}
-                                    </span>
+                            <div className="p-6">
+                                {blog.danh_muc && (
+                                    <div className="mb-3">
+                                        <span 
+                                            className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                setSelectedCategory(blog.danh_muc)
+                                            }}
+                                        >
+                                            {blog.danh_muc}
+                                        </span>
+                                    </div>
+                                )}
+                                
+                                <h2 className='font-bold text-xl mb-3 line-clamp-2 hover:text-blue-400 transition-colors'>
+                                    {blog.tieu_de}
+                                </h2>
+                                
+                                <div className="mb-3 text-gray-400 text-sm">
+                                    {formatDate(blog.ngay_tao)}
                                 </div>
-                            )}
-                            
-                            <div className="mb-3 text-gray-400 text-sm">
-                                {formatDate(blog.ngay_tao)}
-                            </div>
 
-                            <div className="mb-4text-gray-300 mb-2 italic">
-                                {blog.tom_tat && (
-                                    <ReactMarkdown >
-                                        {blog.tom_tat}
-                                    </ReactMarkdown>
-                                    )}
-                                    
-                                    <ReactMarkdown>
-                                    {expandedBlogs.has(blog.id) 
-                                        ? blog.noi_dung 
-                                        : `${truncateText(blog.noi_dung || blog.tom_tat || '')}...`}
-                                    </ReactMarkdown>
+                                <div className="text-gray-300 text-sm line-clamp-3 mb-4">
+                                    {blog.tom_tat || blog.noi_dung.substring(0, 150) + '...'}
+                                </div>
+                                
+                                <div className="flex items-center justify-between">
+                                    <span className="text-blue-400 text-sm font-medium">
+                                        Đọc thêm →
+                                    </span>
+                                    <div className="w-8 h-1 bg-blue-500 rounded"></div>
+                                </div>
                             </div>
-                            
-                            <button 
-                                onClick={() => toggleReadMore(blog.id)}
-                                className="text-blue-400 hover:text-blue-300 transition-colors"
-                            >
-                                {expandedBlogs.has(blog.id) ? 'Thu gọn' : 'Đọc thêm...'}
-                            </button>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
 
             <div onClick={() => navigate("/expert")}>

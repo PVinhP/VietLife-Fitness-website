@@ -14,6 +14,7 @@ import UserPage from '../pages/UserPage'
 import Addworkout from '../components/Addworkout'
 import CardioGuide from '../pages/Cardio'     /* Thêm mới */
 import Chatbotapi from '../components/Chatbot'
+import BlogDetail from '../components/BlogDetail' 
 
 function Allroutes() {
   return (
@@ -23,6 +24,7 @@ function Allroutes() {
       <Route path='/' element={<Home />} />
       <Route path='/yoga' element={<Yoga />} />
       <Route path='/blogs' element={<Blogs />} />
+      <Route path="/blog/:id" element={<BlogDetail />} /> {/* Thêm tuyến đường mới cho chi tiết blog */}
       <Route path="/nutrition" element={<Nutriton />} />
       <Route path='/customexercise' element={<ExerciseInputForm />} />
       <Route path='/exercise' element={<Exercise />} />
