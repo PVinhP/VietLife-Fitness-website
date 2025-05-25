@@ -206,14 +206,16 @@ function Home() {
       <div className="relative">
         <div className="relative z-10">
           <h1 className='text-2xl m-4 text-white font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600'>
-            Đồng bộ với ứng dụng & thiết bị
+            Kết nối với ứng dụng Strava
           </h1>
           <div className='w-full m-auto group'>
+            <a href="https://www.strava.com" target="_blank" rel="noopener noreferrer">
             <img 
               className='w-10/12 m-auto transition-all duration-1000 transform group-hover:scale-105 hover:drop-shadow-2xl hover:animate-pulse' 
               src="https://cdn1.cronometer.com/webflow/cronometer-devices-3-p-1080.png" 
               alt="" 
             />
+            </a>
           </div>
         </div>
       </div>
