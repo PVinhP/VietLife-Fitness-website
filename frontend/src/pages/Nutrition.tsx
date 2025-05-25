@@ -18,19 +18,47 @@ interface searchList {
 
 interface Lesson {
     id: number;
-    title: string;
-    content: string;
-    examples: string[];
+    tieu_de: string;
+    hinh_anh: string;
+    tom_tat: string;
+    noi_dung: string;
+    loai: string;
+    ngay_tao: string;
 }
 
 function Nutriton() {
     const navigate = useNavigate()
     const [Query, setQuery] = useState("");
     const [list, setList] = useState<searchList[]>([]);
-    const [activeLesson, setActiveLesson] = useState<number | null>(null);
-    const [activeCategory, setActiveCategory] = useState<string>("basic");
+    const [lessons, setLessons] = useState<Lesson[]>([]);
+    const [activeCategory, setActiveCategory] = useState<string>("coban");
     const searchResults = useDebounce(Query, 1000)
 
+    // Fetch lessons from API
+    useEffect(() => {
+        fetch(`http://localhost:8080/lesson`, {
+            method: "GET",
+            headers: {
+                "Content-type": "application/json"
+            }
+        })
+        .then((res) => res.json())
+        .then((res) => {
+            if (Array.isArray(res)) {
+                setLessons(res);
+            } else if (res && res.data && Array.isArray(res.data)) {
+                setLessons(res.data);
+            } else {
+                setLessons([]);
+            }
+        })
+        .catch((error) => {
+            console.error("Lỗi khi tải bài học:", error);
+            setLessons([]);
+        });
+    }, []);
+
+    // Search nutrition
     useEffect(() => {
         if (!searchResults.trim()) {
             setList([]);
@@ -45,148 +73,58 @@ function Nutriton() {
         })
         .then((res) => res.json())
         .then((res) => {
-            // Kiểm tra nếu res là array và có dữ liệu
-            if (Array.isArray(res)) {
+        if (Array.isArray(res)) {
                 setList(res);
             } else if (res && res.data && Array.isArray(res.data)) {
-                // Trường hợp API trả về {data: [...]}
-                setList(res.data);
+            setList(res.data);
             } else {
-                // Không có kết quả hoặc format không đúng
-                setList([]);
+            setList([]);
             }
         })
         .catch((error) => {
             console.error("Lỗi khi tìm kiếm:", error);
-            setList([]); // Reset danh sách khi có lỗi
+            setList([]);
         });
     }, [searchResults]);
-    const basicLessons: Lesson[] = [
-        {
-            id: 1,
-            title: "Giới thiệu về dinh dưỡng",
-            content: " Dinh dưỡng là một phần quan trọng của sức khỏe và sự phát triển. Dinh dưỡng tốt hơn có liên quan đến sức khỏe của trẻ sơ sinh, trẻ em và bà mẹ được cải thiện, hệ thống miễn dịch mạnh hơn, thai kỳ và sinh nở an toàn hơn, nguy cơ mắc các bệnh không lây nhiễm thấp hơn (như bệnh tiểu đường và bệnh tim mạch) và tuổi thọ cao hơn. Trẻ em khỏe mạnh học tốt hơn. Những người có chế độ dinh dưỡng đầy đủ sẽ làm việc hiệu quả hơn và có thể tạo ra cơ hội để dần dần phá vỡ chu kỳ đói nghèo. Suy dinh dưỡng, dưới mọi hình thức, đều gây ra những mối đe dọa đáng kể đối với sức khỏe con người. Ngày nay, thế giới phải đối mặt với gánh nặng kép của tình trạng suy dinh dưỡng bao gồm cả suy dinh dưỡng và thừa cân, đặc biệt là ở các nước có thu nhập thấp và trung bình. Có nhiều dạng suy dinh dưỡng, bao gồm suy dinh dưỡng (suy dinh dưỡng hoặc còi cọc), thiếu vitamin hoặc khoáng chất, thừa cân, béo phì và các bệnh không lây nhiễm liên quan đến chế độ ăn uống.Dinh dưỡng đóng vai trò quan trọng trong việc duy trì sức khỏe và hoạt động của cơ thể. BMR (Basal Metabolic Rate) là lượng năng lượng cơ thể cần để duy trì các chức năng cơ bản khi nghỉ ngơi. TDEE (Total Daily Energy Expenditure) là tổng năng lượng bạn tiêu thụ trong một ngày, bao gồm BMRn hoạt động thể chất và tiêu hóa thức ăn.",
-            examples: [
-                "BMR nam: 88.362 + (13.397 × cân nặng kg) + (4.799 × chiều cao cm) - (5.677 × tuổi)",
-                "BMR nữ: 447.593 + (9.247 × cân nặng kg) + (3.098 × chiều cao cm) - (4.330 × tuổi)",
-                "TDEE = BMR × hệ số hoạt động (1.2-1.9)"
-            ]
-        },
-        {
-            id: 2,
-            title: "Các nhóm chất dinh dưỡng",
-            content: "Cơ thể cần 6 nhóm chất dinh dưỡng chính: Carbohydrate (4 kcal/g), Protein (4 kcal/g), Chất béo (9 kcal/g), Vitamin, Khoáng chất và Nước. Mỗi nhóm có vai trò riêng biệt và không thể thay thế cho nhau.",
-            examples: [
-                "Carb: Gạo, bánh mì, khoai lang, yến mạch",
-                "Protein: Thịt, cá, trứng, đậu phụ, sữa",
-                "Chất béo: Dầu ô liu, bơ, hạt điều, cá hồi",
-                "Vitamin: Rau xanh, trái cây đa dạng màu sắc"
-            ]
-        },
-        {
-            id: 3,
-            title: "Ăn uống lành mạnh",
-            content: "Chế độ ăn cân bằng cần đảm bảo tỷ lệ thích hợp giữa các nhóm chất dinh dưỡng. Ăn đúng giờ giúp duy trì nhịp sinh học tự nhiên. Hạn chế thực phẩm siêu chế biến (chứa nhiều đường, muối, chất bảo quản).",
-            examples: [
-                "Tỷ lệ đĩa ăn: 1/2 rau củ, 1/4 tinh bột, 1/4 protein",
-                "3 bữa chính + 2 bữa phụ trong ngày",
-                "Tránh: Mì gói, đồ uống có gas, thức ăn nhanh"
-            ]
-        },
-        {
-            id: 4,
-            title: "Đọc nhãn thực phẩm",
-            content: "Nhãn dinh dưỡng cung cấp thông tin về năng lượng, chất dinh dưỡng và thành phần. Cần chú ý đến khẩu phần, % giá trị dinh dưỡng khuyến nghị và danh sách thành phần (sắp xếp theo thứ tự từ nhiều đến ít).",
-            examples: [
-                "Kiểm tra khẩu phần tiêu chuẩn (thường là 100g)",
-                "Chọn sản phẩm có ít đường, muối, chất béo trans",
-                "Ưu tiên thành phần tự nhiên, ít phụ gia"
-            ]
-        },
-        {
-            id: 5,
-            title: "Xây dựng khẩu phần phù hợp người Việt",
-            content: "Khẩu phần ăn cần phù hợp với văn hóa ẩm thực, khí hậu nhiệt đới và sở thích của người Việt. Tận dụng nguyên liệu địa phương, tươi ngon và phong phú.",
-            examples: [
-                "Bữa sáng: Phở gà + rau thơm, hoặc Cháo thịt + pickles",
-                "Bữa trưa: Cơm + thịt/cá + rau xanh + canh",
-                "Bữa tối: Bún/miến + protein + rau nhiều màu sắc",
-                "Đồ uống: Nước lọc, trà xanh, nước dừa tươi"
-            ]
-        }
-    ];
+    // Filter lessons by category
+    const filteredLessons = lessons.filter(lesson => lesson.loai === activeCategory);
 
-    const workoutNutritionLessons: Lesson[] = [
-        {
-            id: 6,
-            title: "Ăn uống trước - trong - sau khi tập",
-            content: "Thời điểm ăn uống ảnh hưởng lớn đến hiệu quả tập luyện. Trước tập cần năng lượng, trong khi tập cần bù nước, sau tập cần protein và carb để phục hồi.",
-            examples: [
-                "Trước tập (1-2h): Yến mạch + chuối, bánh mì + mật ong",
-                "Trong tập: Nước lọc, đồ uống điện giải nếu tập >1h",
-                "Sau tập (30-60p): Sữa chocolate, thịt gà + cơm"
-            ]
-        },
-        {
-            id: 7,
-            title: "Chế độ ăn theo mục tiêu",
-            content: "Mỗi mục tiêu tập luyện cần chiến lược dinh dưỡng khác nhau. \t Tăng cơ cần thặng dư calo, giảm mỡ cần thâm hụt calo, giữ dáng cần cân bằng.",
-            examples: [
-                "Tăng cơ: +300-500 kcal/ngày, protein 1.6-2.2g/kg",
-                "Giảm mỡ: -300-500 kcal/ngày, protein 2-2.5g/kg",
-                "Giữ dáng: Cân bằng calo vào/ra, protein 1.2-1.6g/kg"
-            ]
-        },
-        {
-            id: 8,
-            title: "Thực đơn mẫu theo mục tiêu",
-            content: "Thực đơn cụ thể giúp áp dụng lý thuyết vào thực tế, phù hợp với khẩu vị và điều kiện của người Việt.",
-            examples: [
-                "Tăng cơ (70kg): 2800 kcal, 140g protein, 350g carb, 100g fat",
-                "Giảm mỡ (60kg): 1800 kcal, 120g protein, 180g carb, 70g fat",
-                "Phân bổ: 25% sáng, 35% trưa, 30% tối, 10% snack"
-            ]
-        },
-        {
-            id: 9,
-            title: "Thực phẩm bổ sung (Supplements)",
-            content: "TPBS không thay thế được thức ăn tự nhiên nhưng có thể hỗ trợ khi chế độ ăn chưa đủ hoặc có nhu cầu đặc biệt.",
-            examples: [
-                "Whey Protein: 20-30g sau tập, khi thiếu protein từ thức ăn",
-                "Creatine: 3-5g/ngày, tăng sức mạnh và sức bền",
-                "BCAA: 10-15g trong/sau tập dài, giảm mệt mỏi cơ",
-                "Multivitamin: 1 viên/ngày khi chế độ ăn không đa dạng"
-            ]
-        }
-    ];
+    // Navigate to lesson detail
+    const handleLessonClick = (lessonId: number) => {
+        navigate(`/lesson/${lessonId}`);
+    };
 
-    const renderLesson = (lesson: Lesson) => (
-        <div key={lesson.id} className="mb-8 bg-gray-800 rounded-lg p-6">
-            <button
-                onClick={() => setActiveLesson(activeLesson === lesson.id ? null : lesson.id)}
-                className="w-full text-left flex justify-between items-center"
-            >
-                <h3 className="text-xl font-bold text-white">{lesson.title}</h3>
-                <span className="text-teal-300 text-2xl">
-                    {activeLesson === lesson.id ? '−' : '+'}
-                </span>
-            </button>
-            {activeLesson === lesson.id && (
-                <div className="mt-4">
-                    <p className="text-white text-base leading-7 mb-4">{lesson.content}</p>
-                    <div className="bg-gray-700 rounded-lg p-4">
-                        <h4 className="text-teal-300 font-semibold mb-2">Ví dụ thực tế:</h4>
-                        <ul className="space-y-2">
-                            {lesson.examples.map((example, index) => (
-                                <li key={index} className="text-gray-300 flex items-start">
-                                    <span className="text-teal-300 mr-2">•</span>
-                                    {example}
-                                </li>
-                            ))}
-                        </ul>
+    const renderLessonCard = (lesson: Lesson) => (
+        <div 
+            key={lesson.id} 
+            className="bg-gray-800 rounded-lg p-6 cursor-pointer hover:bg-gray-700 transition-all duration-300 hover:scale-105"
+            onClick={() => handleLessonClick(lesson.id)}
+        >
+            <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0">
+                    <div className="w-16 h-16 bg-gradient-to-br from-teal-400 to-blue-500 rounded-lg flex items-center justify-center">
+                        <span className="text-2xl">
+                            {lesson.loai === 'coban' ? '📚' : '💪'}
+                        </span>
                     </div>
                 </div>
-            )}
+                <div className="flex-1 min-w-0">
+                    <h3 className="text-xl font-bold text-white mb-2 hover:text-teal-300 transition-colors">
+                        {lesson.tieu_de}
+                    </h3>
+                    <p className="text-gray-300 text-sm leading-6 mb-3">
+                        {lesson.tom_tat}
+                    </p>
+                    <div className="flex items-center justify-between">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
+                            {lesson.loai === 'coban' ? 'Cơ bản' : 'Tập luyện'}
+                        </span>
+                        <span className="text-teal-300 text-sm hover:text-teal-200">
+                            Đọc thêm →
+                        </span>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 
@@ -205,7 +143,7 @@ function Nutriton() {
                                     các chất dinh dưỡng cần thiết cho sự phát triển và phục hồi, giúp bạn khỏe mạnh và phòng ngừa bệnh tật.
                                 </p>
                                 
-                                {/* Search Bar - Moved to top */}
+                                {/* Search Bar */}
                                 <div className="mt-8">
                                     <h2 className="text-2xl font-bold text-white mb-4">🔍 Tìm kiếm giá trị dinh dưỡng</h2>
                                     <input 
@@ -298,9 +236,9 @@ function Nutriton() {
                     <div className="flex justify-center mb-8">
                         <div className="bg-gray-800 rounded-lg p-2">
                             <button
-                                onClick={() => setActiveCategory("basic")}
+                                onClick={() => setActiveCategory("coban")}
                                 className={`px-6 py-3 mr-2 rounded-lg font-semibold transition-all ${
-                                    activeCategory === "basic" 
+                                    activeCategory === "coban" 
                                         ? "bg-teal-500 text-white" 
                                         : "text-gray-300 hover:text-white"
                                 }`}
@@ -308,9 +246,9 @@ function Nutriton() {
                                 📖 Kiến thức cơ bản
                             </button>
                             <button
-                                onClick={() => setActiveCategory("workout")}
+                                onClick={() => setActiveCategory("tapluyen")}
                                 className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                                    activeCategory === "workout" 
+                                    activeCategory === "tapluyen" 
                                         ? "bg-teal-500 text-white" 
                                         : "text-gray-300 hover:text-white"
                                 }`}
@@ -320,16 +258,19 @@ function Nutriton() {
                         </div>
                     </div>
 
-                    {/* Lessons Content */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div>
-                            {activeCategory === "basic" && basicLessons.slice(0, 3).map(renderLesson)}
-                            {activeCategory === "workout" && workoutNutritionLessons.slice(0, 2).map(renderLesson)}
-                        </div>
-                        <div>
-                            {activeCategory === "basic" && basicLessons.slice(3).map(renderLesson)}
-                            {activeCategory === "workout" && workoutNutritionLessons.slice(2).map(renderLesson)}
-                        </div>
+                    {/* Lessons Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {filteredLessons.length > 0 ? (
+                            filteredLessons.map(renderLessonCard)
+                        ) : (
+                            <div className="col-span-full text-center py-12">
+                                <div className="text-6xl mb-4">📖</div>
+                                <h3 className="text-xl font-bold text-white mb-2">Chưa có bài học</h3>
+                                <p className="text-gray-300">
+                                    Bài học cho danh mục này đang được cập nhật
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import bot from "../images/chatbot.png"
 import { useNavigate } from 'react-router-dom'
-import ReactMarkdown from 'react-markdown';
+//import ReactMarkdown from 'react-markdown';
 
 interface Blog {
   id: number;
