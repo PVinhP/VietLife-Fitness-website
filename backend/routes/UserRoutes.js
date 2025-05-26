@@ -1,53 +1,142 @@
-const express = require("express")
-const UserRouter = express.Router()
+// File: routes/UserRoutes.js
+const express = require("express");
 const bcrypt = require("bcrypt");
-const jwt = require('jsonwebtoken')
-const { UserModel } = require("../models/UserModel");
-const { Validator } = require("../middlewares/Vaildator");
+const jwt = require("jsonwebtoken");
+const { pool } = require("../config/db"); // Import pool from db.js
 
-UserRouter.post("/register", Validator, async (req, res) => {
+const UserRouter = express.Router();
 
-    const { name, email, password, gender, age, height, weight, disease } = req.body;
-    try {
-        bcrypt.hash(password, 5, async (err, hash) => {
-            const user = new UserModel({ name, email, password: hash, gender, age, height, weight, disease })
-            await user.save()
-            res.status(200).send({ "msg": "Account created!!" })
-        })
+// Đăng ký người dùng
+UserRouter.post("/register", async (req, res) => {
+  try {
+    const {
+      email,
+      password,
+      full_name,
+      phone,
+      gender,
+      birth_date,
+      height_cm,
+      weight_kg,
+    } = req.body;
 
-    } catch (err) {
-        console.log(err);
-        res.send(400).send({ "err": err.message })
+    // Kiểm tra các trường bắt buộc
+    if (!email || !password) {
+      return res
+        .status(400)
+        .send({ msg: "Email và mật khẩu là bắt buộc" });
     }
 
-})
+    // Kiểm tra xem email đã tồn tại chưa
+    const [existingUsers] = await pool.query(
+      "SELECT * FROM users WHERE email = ?",
+      [email]
+    );
+    if (existingUsers.length > 0) {
+      return res.status(400).send({ msg: "Email đã được sử dụng" });
+    }
 
+    // Mã hóa mật khẩu
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+    // Chèn người dùng mới vào cơ sở dữ liệu
+    const [result] = await pool.query(
+      `INSERT INTO users (email, password, name, phone, gender, birth_date, height_cm, weight_kg)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        email,
+        hashedPassword,
+        full_name || null,
+        phone || null,
+        gender || null,
+        birth_date || null,
+        height_cm || null,
+        weight_kg || null,
+      ]
+    );
+
+    // Tạo JWT token
+    const user = {
+      userId: result.insertId,
+      email,
+    };
+    const token = jwt.sign(user, "VietLife", { expiresIn: "1h" });
+
+    res.status(201).send({
+      msg: "Đăng ký thành công",
+      token,
+      user: {
+        id: result.insertId,
+        email,
+        full_name,
+        phone,
+        gender,
+        birth_date,
+        height_cm,
+        weight_kg,
+      },
+    });
+  } catch (error) {
+    console.error("Lỗi khi đăng ký:", error);
+    res.status(500).send({ msg: "Lỗi server khi đăng ký" });
+  }
+});
+
+// Đăng nhập người dùng
 UserRouter.post("/login", async (req, res) => {
-    const { email, password } = req.body
-    try {
-        let user = await UserModel.findOne({ email })
-        if (user) {
-            bcrypt.compare(password, user.password, (err, result) => {
-                if (result) {
-                    const token = jwt.sign({ userId: user._id, username: user.name }, "VietLife");
-                    res.status(200).send({ "msg": "Login Successfull!!", "token": token, "username": user.name,"userDetails":user})
-                } else {
-                    res.status(400).send({ "msg": "Email and Password mismatch" })
-                }
-            })
-        }
-    } catch (error) {
-        console.log(err);
-        res.send({ "err": error.message })
+  try {
+    const { email, password } = req.body;
+
+    // Kiểm tra các trường bắt buộc
+    if (!email || !password) {
+      return res
+        .status(400)
+        .send({ msg: "Email và mật khẩu là bắt buộc" });
     }
-})
 
+    // Tìm người dùng theo email
+    const [users] = await pool.query("SELECT * FROM users WHERE email = ?", [
+      email,
+    ]);
+    if (users.length === 0) {
+      return res.status(401).send({ msg: "Email hoặc mật khẩu không đúng" });
+    }
 
+    const user = users[0];
 
+    // Kiểm tra mật khẩu
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).send({ msg: "Email hoặc mật khẩu không đúng" });
+    }
 
+    // Tạo JWT token
+    const payload = {
+      userId: user.id,
+      email: user.email,
+      username: user.full_name || user.email, // Sử dụng full_name nếu có, nếu không dùng email
+    };
+    const token = jwt.sign(payload, "VietLife", { expiresIn: "1h" });
 
+    res.status(200).send({
+      msg: "Đăng nhập thành công",
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        phone: user.phone,
+        gender: user.gender,
+        birth_date: user.birth_date,
+        height_cm: user.height_cm,
+        weight_kg: user.weight_kg,
+      },
+    });
+  } catch (error) {
+    console.error("Lỗi khi đăng nhập:", error);
+    res.status(500).send({ msg: "Lỗi server khi đăng nhập" });
+  }
+});
 
-module.exports = {
-    UserRouter
-}
+module.exports = { UserRouter };
