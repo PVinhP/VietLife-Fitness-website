@@ -42,7 +42,7 @@ UserRouter.post("/register", async (req, res) => {
 
     // Chèn người dùng mới vào cơ sở dữ liệu
     const [result] = await pool.query(
-      `INSERT INTO users (email, password, name, phone, gender, birth_date, height_cm, weight_kg)
+      `INSERT INTO users (email, password, full_name, phone, gender, birth_date, height_cm, weight_kg)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         email,
@@ -63,18 +63,25 @@ UserRouter.post("/register", async (req, res) => {
     };
     const token = jwt.sign(user, "VietLife", { expiresIn: "1h" });
 
+    // Lấy thông tin người dùng vừa tạo để trả về, bao gồm created_at và updated_at
+    const [newUser] = await pool.query("SELECT * FROM users WHERE id = ?", [
+      result.insertId,
+    ]);
+
     res.status(201).send({
       msg: "Đăng ký thành công",
       token,
       user: {
-        id: result.insertId,
-        email,
-        full_name,
-        phone,
-        gender,
-        birth_date,
-        height_cm,
-        weight_kg,
+        id: newUser[0].id,
+        email: newUser[0].email,
+        full_name: newUser[0].full_name,
+        phone: newUser[0].phone,
+        gender: newUser[0].gender,
+        birth_date: newUser[0].birth_date,
+        height_cm: newUser[0].height_cm,
+        weight_kg: newUser[0].weight_kg,
+        created_at: newUser[0].created_at,
+        updated_at: newUser[0].updated_at,
       },
     });
   } catch (error) {
@@ -131,6 +138,8 @@ UserRouter.post("/login", async (req, res) => {
         birth_date: user.birth_date,
         height_cm: user.height_cm,
         weight_kg: user.weight_kg,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
       },
     });
   } catch (error) {
