@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
-import Pan1 from "../images/Pan1.mp4"
-import Pan2 from "../images/pan2.mp4"
+// import Pan1 from "../images/Pan1.mp4"
+// import Pan2 from "../images/pan2.mp4"
 import Pan3 from "../images/pan3.mp4"
 import Pan4 from "../images/pan4.mp4"
 
@@ -18,25 +18,25 @@ const Yoga = () => {
 {/* Phần 1: Video và lời nhắn "Đừng viện lý do" */}
 <div className="flex flex-col lg:flex-row items-center justify-between mx-4 lg:mx-10 lg:my-20">
     <video className="w-full lg:w-1/3 lg:mr-8"  controls data-aos="fade-right">
-        <source src={Pan1} />
+        <source src={'https://res.cloudinary.com/dj3rolvmw/video/upload/v1748330121/Le_Van_Cong_wuq13v.mp4'} />
     </video>
     <div className="w-full lg:w-2/3 lg:text-left text-center mt-8 lg:mt-0 text-gray-800" data-aos="fade-left">
         <h2 className="text-3xl lg:text-5xl font-bold mb-8 lg:mb-12 text-left text-gray-800">Đừng viện cớ</h2>
-        <p className="text-lg lg:text-2xl mb-8 lg:pr-16">Tập thể dục đóng vai trò quan trọng trong việc nâng cao sức mạnh, độ dẻo dai và sức khỏe tim mạch – những yếu tố thiết yếu cho các hoạt động hàng ngày và duy trì sự độc lập. Ngoài ra, nó còn góp phần cải thiện sức khỏe tinh thần, giúp giảm căng thẳng và lo âu, đồng thời tăng cường sự tự tin và cảm giác đạt được thành tựu.</p>
-        <p className="text-lg lg:text-2xl">Những người kiên định thường tìm kiếm cộng đồng và nhóm hỗ trợ, nơi họ được thấu hiểu và được khích lệ. Được bao quanh bởi những người có cùng chí hướng sẽ tạo nên cảm giác gắn kết và động lực để vượt qua thử thách.</p>
+        <p className="text-lg lg:text-2xl mb-8 lg:pr-16">Trên video là lực sĩ Lê Văn Công - Sinh ra với đôi chân teo tóp do di chứng sốt xuất huyết bẩm sinh, anh không chỉ vượt qua nghịch cảnh mà còn trở thành biểu tượng của nghị lực và khát vọng. Từ tấm HCV lịch sử tại Paralympic Rio 2016, HCB tại Tokyo 2020 đến HCĐ tại Paris 2024, Lê Văn Công là vận động viên Việt Nam đầu tiên giành huy chương ở cả ba kỳ Paralympic liên tiếp. Anh cũng đang nắm giữ kỷ lục thế giới với mức tạ 183,5kg ở hạng cân 49kg nam. Hành trình của anh là minh chứng rằng, giới hạn chỉ tồn tại khi ta cho phép nó tồn tại.</p>
+        <a className="text-blue-600 underline hover:text-blue-800 transition duration-200" href="https://kenh14.vn/le-van-cong-khi-y-thuc-duoc-minh-thieu-doi-chan-thi-doi-tay-toi-da-manh-me-lam-roi-20161210064742538.chn">Tìm hiểu thêm </a>
     </div>
 </div>
 
 {/* Phần 2: Căng cơ là bắt buộc */}
 <div className="flex flex-wrap justify-around my-10 mx-4 lg:mx-auto">
   <div className="w-full md:w-1/2 lg:w-5/12 text-gray-800" data-aos="fade-right">
-    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mt-5 md:mt-0 mb-8 md:mb-10 lg:mb-12 text-left">Giãn cơ là bắt buộc</h2>
-    <p className="text-lg md:text-xl lg:text-2xl mb-6 lg:mb-10 leading-8 lg:leading-9">Các bài tập giãn cơ thường xuyên giúp tăng độ linh hoạt của cơ và khớp. Điều này giúp cơ có thể co giãn hiệu quả hơn, từ đó cải thiện tư thế, khả năng vận động và sự thoải mái khi di chuyển. Tăng độ linh hoạt cũng giúp giảm nguy cơ căng cơ và chấn thương khi vận động.</p>
-    <p className="text-lg md:text-xl lg:text-2xl leading-8 lg:leading-9">Căng cơ giúp ngăn ngừa chấn thương bằng cách tăng độ đàn hồi và dẻo dai cho cơ và gân. Khi cơ linh hoạt hơn, khả năng bị kéo căng hay rách trong những chuyển động đột ngột hoặc hoạt động nặng sẽ giảm đi. Việc đưa các bài tập căng cơ vào thói quen luyện tập có thể giúp duy trì sự cân bằng cơ bắp, cải thiện sự ổn định của khớp và giảm nguy cơ chấn thương.</p>
+    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mt-5 md:mt-0 mb-8 md:mb-10 lg:mb-12 text-left">Yoga</h2>
+    <p className="text-lg md:text-xl lg:text-2xl mb-6 lg:mb-10 leading-8 lg:leading-9">Các bài tập Yoga thường xuyên giúp tăng độ linh hoạt của cơ và khớp. Điều này giúp cơ có thể co giãn hiệu quả hơn, từ đó cải thiện tư thế, khả năng vận động và sự thoải mái khi di chuyển. Tăng độ linh hoạt cũng giúp giảm nguy cơ căng cơ và chấn thương khi vận động.</p>
+    <p className="text-lg md:text-xl lg:text-2xl leading-8 lg:leading-9">Yoga giúp ngăn ngừa chấn thương bằng cách tăng độ đàn hồi và dẻo dai cho cơ và gân. Khi cơ linh hoạt hơn, khả năng bị kéo căng hay rách trong những chuyển động đột ngột hoặc hoạt động nặng sẽ giảm đi. Việc đưa các bài tập căng cơ vào thói quen luyện tập có thể giúp duy trì sự cân bằng cơ bắp, cải thiện sự ổn định của khớp và giảm nguy cơ chấn thương.</p>
   </div>
-  <div className="w-full md:w-1/2 lg:w-5/12" data-aos="fade-left">
+  <div className="w-full md:w-1/2 lg:w-5/12 flex flex-wrap justify-around items-center" data-aos="fade-left">
     <video className="w-full" controls >
-      <source src={Pan2} />
+      <source src={'https://res.cloudinary.com/dj3rolvmw/video/upload/v1748328666/yoga_me_va_be_cxffha.mp4'} />
     </video>
   </div>
 </div>

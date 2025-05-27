@@ -135,7 +135,7 @@ function Navbar() {
             </li>
             <li>
               <a href="/yoga" className="text-white">
-                Yoga
+                Khám Phá
               </a>
             </li>
             {/* <li>
