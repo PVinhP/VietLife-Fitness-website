@@ -51,7 +51,7 @@ const Footer = () => {
       </div>
       <hr className="my-6  sm:mx-auto border-gray-700 lg:my-8" />
       <div className="sm:flex sm:items-center sm:justify-between">
-          <span className="text-sm sm:text-center text-gray-400">© 2024 <a href="https://flowbite.com/" className="hover:underline">VietLife</a>. All Rights Reserved.
+          <span className="text-sm sm:text-center text-gray-400">© 2025 <a href="https://flowbite.com/" className="hover:underline">VietLife</a>. All Rights Reserved.
           </span>
           <div className="flex mt-4 space-x-6 sm:justify-center sm:mt-0">
               <a href="https://www.facebook.com/profile.php?id=100053127540718&locale=vi_VN" className="text-gray-500  hover:text-white">

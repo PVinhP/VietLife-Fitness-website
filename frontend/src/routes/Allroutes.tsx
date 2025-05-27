@@ -29,7 +29,7 @@ function Allroutes() {
       <Route path="/nutrition" element={<Nutriton />} />
       <Route path="/lesson/:id" element={<LessonDetail />} /> {/* Thêm tuyến đường mới cho chi tiết bài học */}
       <Route path='/customexercise' element={<ExerciseInputForm />} />
-      <Route path='/exercise' element={<Exercise />} />
+      <Route path='/exercise' element={<PrivateRoute><Exercise /></PrivateRoute>} />
       <Route path='/goals' element={<PrivateRoute><UserPage/></PrivateRoute>} />
       <Route path='/addworkout' element={<PrivateRoute><Addworkout/></PrivateRoute>} />
       <Route path='/expert' element={<Chatbotapi/>} />

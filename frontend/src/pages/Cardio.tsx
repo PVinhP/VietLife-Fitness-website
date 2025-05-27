@@ -164,119 +164,121 @@ function CardioGuide() {
   };
 
   return (
-    <div className="text-white mr-5 ml-5 m-auto mb-40">
-      <h1 className="text-4xl font-bold mb-4 text-center mt-5">Hướng Dẫn Tập Cardio</h1>
-      
-      {!selectedExercise ? (
-        <>
-          <p className="text-white mb-8 mx-20 text-xl">
-            Cardio (bài tập tim mạch) là một phần quan trọng trong mọi chương trình tập luyện. Các bài tập cardio giúp cải thiện sức khỏe tim mạch, tăng cường sức bền và hỗ trợ quá trình giảm cân. Hãy khám phá các bài tập cardio phổ biến dưới đây để bắt đầu hành trình nâng cao sức khỏe của bạn.
-          </p>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {cardioExercises.map((exercise) => (
-              <div 
-                key={exercise.id} 
-                className="border border-gray-700 rounded-lg overflow-hidden bg-gray-800 hover:bg-gray-700 cursor-pointer transition-all"
-                onClick={() => handleExerciseSelect(exercise)}
-              >
-                {exercise.imageUrl ? (
-                  <img src={exercise.imageUrl} alt={exercise.name} className="w-full h-48 object-cover" />
-                ) : (
-                  <div className="w-full h-48 bg-gray-700 flex items-center justify-center">
-                    <span className="text-4xl text-teal-400">{exercise.name.charAt(0)}</span>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-teal-50 to-blue-50">
+      <div className="w-4/5 m-auto bg-white shadow-2xl rounded-2xl p-6">
+        <h1 className="text-4xl font-bold mb-4 text-center text-teal-500">Hướng Dẫn Tập Cardio</h1>
+        
+        {!selectedExercise ? (
+          <>
+            <p className="text-gray-800 mb-8 mx-4 md:mx-20 text-xl">
+              Cardio (bài tập tim mạch) là một phần quan trọng trong mọi chương trình tập luyện. Các bài tập cardio giúp cải thiện sức khỏe tim mạch, tăng cường sức bền và hỗ trợ quá trình giảm cân. Hãy khám phá các bài tập cardio phổ biến dưới đây để bắt đầu hành trình nâng cao sức khỏe của bạn.
+            </p>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {cardioExercises.map((exercise) => (
+                <div 
+                  key={exercise.id} 
+                  className="border border-gray-200 rounded-lg overflow-hidden bg-white hover:shadow-lg cursor-pointer transition-all"
+                  onClick={() => handleExerciseSelect(exercise)}
+                >
+                  {exercise.imageUrl ? (
+                    <img src={exercise.imageUrl} alt={exercise.name} className="w-full h-48 object-cover" />
+                  ) : (
+                    <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
+                      <span className="text-4xl text-teal-500">{exercise.name.charAt(0)}</span>
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <h2 className="text-xl font-bold mb-2 text-teal-500">{exercise.name}</h2>
+                    <p className="text-gray-800 line-clamp-3">{exercise.description}</p>
+                    <button 
+                      className="mt-4 bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-md w-full"
+                      onClick={() => handleExerciseSelect(exercise)}
+                    >
+                      Xem chi tiết
+                    </button>
                   </div>
-                )}
-                <div className="p-4">
-                  <h2 className="text-xl font-bold mb-2 text-teal-400">{exercise.name}</h2>
-                  <p className="text-gray-300 line-clamp-3">{exercise.description}</p>
-                  <button 
-                    className="mt-4 bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-md w-full"
-                    onClick={() => handleExerciseSelect(exercise)}
-                  >
-                    Xem chi tiết
-                  </button>
                 </div>
-              </div>
-            ))}
-          </div>
-        </>
-      ) : (
-        <div className="bg-gray-800 rounded-lg p-6">
-          <button 
-            onClick={handleBackToList}
-            className="mb-4 flex items-center text-teal-400 hover:text-teal-300"
-          >
-            <span className="mr-2">←</span> Quay lại danh sách
-          </button>
-          
-          <h2 className="text-3xl font-bold mb-4 text-teal-400">{selectedExercise.name}</h2>
-          
-          {selectedExercise.videoUrl && (
-            <div className="mb-6">
-              <video className="w-full max-h-96 object-cover rounded-lg" controls>
-                <source src={selectedExercise.videoUrl} type="video/mp4" />
-                Trình duyệt của bạn không hỗ trợ video.
-              </video>
-            </div>
-          )}
-          
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-2 text-teal-400">Mô tả</h3>
-            <p className="text-gray-300">{selectedExercise.description}</p>
-          </div>
-          
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-2 text-teal-400">Lợi ích</h3>
-            <ul className="list-disc pl-6 text-gray-300">
-              {selectedExercise.benefits.map((benefit, index) => (
-                <li key={index} className="mb-1">{benefit}</li>
               ))}
-            </ul>
-          </div>
-          
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-2 text-teal-400">Các mức độ cường độ</h3>
-            <div className="space-y-3">
-              <div className="p-3 bg-gray-700 rounded">
-                <span className="font-medium text-teal-400">Người mới bắt đầu: </span>
-                <span className="text-gray-300">{selectedExercise.intensityLevels.beginner}</span>
-              </div>
-              <div className="p-3 bg-gray-700 rounded">
-                <span className="font-medium text-teal-400">Trung cấp: </span>
-                <span className="text-gray-300">{selectedExercise.intensityLevels.intermediate}</span>
-              </div>
-              <div className="p-3 bg-gray-700 rounded">
-                <span className="font-medium text-teal-400">Nâng cao: </span>
-                <span className="text-gray-300">{selectedExercise.intensityLevels.advanced}</span>
-              </div>
             </div>
-          </div>
-          
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-2 text-teal-400">Calories tiêu thụ</h3>
-            <p className="text-gray-300">{selectedExercise.caloriesBurned}</p>
-          </div>
-          
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-2 text-teal-400">Kỹ thuật thực hiện</h3>
-            <ol className="list-decimal pl-6 text-gray-300">
-              {selectedExercise.techniques.map((technique, index) => (
-                <li key={index} className="mb-2">{technique}</li>
-              ))}
-            </ol>
-          </div>
-          
-          <div className="flex justify-center mt-8">
+          </>
+        ) : (
+          <div className="bg-white rounded-lg p-6 border border-gray-200">
             <button 
               onClick={handleBackToList}
-              className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-2 rounded-md"
+              className="mb-4 flex items-center text-teal-500 hover:text-teal-400"
             >
-              Quay lại danh sách bài tập
+              <span className="mr-2">←</span> Quay lại danh sách
             </button>
+            
+            <h2 className="text-3xl font-bold mb-4 text-teal-500">{selectedExercise.name}</h2>
+            
+            {selectedExercise.videoUrl && (
+              <div className="mb-6">
+                <video className="w-full max-h-96 object-cover rounded-lg" controls>
+                  <source src={selectedExercise.videoUrl} type="video/mp4" />
+                  Trình duyệt của bạn không hỗ trợ video.
+                </video>
+              </div>
+            )}
+            
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold mb-2 text-teal-500">Mô tả</h3>
+              <p className="text-gray-800">{selectedExercise.description}</p>
+            </div>
+            
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold mb-2 text-teal-500">Lợi ích</h3>
+              <ul className="list-disc pl-6 text-gray-800">
+                {selectedExercise.benefits.map((benefit, index) => (
+                  <li key={index} className="mb-1">{benefit}</li>
+                ))}
+              </ul>
+            </div>
+            
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold mb-2 text-teal-500">Các mức độ cường độ</h3>
+              <div className="space-y-3">
+                <div className="p-3 bg-gray-100 rounded">
+                  <span className="font-medium text-teal-500">Người mới bắt đầu: </span>
+                  <span className="text-gray-800">{selectedExercise.intensityLevels.beginner}</span>
+                </div>
+                <div className="p-3 bg-gray-100 rounded">
+                  <span className="font-medium text-teal-500">Trung cấp: </span>
+                  <span className="text-gray-800">{selectedExercise.intensityLevels.intermediate}</span>
+                </div>
+                <div className="p-3 bg-gray-100 rounded">
+                  <span className="font-medium text-teal-500">Nâng cao: </span>
+                  <span className="text-gray-800">{selectedExercise.intensityLevels.advanced}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold mb-2 text-teal-500">Calories tiêu thụ</h3>
+              <p className="text-gray-800">{selectedExercise.caloriesBurned}</p>
+            </div>
+            
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold mb-2 text-teal-500">Kỹ thuật thực hiện</h3>
+              <ol className="list-decimal pl-6 text-gray-800">
+                {selectedExercise.techniques.map((technique, index) => (
+                  <li key={index} className="mb-2">{technique}</li>
+                ))}
+              </ol>
+            </div>
+            
+            <div className="flex justify-center mt-8">
+              <button 
+                onClick={handleBackToList}
+                className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-2 rounded-md"
+              >
+                Quay lại danh sách bài tập
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
