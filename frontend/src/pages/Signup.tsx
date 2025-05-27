@@ -420,7 +420,7 @@ const Signup: React.FC = () => {
                             <h2 className="text-3xl font-bold mb-4">Bắt đầu hành trình thể hình</h2>
                             <p className="text-lg opacity-90 leading-relaxed">
                                 "Đừng từ bỏ ước mơ của bạn,<br />
-                                nếu không ước mơ sẽ từ bỏ bạn."<br />
+                                Thành công là chặng đường, Không phải đích đến."<br />
                                 <span className="font-semibold text-teal-300">Hãy là VietLife!!</span>
                             </p>
                         </div>

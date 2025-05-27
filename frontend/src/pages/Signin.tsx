@@ -162,19 +162,7 @@ const Signin: React.FC = () => {
 
             {/* Remember me & Forgot password */}
             <div className="flex justify-between items-center py-2">
-              <div className="flex items-center space-x-3">
-                <input 
-                  type="checkbox" 
-                  name="remember" 
-                  id="remember" 
-                  className="w-5 h-5 text-teal-400 border-gray-300 rounded focus:ring-teal-400 focus:ring-2"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                <label htmlFor="remember" className="text-sm text-gray-600">
-                  Ghi nhớ trong 30 ngày
-                </label>
-              </div>
+              
               <Link 
                 to="/forgot-password" 
                 className="text-sm font-semibold text-teal-500 hover:text-teal-600 transition-colors duration-200"
