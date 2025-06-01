@@ -13,7 +13,7 @@ const { UserRouter } = require("./routes/UserRoutes"); // Import UserRouter
 
 
 const app = express();
-app.use(cors({ origin: "https://vietlife-fitness-website-16dd.onrender.com" })) // Chỉnh sửa cor
+app.use(cors({ origin: "https://vietlife-fitness-website-sagd.onrender.com" })) // Chỉnh sửa cor
 app.use(express.json())
 
 app.get("/",(req,res)=>{
