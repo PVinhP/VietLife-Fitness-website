@@ -134,7 +134,7 @@ const Signup: React.FC = () => {
             console.log("Sending data:", submitData);
 
             const response = await axios.post<SignupResponse>(
-                `https://backend-rjhh.onrender.com/user/register`,
+                `http://localhost:8080/user/register`,
                 submitData,
                 {
                     headers: {
