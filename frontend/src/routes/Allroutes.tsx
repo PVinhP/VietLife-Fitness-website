@@ -34,7 +34,7 @@ function Allroutes() {
       <Route path='/addworkout' element={<PrivateRoute><Addworkout/></PrivateRoute>} />
       <Route path='/expert' element={<Chatbotapi/>} />
       <Route path='/plan' element={<PrivateRoute><Plan /></PrivateRoute>} />
-      <Route path="/cardio" element={<CardioGuide />} /> {/* Thêm tuyến đường mới */}
+      <Route path="/cardio" element={<PrivateRoute><CardioGuide /></PrivateRoute>} /> {/* Thêm tuyến đường mới */}
     </Routes>
   )
 }
