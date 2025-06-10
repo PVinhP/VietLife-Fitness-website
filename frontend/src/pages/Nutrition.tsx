@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import Img5 from "../Assests/Img5.jpg"
 import useDebounce from "../hook/useDebounce"
 import NutritientsIntake from './NutritientsIntake'
@@ -28,11 +29,20 @@ interface Lesson {
 
 function Nutrition() {
     const navigate = useNavigate()
+    const location = useLocation()
+    const lessonsRef = useRef<HTMLDivElement>(null)
     const [Query, setQuery] = useState("");
     const [list, setList] = useState<searchList[]>([]);
     const [lessons, setLessons] = useState<Lesson[]>([]);
     const [activeCategory, setActiveCategory] = useState<string>("coban");
     const searchResults = useDebounce(Query, 1000)
+
+    // Scroll to lessons section if coming from lesson detail
+    useEffect(() => {
+        if (location.state?.scrollToLessons && lessonsRef.current) {
+            lessonsRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [location]);
 
     // Fetch lessons from API
     useEffect(() => {
@@ -227,7 +237,7 @@ function Nutrition() {
                 )}
 
                 {/* Lesson Categories */}
-                <div className="max-w-7xl mx-auto px-8 mt-16">
+                <div ref={lessonsRef} className="max-w-7xl mx-auto px-8 mt-16">
                     <div className="text-center mb-12">
                         <h2 className="text-4xl font-bold text-gray-900 mb-4">📚 Hệ thống bài học dinh dưỡng</h2>
                         <p className="text-xl text-gray-600">Từ cơ bản đến nâng cao - Xây dựng nền tảng kiến thức vững chắc</p>

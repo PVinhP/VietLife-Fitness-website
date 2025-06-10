@@ -20,6 +20,11 @@ function LessonDetail() {
   const [error, setError] = useState<string | null>(null);
   const [relatedLessons, setRelatedLessons] = useState<Lesson[]>([]);
 
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     if (!id) {
       setError('ID bài học không hợp lệ');
@@ -107,6 +112,10 @@ function LessonDetail() {
     });
   };
 
+  const handleBackToList = () => {
+    navigate('/nutrition', { state: { scrollToLessons: true } });
+  };
+
   if (loading) {
     return (
       <div className="bg-white min-h-screen flex items-center justify-center">
@@ -125,7 +134,7 @@ function LessonDetail() {
           <div className="text-6xl mb-4">😔</div>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">{error || 'Không tìm thấy bài học'}</h2>
           <button
-            onClick={() => navigate('/nutrition')}
+            onClick={handleBackToList}
             className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-lg transition-colors"
           >
             ← Quay lại danh sách bài học
@@ -142,7 +151,7 @@ function LessonDetail() {
       <div className="bg-gradient-to-r from-white to-gray-100 shadow-lg">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <button
-            onClick={() => navigate('/nutrition')}
+            onClick={handleBackToList}
             className="inline-flex items-center text-teal-700 hover:text-teal-500 mb-6 transition-colors"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -193,7 +202,7 @@ function LessonDetail() {
 
             <div className="mt-8 flex justify-between items-center">
               <button
-                onClick={() => navigate('/nutrition')}
+                onClick={handleBackToList}
                 className="inline-flex items-center px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition-colors"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
