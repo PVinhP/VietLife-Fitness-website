@@ -45,7 +45,7 @@ function CardioGuide() {
       return;
     }
 
-    axios.get("https://backend-rjhh.onrender.com/cardio", {
+    axios.get("http://localhost:8080/cardio", {
       headers: { 
         "Content-Type": "application/json", 
         Authorization: `Bearer ${token}` 

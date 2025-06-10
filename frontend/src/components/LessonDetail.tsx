@@ -32,7 +32,7 @@ function LessonDetail() {
       return;
     }
 
-    fetch(`https://backend-rjhh.onrender.com/lesson/${id}`, {
+    fetch(`http://localhost:8080/lesson/${id}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -58,7 +58,7 @@ function LessonDetail() {
   }, [id]);
 
   const fetchRelatedLessons = (loai: string, currentId: number) => {
-    fetch(`https://backend-rjhh.onrender.com/lesson/type/${loai}`, {
+    fetch(`http://localhost:8080/lesson/type/${loai}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })

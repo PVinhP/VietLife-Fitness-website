@@ -46,7 +46,7 @@ function Nutrition() {
 
     // Fetch lessons from API
     useEffect(() => {
-        fetch(`https://backend-rjhh.onrender.com/lesson`, {
+        fetch(`http://localhost:8080/lesson`, {
             method: "GET",
             headers: {
                 "Content-type": "application/json"
@@ -75,7 +75,7 @@ function Nutrition() {
             return;
         }
 
-        fetch(`https://backend-rjhh.onrender.com/nutrition/search?name=${searchResults}`, {
+        fetch(`http://localhost:8080/nutrition/search?name=${searchResults}`, {
             method: "GET",
             headers: {
                 "Content-type": "application/json"

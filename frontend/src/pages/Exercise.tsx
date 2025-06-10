@@ -23,7 +23,7 @@ function Exercise() {
     const token = localStorage.getItem("token");
 
 useEffect(() => {
-    axios.get("https://backend-rjhh.onrender.com/exercise", {
+    axios.get("http://localhost:8080/exercise", {
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }
         })
             .then((res) => {

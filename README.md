@@ -8,7 +8,7 @@ MSSV: 21110941
 Mục đích chính của đề tài là tạo ra được một thư viện học tập trực tuyến ( giống như “trường học sức khỏe”), giúp người dùng tiếp cận thông tin một cách bài bản, có hệ thống.Nhờ đó, góp phần nâng cao nhận thức cộng đồng về lối sống lành mạnh, giảm thiểu nguy cơ mắc các bệnh không lây nhiễm.
 
 ## Link Deploy hệ thống:
-- **Link Backend**: https://backend-rjhh.onrender.com
+- **Link Backend**: http://localhost:8080
 - **Link Frontend**: https://vietlife-fitness-website-owpj.onrender.com
 ![image](https://github.com/user-attachments/assets/025eb2d3-0125-495e-8b93-69ea39e9636c)
 
