@@ -32,7 +32,7 @@ function LessonDetail() {
       return;
     }
 
-    fetch(`https://vietlife-fitness-website-owpj.onrender.com//lesson/${id}`, {
+    fetch(`https://backend-rjhh.onrender.com/lesson/${id}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -58,7 +58,7 @@ function LessonDetail() {
   }, [id]);
 
   const fetchRelatedLessons = (loai: string, currentId: number) => {
-    fetch(`https://vietlife-fitness-website-owpj.onrender.com//lesson/type/${loai}`, {
+    fetch(`https://backend-rjhh.onrender.com/lesson/type/${loai}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })

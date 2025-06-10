@@ -27,7 +27,7 @@ const Blogs = () => {
 useEffect(() => {
         const fetchBlogs = async () => {
             try {
-                const response = await fetch('https://vietlife-fitness-website-owpj.onrender.com//blogs')
+                const response = await fetch('https://backend-rjhh.onrender.com/blogs')
                 if (!response.ok) {
                     throw new Error('Không thể tải dữ liệu blog')
                 }
@@ -47,7 +47,7 @@ useEffect(() => {
 useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await fetch('https://vietlife-fitness-website-owpj.onrender.com//blogs/categories/all')
+                const response = await fetch('https://backend-rjhh.onrender.com/blogs/categories/all')
                 if (response.ok) {
                     const data = await response.json()
                     setCategories(data)
@@ -86,7 +86,7 @@ useEffect(() => {
 
     const getImageUrl = (hinh_anh: string) => {
         if (hinh_anh && hinh_anh.trim() !== '') {
-            return hinh_anh.startsWith('http') ? hinh_anh : `https://vietlife-fitness-website-owpj.onrender.com//uploads/${hinh_anh}`
+            return hinh_anh.startsWith('http') ? hinh_anh : `https://backend-rjhh.onrender.com/uploads/${hinh_anh}`
         }
         const defaultImages = [
             "https://images.pexels.com/photos/2247179/pexels-photo-2247179.jpeg?auto=compress&cs=tinysrgb&w=600",

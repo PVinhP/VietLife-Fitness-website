@@ -15,7 +15,7 @@
 // }
 // export const RegisterUser=(data:signupform)=>(dispatch:Dispatch)=>{
 //     dispatch({type:SIGNUP_REQUEST})
-//     axios.post(`https://vietlife-fitness-website-owpj.onrender.com//user/register`,data)
+//     axios.post(`https://backend-rjhh.onrender.com/user/register`,data)
 //     .then((res)=>{
 //         console.log(res.data)
 //         dispatch({type:SIGNUP_SUCCESS})
@@ -45,7 +45,7 @@ interface SignupForm {
 export const RegisterUser = (data: SignupForm) => (dispatch: Dispatch<Action>) => {
   dispatch({ type: SIGNUP_REQUEST });
   return axios 
-    .post(`https://vietlife-fitness-website-owpj.onrender.com//user/register`, data)
+    .post(`https://backend-rjhh.onrender.com/user/register`, data)
     .then((res) => {
       console.log(res.data);
       dispatch({ type: SIGNUP_SUCCESS });

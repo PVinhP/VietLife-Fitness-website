@@ -23,7 +23,7 @@ function Exercise() {
     const token = localStorage.getItem("token");
 
 useEffect(() => {
-    axios.get("https://vietlife-fitness-website-owpj.onrender.com//exercise", {
+    axios.get("https://backend-rjhh.onrender.com/exercise", {
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }
         })
             .then((res) => {
