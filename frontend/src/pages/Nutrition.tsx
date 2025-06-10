@@ -46,7 +46,7 @@ function Nutrition() {
 
     // Fetch lessons from API
     useEffect(() => {
-        fetch(`http://localhost:8080/lesson`, {
+        fetch(`https://vietlife-fitness-website-owpj.onrender.com//lesson`, {
             method: "GET",
             headers: {
                 "Content-type": "application/json"
@@ -75,7 +75,7 @@ function Nutrition() {
             return;
         }
 
-        fetch(`http://localhost:8080/nutrition/search?name=${searchResults}`, {
+        fetch(`https://vietlife-fitness-website-owpj.onrender.com//nutrition/search?name=${searchResults}`, {
             method: "GET",
             headers: {
                 "Content-type": "application/json"

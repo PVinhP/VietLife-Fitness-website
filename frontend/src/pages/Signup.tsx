@@ -134,7 +134,7 @@ const Signup: React.FC = () => {
             console.log("Sending data:", submitData);
 
             const response = await axios.post<SignupResponse>(
-                `http://localhost:8080/user/register`,
+                `https://vietlife-fitness-website-owpj.onrender.com//user/register`,
                 submitData,
                 {
                     headers: {

@@ -24,7 +24,7 @@ const BlogDetail = () => {
     useEffect(() => {
         const fetchBlog = async () => {
             try {
-                const response = await fetch(`http://localhost:8080/blogs/${id}`)
+                const response = await fetch(`https://vietlife-fitness-website-owpj.onrender.com//blogs/${id}`)
                 if (!response.ok) {
                     throw new Error('Không thể tải dữ liệu blog')
                 }
@@ -49,7 +49,7 @@ const BlogDetail = () => {
 
     const fetchRelatedBlogs = async (category: string, currentBlogId: number) => {
         try {
-            const response = await fetch(`http://localhost:8080/blogs/category/${encodeURIComponent(category)}`)
+            const response = await fetch(`https://vietlife-fitness-website-owpj.onrender.com//blogs/category/${encodeURIComponent(category)}`)
             if (response.ok) {
                 const data = await response.json()
                 // Filter out current blog and limit to 3 related blogs
@@ -74,7 +74,7 @@ const BlogDetail = () => {
 
     const getImageUrl = (hinh_anh: string) => {
         if (hinh_anh && hinh_anh.trim() !== '') {
-            return hinh_anh.startsWith('http') ? hinh_anh : `http://localhost:8080/uploads/${hinh_anh}`
+            return hinh_anh.startsWith('http') ? hinh_anh : `https://vietlife-fitness-website-owpj.onrender.com//uploads/${hinh_anh}`
         }
         return "https://images.pexels.com/photos/2247179/pexels-photo-2247179.jpeg?auto=compress&cs=tinysrgb&w=1200"
     }

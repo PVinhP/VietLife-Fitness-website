@@ -45,7 +45,7 @@ function CardioGuide() {
       return;
     }
 
-    axios.get("http://localhost:8080/cardio", {
+    axios.get("https://vietlife-fitness-website-owpj.onrender.com//cardio", {
       headers: { 
         "Content-Type": "application/json", 
         Authorization: `Bearer ${token}` 
