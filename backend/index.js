@@ -14,6 +14,7 @@ const { UserRouter } = require("./routes/UserRoutes"); // Import UserRouter
 
 const app = express();
 app.use(cors({ origin: "https://vietlife-fitness-website-owpj.onrender.com" })) // Chỉnh sửa cor
+// app.use(cors({ origin: "http://localhost:3000" })) 
 app.use(express.json())
 
 app.get("/",(req,res)=>{

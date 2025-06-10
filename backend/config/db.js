@@ -3,9 +3,9 @@ require('dotenv').config();
 
 // Tạo pool connection để quản lý kết nối hiệu quả
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || '127.0.0.1',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '1234',
+  host: process.env.DB_HOST || 'mydb.crgyamum0k6a.ap-southeast-1.rds.amazonaws.com',
+  user: process.env.DB_USER || 'admin',
+  password: process.env.DB_PASSWORD || 'Vinh2003#',
   database: process.env.DB_NAME || 'workout',
   waitForConnections: true,
   connectionLimit: 10,
