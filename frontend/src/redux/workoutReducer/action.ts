@@ -1,7 +1,7 @@
 import axios from "axios"
 
 export const getWorkouts=()=>{
-    return axios.get("http://localhost:8080/workouts")
+    return axios.get("https://backend-rjhh.onrender.com/workouts")
     .then((res)=>{
         console.log(res);
     })
