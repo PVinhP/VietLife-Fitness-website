@@ -20,21 +20,21 @@ import LessonDetail from '../components/LessonDetail'
 function Allroutes() {
   return (
     <Routes>
-      <Route path="https://vietlife-fitness-website-owpj.onrender.com/signin" element={<Signin />} />
-      <Route path="https://vietlife-fitness-website-owpj.onrender.com/signup" element={<Signup />} />
-      <Route path='https://vietlife-fitness-website-owpj.onrender.com/' element={<Home />} />
-      <Route path='https://vietlife-fitness-website-owpj.onrender.com/yoga' element={<Yoga />} />
-      <Route path='https://vietlife-fitness-website-owpj.onrender.com/blogs' element={<Blogs />} />
-      <Route path="https://vietlife-fitness-website-owpj.onrender.com/blog/:id" element={<BlogDetail />} /> {/* Thêm tuyến đường mới cho chi tiết blog */}
-      <Route path="https://vietlife-fitness-website-owpj.onrender.com/nutrition" element={<Nutriton />} />
-      <Route path="https://vietlife-fitness-website-owpj.onrender.com/lesson/:id" element={<LessonDetail />} /> {/* Thêm tuyến đường mới cho chi tiết bài học */}
-      <Route path='https://vietlife-fitness-website-owpj.onrender.com/customexercise' element={<ExerciseInputForm />} />
-      <Route path='https://vietlife-fitness-website-owpj.onrender.com/exercise' element={<PrivateRoute><Exercise /></PrivateRoute>} />
-      <Route path='https://vietlife-fitness-website-owpj.onrender.com/goals' element={<PrivateRoute><UserPage/></PrivateRoute>} />
-      <Route path='https://vietlife-fitness-website-owpj.onrender.com/addworkout' element={<PrivateRoute><Addworkout/></PrivateRoute>} />
-      <Route path='https://vietlife-fitness-website-owpj.onrender.com/expert' element={<Chatbotapi/>} />
-      <Route path='https://vietlife-fitness-website-owpj.onrender.com/plan' element={<PrivateRoute><Plan /></PrivateRoute>} />
-      <Route path="https://vietlife-fitness-website-owpj.onrender.com/cardio" element={<PrivateRoute><CardioGuide /></PrivateRoute>} /> {/* Thêm tuyến đường mới */}
+      <Route path="/signin" element={<Signin />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path='/' element={<Home />} />
+      <Route path='/yoga' element={<Yoga />} />
+      <Route path='/blogs' element={<Blogs />} />
+      <Route path="/blog/:id" element={<BlogDetail />} /> {/* Thêm tuyến đường mới cho chi tiết blog */}
+      <Route path="/nutrition" element={<Nutriton />} />
+      <Route path="/lesson/:id" element={<LessonDetail />} /> {/* Thêm tuyến đường mới cho chi tiết bài học */}
+      <Route path='/customexercise' element={<ExerciseInputForm />} />
+      <Route path='/exercise' element={<PrivateRoute><Exercise /></PrivateRoute>} />
+      <Route path='/goals' element={<PrivateRoute><UserPage/></PrivateRoute>} />
+      <Route path='/addworkout' element={<PrivateRoute><Addworkout/></PrivateRoute>} />
+      <Route path='/expert' element={<Chatbotapi/>} />
+      <Route path='/plan' element={<PrivateRoute><Plan /></PrivateRoute>} />
+      <Route path="/cardio" element={<PrivateRoute><CardioGuide /></PrivateRoute>} /> {/* Thêm tuyến đường mới */}
     </Routes>
   )
 }
