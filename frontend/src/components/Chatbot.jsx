@@ -1,156 +1,165 @@
-import { useRef, useState } from "react";
-import axios from "axios";
-
-const init = {
-  role: "system",
-  content: "I am Fitness Expert from VietLife, here to help with nutrition and exercise advice. Ask me about food nutrition or workouts!"
-};
+import React, { useState } from 'react';
+import { FaComment, FaTimes } from 'react-icons/fa';
 
 const Chatbotapi = () => {
-  const inputRef = useRef(null);
-  const chatBodyRef = useRef(null);
-  const [input, setInput] = useState("");
-  const [bot, setBot] = useState([init]);
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [messages, setMessages] = useState([{ text: 'Xin chào! Tôi là chatbot sức khỏe. Hãy cung cấp thông tin để tôi cá nhân hóa tư vấn nhé!', isBot: true }]);
+  const [input, setInput] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [userInfo, setUserInfo] = useState({
+    weight: '',
+    height: '',
+    goal: '',
+    preferences: '',
+    allergies: '',
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-
-    const message = { role: "user", content: input };
-    const newData = [...bot, message];
-    setBot(newData);
-    setInput("");
-    setIsLoading(true);
-
-    try {
-      // Kiểm tra nếu input chứa từ khóa về thực phẩm
-      const foodQuery = input.toLowerCase().trim();
-      const response = await axios.get(
-        `https://api.nal.usda.gov/fdc/v1/foods/search`,
-        {
-          params: {
-            query: foodQuery,
-            api_key: process.env.REACT_APP_USDA_API_KEY || "DEMO_KEY",
-            pageSize: 1,
-          },
-        }
-      );
-
-      const foodData = response.data.foods[0];
-      let botResponse;
-
-      if (foodData) {
-        const nutrients = foodData.foodNutrients
-          .filter(n => ["Energy", "Protein", "Total lipid (fat)", "Carbohydrate, by difference"].includes(n.nutrientName))
-          .map(n => `${n.nutrientName}: ${n.value} ${n.unitName.toLowerCase()}`)
-          .join(", ");
-        botResponse = `Nutrition info for ${foodData.description}: ${nutrients || "No detailed nutrition data available."}`;
-      } else {
-        botResponse = "Sorry, I couldn't find nutrition info for that. Try asking about a specific food like 'apple' or 'chicken', or ask about workouts!";
-      }
-
-      const updatedChatHistory = [
-        ...newData,
-        { role: "assistant", content: botResponse },
-      ];
-
-      setBot(updatedChatHistory);
-      inputRef.current.focus();
-      if (chatBodyRef.current) {
-        chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
-      }
-    } catch (error) {
-      console.error("Error fetching USDA data:", error);
-      setBot([
-        ...newData,
-        { role: "assistant", content: "Xin lỗi, có lỗi khi tìm dữ liệu. Vui lòng thử lại!" },
-      ]);
-    } finally {
-      setIsLoading(false);
+  const handleSendMessage = () => {
+    if (input.trim()) {
+      setMessages([...messages, { text: input, isBot: false }]);
+      // Giả lập phản hồi bot (sẽ thay bằng API sau)
+      setMessages((prev) => [...prev, { text: 'Cảm ơn! Tôi đang xử lý yêu cầu của bạn...', isBot: true }]);
+      setInput('');
     }
   };
 
-  const toggleChatbox = () => {
-    setIsOpen(!isOpen);
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    // Lưu thông tin người dùng (sẽ tích hợp Firebase sau)
+    console.log('Thông tin người dùng:', userInfo);
+    setMessages((prev) => [
+      ...prev,
+      { text: 'Thông tin của bạn đã được lưu! Tôi sẽ cá nhân hóa tư vấn dựa trên dữ liệu này.', isBot: true },
+    ]);
+    setShowForm(false);
   };
 
   return (
-    <>
-      {/* Toggle Button */}
-      <button
-        onClick={toggleChatbox}
-        className="fixed bottom-5 right-5 bg-green-500 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:bg-green-600 z-50"
-      >
-        💬
-      </button>
-
-      {/* Chatbox */}
-      <div
-        className={`fixed bottom-16 right-5 w-80 bg-white rounded-lg shadow-xl flex flex-col transition-all duration-300 ${
-          isOpen ? "opacity-100 visible" : "opacity-0 invisible"
-        }`}
-      >
-        {/* Header */}
-        <div className="bg-green-500 text-white p-3 rounded-t-lg flex justify-between items-center">
-          <h3 className="text-lg font-semibold">VietLife Fitness Expert</h3>
-          <button onClick={toggleChatbox} className="text-white">
-            ✕
-          </button>
-        </div>
-
-        {/* Chat Body */}
-        <div
-          ref={chatBodyRef}
-          className="flex-1 p-4 h-96 overflow-y-auto bg-gray-100"
+    <div className="fixed bottom-4 right-4 z-50">
+      {/* Bong bóng nổi */}
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition"
         >
-          {bot.map((message, index) => (
-            <div
-              key={index}
-              className={`mb-3 flex ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
+          <FaComment size={24} />
+        </button>
+      )}
+
+      {/* Cửa sổ chatbot */}
+      {isOpen && (
+        <div className="bg-white w-80 h-[500px] rounded-lg shadow-xl flex flex-col">
+          {/* Header */}
+          <div className="bg-blue-600 text-white p-3 rounded-t-lg flex justify-between items-center">
+            <h3 className="font-semibold">Chatbot Sức Khỏe</h3>
+            <button onClick={() => setIsOpen(false)}>
+              <FaTimes size={20} />
+            </button>
+          </div>
+
+          {/* Nội dung trò chuyện */}
+          <div className="flex-1 p-4 overflow-y-auto">
+            {messages.map((msg, index) => (
               <div
-                className={`max-w-[80%] p-3 rounded-lg shadow-md ${
-                  message.role === "user"
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-200 text-gray-800"
-                }`}
+                key={index}
+                className={`mb-2 ${msg.isBot ? 'text-left' : 'text-right'}`}
               >
-                <p className="text-base">{message.content}</p>
+                <span
+                  className={`inline-block p-2 rounded-lg ${
+                    msg.isBot ? 'bg-gray-200' : 'bg-blue-600 text-white'
+                  }`}
+                >
+                  {msg.text}
+                </span>
               </div>
+            ))}
+          </div>
+
+          {/* Form thu thập thông tin */}
+          {showForm && (
+            <div className="p-4 bg-gray-100">
+              <form onSubmit={handleFormSubmit}>
+                <input
+                  type="number"
+                  placeholder="Cân nặng (kg)"
+                  value={userInfo.weight}
+                  onChange={(e) => setUserInfo({ ...userInfo, weight: e.target.value })}
+                  className="w-full p-2 mb-2 border rounded"
+                  required
+                />
+                <input
+                  type="number"
+                  placeholder="Chiều cao (cm)"
+                  value={userInfo.height}
+                  onChange={(e) => setUserInfo({ ...userInfo, height: e.target.value })}
+                  className="w-full p-2 mb-2 border rounded"
+                  required
+                />
+                <select
+                  value={userInfo.goal}
+                  onChange={(e) => setUserInfo({ ...userInfo, goal: e.target.value })}
+                  className="w-full p-2 mb-2 border rounded"
+                  required
+                >
+                  <option value="">Chọn mục tiêu</option>
+                  <option value="Giảm cân">Giảm cân</option>
+                  <option value="Tăng cơ">Tăng cơ</option>
+                  <option value="Duy trì sức khỏe">Duy trì sức khỏe</option>
+                </select>
+                <input
+                  type="text"
+                  placeholder="Sở thích ăn uống"
+                  value={userInfo.preferences}
+                  onChange={(e) => setUserInfo({ ...userInfo, preferences: e.target.value })}
+                  className="w-full p-2 mb-2 border rounded"
+                />
+                <input
+                  type="text"
+                  placeholder="Dị ứng (nếu có)"
+                  value={userInfo.allergies}
+                  onChange={(e) => setUserInfo({ ...userInfo, allergies: e.target.value })}
+                  className="w-full p-2 mb-2 border rounded"
+                />
+                <button
+                  type="submit"
+                  className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+                >
+                  Gửi thông tin
+                </button>
+              </form>
             </div>
-          ))}
-          {isLoading && (
-            <div className="flex justify-center">
-              <div className="animate-spin h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full"></div>
+          )}
+
+          {/* Ô nhập tin nhắn */}
+          {!showForm && (
+            <div className="p-4 border-t">
+              <div className="flex">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Nhập câu hỏi..."
+                  className="flex-1 p-2 border rounded-l"
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                />
+                <button
+                  onClick={handleSendMessage}
+                  className="bg-blue-600 text-white p-2 rounded-r hover:bg-blue-700"
+                >
+                  Gửi
+                </button>
+              </div>
+              <button
+                onClick={() => setShowForm(true)}
+                className="mt-2 text-blue-600 hover:underline"
+              >
+                Cung cấp thông tin cá nhân
+              </button>
             </div>
           )}
         </div>
-
-        {/* Input Area */}
-        <form onSubmit={handleSubmit} className="p-3 border-t border-gray-200">
-          <div className="flex items-center">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Hỏi về dinh dưỡng hoặc bài tập..."
-              className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 resize-none h-12"
-            />
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="ml-2 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 disabled:bg-gray-400"
-            >
-              Gửi
-            </button>
-          </div>
-        </form>
-      </div>
-    </>
+      )}
+    </div>
   );
 };
 
