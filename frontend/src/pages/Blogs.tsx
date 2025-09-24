@@ -250,22 +250,7 @@ useEffect(() => {
                     ))}
                 </div>
 
-                <div onClick={() => navigate("/expert")}>
-                    <img 
-                        style={{ 
-                            float: 'right', 
-                            width: "87px", 
-                            fontSize: "70px", 
-                            marginRight: "-18%", 
-                            position: "fixed", 
-                            top: "70%", 
-                            left: "93.3%",
-                            cursor: "pointer"
-                        }} 
-                        src={bot}  
-                        alt="chatbot" 
-                    />
-                </div>
+                
             </div>
         </div>
     )

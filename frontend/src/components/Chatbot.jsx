@@ -3,7 +3,12 @@ import { FaComment, FaTimes } from 'react-icons/fa';
 
 const Chatbotapi = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([{ text: 'Xin chào! Tôi là chatbot sức khỏe. Hãy cung cấp thông tin để tôi cá nhân hóa tư vấn nhé!', isBot: true }]);
+  const [messages, setMessages] = useState([
+    {
+      text: 'Xin chào! Tôi là chatbot sức khỏe. Hãy cung cấp thông tin để tôi cá nhân hóa tư vấn nhé!',
+      isBot: true,
+    },
+  ]);
   const [input, setInput] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [userInfo, setUserInfo] = useState({
@@ -17,19 +22,24 @@ const Chatbotapi = () => {
   const handleSendMessage = () => {
     if (input.trim()) {
       setMessages([...messages, { text: input, isBot: false }]);
-      // Giả lập phản hồi bot (sẽ thay bằng API sau)
-      setMessages((prev) => [...prev, { text: 'Cảm ơn! Tôi đang xử lý yêu cầu của bạn...', isBot: true }]);
+      // Giả lập phản hồi bot
+      setMessages((prev) => [
+        ...prev,
+        { text: 'Cảm ơn! Tôi đang xử lý yêu cầu của bạn...', isBot: true },
+      ]);
       setInput('');
     }
   };
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    // Lưu thông tin người dùng (sẽ tích hợp Firebase sau)
     console.log('Thông tin người dùng:', userInfo);
     setMessages((prev) => [
       ...prev,
-      { text: 'Thông tin của bạn đã được lưu! Tôi sẽ cá nhân hóa tư vấn dựa trên dữ liệu này.', isBot: true },
+      {
+        text: 'Thông tin của bạn đã được lưu! Tôi sẽ cá nhân hóa tư vấn dựa trên dữ liệu này.',
+        isBot: true,
+      },
     ]);
     setShowForm(false);
   };
@@ -66,7 +76,9 @@ const Chatbotapi = () => {
               >
                 <span
                   className={`inline-block p-2 rounded-lg ${
-                    msg.isBot ? 'bg-gray-200' : 'bg-blue-600 text-white'
+                    msg.isBot
+                      ? 'bg-gray-200 text-black' // Bot: nền xám, chữ đen
+                      : 'bg-blue-600 text-white' // User: nền xanh, chữ trắng
                   }`}
                 >
                   {msg.text}
@@ -83,22 +95,28 @@ const Chatbotapi = () => {
                   type="number"
                   placeholder="Cân nặng (kg)"
                   value={userInfo.weight}
-                  onChange={(e) => setUserInfo({ ...userInfo, weight: e.target.value })}
-                  className="w-full p-2 mb-2 border rounded"
+                  onChange={(e) =>
+                    setUserInfo({ ...userInfo, weight: e.target.value })
+                  }
+                  className="w-full p-2 mb-2 border rounded text-black"
                   required
                 />
                 <input
                   type="number"
                   placeholder="Chiều cao (cm)"
                   value={userInfo.height}
-                  onChange={(e) => setUserInfo({ ...userInfo, height: e.target.value })}
-                  className="w-full p-2 mb-2 border rounded"
+                  onChange={(e) =>
+                    setUserInfo({ ...userInfo, height: e.target.value })
+                  }
+                  className="w-full p-2 mb-2 border rounded text-black"
                   required
                 />
                 <select
                   value={userInfo.goal}
-                  onChange={(e) => setUserInfo({ ...userInfo, goal: e.target.value })}
-                  className="w-full p-2 mb-2 border rounded"
+                  onChange={(e) =>
+                    setUserInfo({ ...userInfo, goal: e.target.value })
+                  }
+                  className="w-full p-2 mb-2 border rounded text-black"
                   required
                 >
                   <option value="">Chọn mục tiêu</option>
@@ -110,15 +128,19 @@ const Chatbotapi = () => {
                   type="text"
                   placeholder="Sở thích ăn uống"
                   value={userInfo.preferences}
-                  onChange={(e) => setUserInfo({ ...userInfo, preferences: e.target.value })}
-                  className="w-full p-2 mb-2 border rounded"
+                  onChange={(e) =>
+                    setUserInfo({ ...userInfo, preferences: e.target.value })
+                  }
+                  className="w-full p-2 mb-2 border rounded text-black"
                 />
                 <input
                   type="text"
                   placeholder="Dị ứng (nếu có)"
                   value={userInfo.allergies}
-                  onChange={(e) => setUserInfo({ ...userInfo, allergies: e.target.value })}
-                  className="w-full p-2 mb-2 border rounded"
+                  onChange={(e) =>
+                    setUserInfo({ ...userInfo, allergies: e.target.value })
+                  }
+                  className="w-full p-2 mb-2 border rounded text-black"
                 />
                 <button
                   type="submit"
@@ -139,7 +161,7 @@ const Chatbotapi = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Nhập câu hỏi..."
-                  className="flex-1 p-2 border rounded-l"
+                  className="flex-1 p-2 border rounded-l text-black" // nhập chữ đen
                   onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 />
                 <button

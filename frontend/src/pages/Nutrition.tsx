@@ -317,7 +317,7 @@ function Nutrition() {
                 <NutritientsIntake />
             </div>
 
-            {/* Chat Bot */}
+            {/* Chat Bot 
             <div onClick={() => navigate("/expert")} className='bg-white cursor-pointer'>
                 <img 
                     style={{ 
@@ -333,6 +333,7 @@ function Nutrition() {
                     alt="Chatbot hỗ trợ" 
                 />
             </div>
+            */}
         </div>
     )
 }
