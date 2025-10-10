@@ -15,10 +15,12 @@ import Addworkout from '../components/Addworkout';
 import CardioGuide from '../pages/Cardio';
 import BlogDetail from '../components/BlogDetail';
 import LessonDetail from '../components/LessonDetail';
+import OnboardingQuiz from '../components/OnboardingQuiz';
 
 function Allroutes() {
   return (
     <Routes>
+      <Route path="/quiz" element={<OnboardingQuiz />} />
       <Route path="/signin" element={<Signin />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/" element={<Home />} />
