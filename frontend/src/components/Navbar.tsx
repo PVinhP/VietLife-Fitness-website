@@ -30,7 +30,7 @@ function Navbar() {
 
   return (
 
-    <nav className="sticky top-0  border-gray-200 bg-teal-500 z-10 ">
+    <nav className="sticky top-0  border-gray-200 bg-teal-500 z-50 ">
 
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
         <a href="/" className="flex items-center">
