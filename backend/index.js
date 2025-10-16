@@ -1,3 +1,4 @@
+//require('dotenv').config();
 const express = require("express");
 const cors = require('cors')
 const { connection } = require("./config/db")
@@ -10,7 +11,7 @@ const { lessonRouter } = require("./routes/LessonRoute"); // Import mới
 const { cardioRouter } = require("./routes/CardioRoute"); // Import route mới
 const { UserRouter } = require("./routes/UserRoutes"); // Import UserRouter
 
-
+const profileRoutes = require('./routes/profileRoutes');
 
 const app = express();
 app.use(cors()) // Chỉnh sửa cor
@@ -30,7 +31,7 @@ app.use("/blogs", blogRouter); // Gắn API vào endpoint /blogs // mới: Thêm
 app.use("/cardio", cardioRouter); // Gắn API vào endpoint /cardio // mới: Thêm API cardio
 app.use("/lesson", lessonRouter); // Gắn API vào endpoint /lessons // mới: Thêm API bài học
 
-
+app.use("/api/profile", profileRoutes);
 
 app.listen(8080, async()=>{
   

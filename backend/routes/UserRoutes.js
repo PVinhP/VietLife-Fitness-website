@@ -6,25 +6,15 @@ const { pool } = require("../config/db"); // Import pool from db.js
 
 const UserRouter = express.Router();
 
-// Đăng ký người dùng
+// --- ROUTE ĐĂNG KÝ ĐÃ SỬA LẠI ---
 UserRouter.post("/register", async (req, res) => {
   try {
-    const {
-      email,
-      password,
-      full_name,
-      phone,
-      gender,
-      birth_date,
-      height_cm,
-      weight_kg,
-    } = req.body;
+    // 1. CHỈ LẤY NHỮNG DỮ LIỆU CÓ TỪ FRONTEND
+    const { email, password, full_name } = req.body;
 
     // Kiểm tra các trường bắt buộc
     if (!email || !password) {
-      return res
-        .status(400)
-        .send({ msg: "Email và mật khẩu là bắt buộc" });
+      return res.status(400).send({ msg: "Email và mật khẩu là bắt buộc" });
     }
 
     // Kiểm tra xem email đã tồn tại chưa
@@ -40,48 +30,42 @@ UserRouter.post("/register", async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Chèn người dùng mới vào cơ sở dữ liệu
+    // 2. CÂU LỆNH INSERT ĐÃ ĐƯỢC CẬP NHẬT
+    // Chỉ chèn các cột tương ứng với dữ liệu nhận được
     const [result] = await pool.query(
-      `INSERT INTO users (email, password, full_name, phone, gender, birth_date, height_cm, weight_kg)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        email,
-        hashedPassword,
-        full_name || null,
-        phone || null,
-        gender || null,
-        birth_date || null,
-        height_cm || null,
-        weight_kg || null,
-      ]
+      `INSERT INTO users (email, password, full_name) VALUES (?, ?, ?)`,
+      [email, hashedPassword, full_name || null] // 3. DỮ LIỆU TRUYỀN VÀO TƯƠNG ỨNG
     );
 
-    // Tạo JWT token
-    const user = {
-      userId: result.insertId,
-      email,
-    };
-    const token = jwt.sign(user, "VietLife", { expiresIn: "1h" });
-
-    // Lấy thông tin người dùng vừa tạo để trả về, bao gồm created_at và updated_at
-    const [newUser] = await pool.query("SELECT * FROM users WHERE id = ?", [
+    // Lấy thông tin người dùng vừa tạo để trả về
+    const [newUserRow] = await pool.query("SELECT * FROM users WHERE id = ?", [
       result.insertId,
     ]);
+    const newUser = newUserRow[0];
 
+    // Tạo JWT token
+    const tokenPayload = {
+      userId: newUser.id,
+      email: newUser.email,
+    };
+    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+    // Trả về response thành công
     res.status(201).send({
       msg: "Đăng ký thành công",
       token,
       user: {
-        id: newUser[0].id,
-        email: newUser[0].email,
-        full_name: newUser[0].full_name,
-        phone: newUser[0].phone,
-        gender: newUser[0].gender,
-        birth_date: newUser[0].birth_date,
-        height_cm: newUser[0].height_cm,
-        weight_kg: newUser[0].weight_kg,
-        created_at: newUser[0].created_at,
-        updated_at: newUser[0].updated_at,
+        id: newUser.id,
+        email: newUser.email,
+        full_name: newUser.full_name,
+        // Các trường khác sẽ là null vì chúng ta chưa thêm vào
+        phone: newUser.phone,
+        gender: newUser.gender,
+        birth_date: newUser.birth_date,
+        height_cm: newUser.height_cm,
+        weight_kg: newUser.weight_kg,
+        created_at: newUser.created_at,
+        updated_at: newUser.updated_at,
       },
     });
   } catch (error) {
@@ -90,19 +74,16 @@ UserRouter.post("/register", async (req, res) => {
   }
 });
 
-// Đăng nhập người dùng
+
+// --- ROUTE ĐĂNG NHẬP (GIỮ NGUYÊN) ---
 UserRouter.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Kiểm tra các trường bắt buộc
     if (!email || !password) {
-      return res
-        .status(400)
-        .send({ msg: "Email và mật khẩu là bắt buộc" });
+      return res.status(400).send({ msg: "Email và mật khẩu là bắt buộc" });
     }
 
-    // Tìm người dùng theo email
     const [users] = await pool.query("SELECT * FROM users WHERE email = ?", [
       email,
     ]);
@@ -112,19 +93,17 @@ UserRouter.post("/login", async (req, res) => {
 
     const user = users[0];
 
-    // Kiểm tra mật khẩu
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).send({ msg: "Email hoặc mật khẩu không đúng" });
     }
 
-    // Tạo JWT token
     const payload = {
       userId: user.id,
       email: user.email,
-      username: user.full_name || user.email, // Sử dụng full_name nếu có, nếu không dùng email
+      username: user.full_name || user.email,
     };
-    const token = jwt.sign(payload, "VietLife", { expiresIn: "1h" });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
 
     res.status(200).send({
       msg: "Đăng nhập thành công",

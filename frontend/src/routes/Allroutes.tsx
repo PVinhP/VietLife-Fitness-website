@@ -15,7 +15,7 @@ import Addworkout from '../components/Addworkout';
 import CardioGuide from '../pages/Cardio';
 import BlogDetail from '../components/BlogDetail';
 import LessonDetail from '../components/LessonDetail';
-import OnboardingQuiz from '../components/OnboardingQuiz';
+import OnboardingQuiz from '../pages/OnboardingPage';
 
 function Allroutes() {
   return (
