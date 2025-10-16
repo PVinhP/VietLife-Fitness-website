@@ -63,38 +63,38 @@ const OnboardingPage: React.FC = () => {
 
     // Gửi dữ liệu khi hoàn thành
     const handleSubmit = async () => {
-        if(!validateStep1() || !validateStep2()) return;
-        
-        setIsLoading(true);
-        const token = localStorage.getItem('token');
-        if (!token) {
-            toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-            setIsLoading(false);
-            navigate('/signin');
-            return;
-        }
+    if(!validateStep1() || !validateStep2()) return;
+    
+    setIsLoading(true);
+    const token = localStorage.getItem('token');
+    if (!token) {
+        toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        setIsLoading(false);
+        navigate('/signin');
+        return;
+    }
 
-        try {
-            // Gọi API POST tới backend để lưu hồ sơ
-            await axios.post('http://localhost:8080/api/profile', formData, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+    try {
+        await axios.post('http://localhost:8080/api/profile', formData, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
 
-            toast.success("Chào mừng bạn! Hồ sơ đã được thiết lập.");
+        toast.success("Chào mừng bạn! Hồ sơ đã được thiết lập.");
 
-            // Chuyển hướng đến trang chính sau khi thành công
-            setTimeout(() => {
-                navigate('/dashboard'); 
-            }, 2000);
+        // Chuyển hướng đến trang chính sau khi thành công
+        setTimeout(() => {
+            // THAY ĐỔI Ở ĐÂY: Sửa '/dashboard' thành '/'
+            navigate('/'); 
+        }, 2000);
 
-        } catch (error: any) {
-            const errorMsg = error.response?.data?.msg || "Đã có lỗi xảy ra, không thể lưu hồ sơ.";
-            toast.error(errorMsg);
-            console.error("Lỗi khi hoàn thành hồ sơ:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    } catch (error: any) {
+        const errorMsg = error.response?.data?.msg || "Đã có lỗi xảy ra, không thể lưu hồ sơ.";
+        toast.error(errorMsg);
+        console.error("Lỗi khi hoàn thành hồ sơ:", error);
+    } finally {
+        setIsLoading(false);
+    }
+};
     
     // Hàm render nội dung cho từng bước
     const renderStepContent = () => {
