@@ -2,10 +2,8 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from 'react-toastify';
-// Dòng import CSS đã được xóa để khắc phục lỗi biên dịch.
-// Vui lòng thêm link CSS vào file index.html của bạn.
+import 'react-toastify/dist/ReactToastify.css';
 
-// Đơn giản hóa interface, chỉ giữ lại các trường cần thiết cho việc đăng ký
 interface SignupForm {
     full_name: string;
     email: string;
@@ -13,7 +11,6 @@ interface SignupForm {
     confirmPassword: string;
 }
 
-// Interface cho response có thể giữ nguyên hoặc đơn giản hóa tùy backend
 interface SignupResponse {
     msg: string;
     token?: string;
@@ -24,10 +21,9 @@ interface SignupResponse {
     };
 }
 
-const SignupRevised: React.FC = () => {
+const Signup: React.FC = () => {
     const navigate = useNavigate();
 
-    // Cập nhật state ban đầu
     const [formdata, setFormdata] = useState<SignupForm>({
         full_name: "",
         email: "",
@@ -36,6 +32,7 @@ const SignupRevised: React.FC = () => {
     });
 
     const [isLoading, setIsLoading] = useState(false);
+    const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -50,7 +47,6 @@ const SignupRevised: React.FC = () => {
         toast.error(message, { position: toast.POSITION.TOP_CENTER });
     };
 
-    // Đơn giản hóa hàm validate
     const validateForm = (): boolean => {
         if (!formdata.email.trim() || !formdata.email.includes("@")) {
             showToastErrorMessage("Email không hợp lệ");
@@ -75,7 +71,6 @@ const SignupRevised: React.FC = () => {
         setIsLoading(true);
 
         try {
-            // Dữ liệu gửi đi giờ đây đã gọn hơn rất nhiều
             const submitData = {
                 email: formdata.email.trim().toLowerCase(),
                 password: formdata.password,
@@ -83,20 +78,20 @@ const SignupRevised: React.FC = () => {
             };
 
             const response = await axios.post<SignupResponse>(
-                `http://localhost:8080/user/register`, // Đảm bảo endpoint backend của bạn chấp nhận format mới
+                `${API_URL}/user/register`,
                 submitData
             );
 
             showToastMessage(response.data.msg || "Đăng ký thành công!");
 
+            // Lưu token vào localStorage để trang onboarding có thể sử dụng
             if (response.data.token) {
                 localStorage.setItem('token', response.data.token);
             }
 
-            // Chuyển hướng đến trang onboarding để nhập thông tin chi tiết
-            // hoặc về trang đăng nhập
+            // CHUYỂN HƯỚNG ĐẾN TRANG ONBOARDING
             setTimeout(() => {
-                navigate("/signin"); // Hoặc có thể là navigate("/onboarding-profile");
+                navigate("/onboarding");
             }, 1500);
 
         } catch (error: any) {
@@ -248,5 +243,4 @@ const SignupRevised: React.FC = () => {
     );
 };
 
-export default SignupRevised;
-
+export default Signup;
