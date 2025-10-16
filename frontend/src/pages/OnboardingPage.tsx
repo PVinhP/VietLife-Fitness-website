@@ -75,15 +75,15 @@ const OnboardingPage: React.FC = () => {
     }
 
     try {
-        await axios.post('http://localhost:8080/api/profile', formData, {
+        // THAY ĐỔI TẠI ĐÂY: Sửa endpoint thành '/user/complete-onboarding'
+        await axios.post('http://localhost:8080/user/complete-onboarding', formData, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
         toast.success("Chào mừng bạn! Hồ sơ đã được thiết lập.");
 
-        // Chuyển hướng đến trang chính sau khi thành công
+        // (Code còn lại giữ nguyên)
         setTimeout(() => {
-            // THAY ĐỔI Ở ĐÂY: Sửa '/dashboard' thành '/'
             navigate('/'); 
         }, 2000);
 

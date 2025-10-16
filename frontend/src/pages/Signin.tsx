@@ -19,8 +19,7 @@ const Signin: React.FC = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-
+  
   const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,17 +44,14 @@ const Signin: React.FC = () => {
       showToastErrorMessage("Vui lòng nhập email");
       return false;
     }
-
     if (!formdata.email.includes("@")) {
       showToastErrorMessage("Email không hợp lệ");
       return false;
     }
-
     if (!formdata.password.trim()) {
       showToastErrorMessage("Vui lòng nhập mật khẩu");
       return false;
     }
-
     return true;
   };
 
@@ -74,36 +70,32 @@ const Signin: React.FC = () => {
         password: formdata.password
       });
       
+      // 'user' object now contains the 'is_onboarded' flag from the backend
       const { msg, token, user } = response.data;
 
-      // Store token and user details
+      // Store token and user details in localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("auth", JSON.stringify(true));
       
-      if (rememberMe) {
-        localStorage.setItem("remember", "true");
-      }
-
       showToastMessage(msg || "Đăng nhập thành công!");
       
+      // **CORE LOGIC CHANGE IS HERE**
+      // Navigation logic based on the user's onboarding status
       setTimeout(() => {
-        navigate(location.state?.from || "/", { replace: true });
+        if (user.is_onboarded) {
+          // If ONBOARDING IS COMPLETE: Navigate to the homepage
+          navigate(location.state?.from || "/", { replace: true });
+        } else {
+          // If ONBOARDING IS NOT COMPLETE: Navigate to the onboarding page
+          navigate("/onboarding", { replace: true });
+        }
       }, 1500);
+
     } catch (error: any) {
       console.error("Lỗi đăng nhập:", error);
-      
-      if (error.response?.data?.msg) {
-        showToastErrorMessage(error.response.data.msg);
-      } else if (error.response?.status === 401) {
-        showToastErrorMessage("Email hoặc mật khẩu không đúng");
-      } else if (error.response?.status === 404) {
-        showToastErrorMessage("Tài khoản không tồn tại");
-      } else if (error.code === 'NETWORK_ERROR' || !error.response) {
-        showToastErrorMessage("Lỗi kết nối server. Vui lòng thử lại sau.");
-      } else {
-        showToastErrorMessage("Đăng nhập thất bại. Vui lòng thử lại.");
-      }
+      const errorMsg = error.response?.data?.msg || "Email hoặc mật khẩu không đúng.";
+      showToastErrorMessage(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -160,9 +152,8 @@ const Signin: React.FC = () => {
               />
             </div>
 
-            {/* Remember me & Forgot password */}
-            <div className="flex justify-between items-center py-2">
-              
+            {/* Forgot password */}
+            <div className="flex justify-end items-center py-2">
               <Link 
                 to="/forgot-password" 
                 className="text-sm font-semibold text-teal-500 hover:text-teal-600 transition-colors duration-200"
@@ -227,7 +218,6 @@ const Signin: React.FC = () => {
             alt="Fitness background"
             className="w-full h-full rounded-r-2xl object-cover"
           />
-          {/* Overlay content */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent rounded-r-2xl flex items-end justify-center">
             <div className="text-center text-white p-8 mb-12">
               <h2 className="text-3xl font-bold mb-4">Tiếp tục hành trình</h2>

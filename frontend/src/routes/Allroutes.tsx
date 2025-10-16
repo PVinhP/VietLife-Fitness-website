@@ -20,7 +20,7 @@ import OnboardingQuiz from '../pages/OnboardingPage';
 function Allroutes() {
   return (
     <Routes>
-      <Route path="/quiz" element={<OnboardingQuiz />} />
+      <Route path="/onboarding" element={<OnboardingQuiz />} />
       <Route path="/signin" element={<Signin />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/" element={<Home />} />

@@ -2,22 +2,24 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { pool } = require("../config/db"); // Import pool from db.js
+const { pool } = require("../config/db");
+
+// Giả sử bạn có một middleware để xác thực token
+// Nếu chưa có, bạn cần tạo file này. Nó sẽ giải mã token và lấy user ID.
+// const authMiddleware = require('../middleware/authMiddleware'); 
 
 const UserRouter = express.Router();
 
-// --- ROUTE ĐĂNG KÝ ĐÃ SỬA LẠI ---
+// --- ROUTE ĐĂNG KÝ ---
+// Trả về is_onboarded: false cho người dùng mới
 UserRouter.post("/register", async (req, res) => {
   try {
-    // 1. CHỈ LẤY NHỮNG DỮ LIỆU CÓ TỪ FRONTEND
     const { email, password, full_name } = req.body;
 
-    // Kiểm tra các trường bắt buộc
     if (!email || !password) {
       return res.status(400).send({ msg: "Email và mật khẩu là bắt buộc" });
     }
 
-    // Kiểm tra xem email đã tồn tại chưa
     const [existingUsers] = await pool.query(
       "SELECT * FROM users WHERE email = ?",
       [email]
@@ -26,31 +28,22 @@ UserRouter.post("/register", async (req, res) => {
       return res.status(400).send({ msg: "Email đã được sử dụng" });
     }
 
-    // Mã hóa mật khẩu
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // 2. CÂU LỆNH INSERT ĐÃ ĐƯỢC CẬP NHẬT
-    // Chỉ chèn các cột tương ứng với dữ liệu nhận được
     const [result] = await pool.query(
       `INSERT INTO users (email, password, full_name) VALUES (?, ?, ?)`,
-      [email, hashedPassword, full_name || null] // 3. DỮ LIỆU TRUYỀN VÀO TƯƠNG ỨNG
+      [email, hashedPassword, full_name || null]
     );
 
-    // Lấy thông tin người dùng vừa tạo để trả về
     const [newUserRow] = await pool.query("SELECT * FROM users WHERE id = ?", [
       result.insertId,
     ]);
     const newUser = newUserRow[0];
 
-    // Tạo JWT token
-    const tokenPayload = {
-      userId: newUser.id,
-      email: newUser.email,
-    };
+    const tokenPayload = { userId: newUser.id, email: newUser.email };
     const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-    // Trả về response thành công
     res.status(201).send({
       msg: "Đăng ký thành công",
       token,
@@ -58,14 +51,7 @@ UserRouter.post("/register", async (req, res) => {
         id: newUser.id,
         email: newUser.email,
         full_name: newUser.full_name,
-        // Các trường khác sẽ là null vì chúng ta chưa thêm vào
-        phone: newUser.phone,
-        gender: newUser.gender,
-        birth_date: newUser.birth_date,
-        height_cm: newUser.height_cm,
-        weight_kg: newUser.weight_kg,
-        created_at: newUser.created_at,
-        updated_at: newUser.updated_at,
+        is_onboarded: newUser.is_onboarded, // <-- ĐÃ THÊM: Sẽ trả về false
       },
     });
   } catch (error) {
@@ -75,7 +61,8 @@ UserRouter.post("/register", async (req, res) => {
 });
 
 
-// --- ROUTE ĐĂNG NHẬP (GIỮ NGUYÊN) ---
+// --- ROUTE ĐĂNG NHẬP ---
+// Trả về trạng thái is_onboarded của người dùng
 UserRouter.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -84,9 +71,7 @@ UserRouter.post("/login", async (req, res) => {
       return res.status(400).send({ msg: "Email và mật khẩu là bắt buộc" });
     }
 
-    const [users] = await pool.query("SELECT * FROM users WHERE email = ?", [
-      email,
-    ]);
+    const [users] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
     if (users.length === 0) {
       return res.status(401).send({ msg: "Email hoặc mật khẩu không đúng" });
     }
@@ -98,11 +83,7 @@ UserRouter.post("/login", async (req, res) => {
       return res.status(401).send({ msg: "Email hoặc mật khẩu không đúng" });
     }
 
-    const payload = {
-      userId: user.id,
-      email: user.email,
-      username: user.full_name || user.email,
-    };
+    const payload = { userId: user.id, email: user.email };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
 
     res.status(200).send({
@@ -112,13 +93,7 @@ UserRouter.post("/login", async (req, res) => {
         id: user.id,
         email: user.email,
         full_name: user.full_name,
-        phone: user.phone,
-        gender: user.gender,
-        birth_date: user.birth_date,
-        height_cm: user.height_cm,
-        weight_kg: user.weight_kg,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
+        is_onboarded: user.is_onboarded, // <-- ĐÃ THÊM: Trả về true hoặc false
       },
     });
   } catch (error) {
@@ -126,5 +101,47 @@ UserRouter.post("/login", async (req, res) => {
     res.status(500).send({ msg: "Lỗi server khi đăng nhập" });
   }
 });
+
+
+// --- ROUTE MỚI: HOÀN THÀNH ONBOARDING ---
+// Route này sẽ được gọi từ trang OnboardingPage.tsx
+// Cần middleware xác thực để biết user nào đang thực hiện
+UserRouter.post("/complete-onboarding", /* authMiddleware, */ async (req, res) => {
+    try {
+        // LƯU Ý: Bạn cần một middleware xác thực (ví dụ: authMiddleware) để lấy userId
+        // Middleware sẽ giải mã token và gán thông tin user vào req, ví dụ: req.user
+        // Tạm thời, chúng ta sẽ hardcode để bạn dễ hình dung, nhưng bạn phải thay thế nó.
+        
+        // GIẢ SỬ middleware đã chạy và trả về req.user
+        // const userId = req.user.userId;
+
+        // ---- PHẦN GIẢ LẬP ĐỂ TEST ----
+        // Lấy token từ header, giải mã để lấy user ID
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).send({ msg: 'Yêu cầu token xác thực' });
+        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+        // ---- KẾT THÚC PHẦN GIẢ LẬP ----
+
+        // (Tùy chọn) Lưu dữ liệu từ form onboarding vào bảng health_profiles
+        // const { age, gender, ... } = req.body;
+        // await pool.query('INSERT INTO health_profiles (user_id, age, gender, ...) VALUES (?, ?, ?, ...)', [userId, age, gender, ...]);
+
+        // Cập nhật trạng thái is_onboarded thành TRUE
+        await pool.query(
+            "UPDATE users SET is_onboarded = TRUE WHERE id = ?",
+            [userId]
+        );
+
+        res.status(200).send({ msg: "Hoàn thành onboarding thành công." });
+
+    } catch (error) {
+        console.error("Lỗi khi hoàn thành onboarding:", error);
+        res.status(500).send({ msg: "Lỗi server" });
+    }
+});
+
 
 module.exports = { UserRouter };
