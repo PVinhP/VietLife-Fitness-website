@@ -3,82 +3,79 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import logo from "../Assests/WellLogo.png"
+import UserDropdown from "./UserDropdown"; // 1. Import UserDropdown
+
 function Navbar() {
   const [toggle, setToggle] = useState<boolean>(false)
   const [ison, setIsOn] = useState<boolean>(false);
   const location = useLocation()
   const navigate = useNavigate()
-  let loggeduser = localStorage.getItem("VietLifeuser")
-  let isAuth = localStorage.getItem("auth") || false;
+  // Lấy thông tin người dùng, đảm bảo không bị null
+  const loggeduser = localStorage.getItem("VietLifeuser") || "";
+  const isAuth = localStorage.getItem("auth") || false;
+
   const showToastMessage = () => {
     toast.success('Successfully Logged out!!', {
       position: toast.POSITION.TOP_CENTER
     });
   };
+
   const handlelogout = () => {
     localStorage.clear()
     setToggle(!toggle)
     showToastMessage()
     navigate("/")
-
   }
 
-
   useEffect(() => {
-
-  }, [location.search])
+    // Logic có thể thêm ở đây nếu cần
+  }, [location.pathname]) // Thay đổi từ location.search để theo dõi thay đổi trang
 
   return (
-
-    <nav className="sticky top-0  border-gray-200 bg-teal-500 z-50 ">
-
+    <nav className="sticky top-0 border-gray-200 bg-teal-500 z-50">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
         <a href="/" className="flex items-center">
           <img
-
             src={logo}
             className="h-8 mr-3"
-            alt=" Logo"
+            alt="Logo"
           />
           <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
             VietLife
           </span>
         </a>
-        <div className="flex md:order-2">
-          {isAuth ?
-            <div>
-              <span className="text-black font-bold mr-5 text-xl">Hi, {loggeduser}</span>
-              <button
-                type="button"
-                onClick={handlelogout}
-                className="text-white bg-black-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center mr-10  bg-black dark:focus:ring-blue-800"
-              >
-                Đăng xuất
-              </button>
+        <div className="flex md:order-2 items-center">
+          {/* 2. Thay thế nút Đăng nhập/Đăng xuất bằng UserDropdown */}
+          {isAuth ? (
+            <div className="mr-3 md:mr-0">
+              <UserDropdown userName={loggeduser} onLogout={handlelogout} />
             </div>
-            :
-            <Link to="/signin">
-              <button
-                type="button"
-                className="text-white bg-black-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center mr-10  bg-black dark:focus:ring-blue-800"
-              >
-                Đăng nhập
-              </button>
-            </Link>}
-          {!isAuth ?
-            <Link to="/signup">
-              <button
-                type="button"
-                className="text-white bg-black-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 bg-black dark:focus:ring-blue-800"
-              >
-                Đăng ký
-              </button>
-            </Link> : null}
+          ) : (
+            <>
+              <Link to="/signin" className="mr-3">
+                <button
+                  type="button"
+                  className="text-white bg-black hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center"
+                >
+                  Đăng nhập
+                </button>
+              </Link>
+              <Link to="/signup">
+                <button
+                  type="button"
+                  className="text-white bg-black hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center"
+                >
+                  Đăng ký
+                </button>
+              </Link>
+            </>
+          )}
+
           <button
             onClick={() => setIsOn(!ison)}
             data-collapse-toggle="navbar-cta"
             type="button"
-            className="inline-flex items-center p-2 text-sm text-white-500 rounded-lg md:hidden focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-white-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+            className="inline-flex items-center p-2 text-sm text-white rounded-lg md:hidden focus:outline-none focus:ring-2 focus:ring-gray-200 ml-3"
             aria-controls="navbar-cta"
             aria-expanded="false"
           >
@@ -91,84 +88,39 @@ function Navbar() {
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                fill-rule="evenodd"
+                fillRule="evenodd"
                 d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                clip-rule="evenodd"
+                clipRule="evenodd"
               ></path>
             </svg>
           </button>
         </div>
         <div
-          className="  items-center justify-between hidden w-full md:flex md:w-auto md:order-1"
+          className="items-center justify-between hidden w-full md:flex md:w-auto md:order-1"
           id="navbar-cta"
         >
           <ul className="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:flex-row md:space-x-8 md:mt-0 md:border-0 ">
-            <li>
-              <a href="/" className="text-white">
-                Trang chủ
-              </a>
-            </li>
-
-            <li>
-              <a href="/blogs" className="text-white">
-                Tin tức
-              </a>
-            </li>
-            <li>
-              <a href="/nutrition" className="text-white">
-                Dinh dưỡng
-              </a>
-            </li>
-            <li>
-                <a href="/exercise" className="text-white">
-                  Tập luyện
-                </a>
-            </li>
-
-            <li>
-              {/* <a href="/customexercise" className="text-white">
-                Workouts
-              </a> */}
-              <a href="/cardio" className="text-white">
-                Cardio
-              </a>
-            </li>
-            <li>
-              <a href="/yoga" className="text-white">
-                Khám Phá
-              </a>
-            </li>
-            {/* <li>
-              <a href="#" className="text-white">
-                Contact
-              </a>
-            </li> */}
+             {/* ... các mục menu khác ... */}
+             <li><a href="/" className="text-white">Trang chủ</a></li>
+             <li><a href="/blogs" className="text-white">Tin tức</a></li>
+             <li><a href="/nutrition" className="text-white">Dinh dưỡng</a></li>
+             <li><a href="/exercise" className="text-white">Tập luyện</a></li>
+             <li><a href="/cardio" className="text-white">Cardio</a></li>
+             <li><a href="/yoga" className="text-white">Khám Phá</a></li>
           </ul>
         </div>
       </div>
       <div
         style={{ display: ison ? "block" : "none" }}
-        className="absolute top-19  border-2 w-full bg-white p-8 rounded-2xl ml-5"
+        className="absolute top-19 border-2 w-full bg-white p-8 rounded-2xl"
       >
-        <a href="/">
-          <p className="p-2  font-bold bg-teal-500 hover:text-white  rounded-xl">Home</p>
-        </a>
-        <a href="/blogs">
-          <p className="p-2 mt-5 font-bold bg-teal-500 hover:text-white  rounded-xl">Blogs</p>
-        </a>
-        <a href="/nutrition">
-          <p className="p-2 mt-5 font-bold bg-teal-500 hover:text-white  rounded-xl">Nutrition</p>
-        </a>
-        {isAuth ?
-          <a href="/exercise">
-            <p className="p-2 mt-5 font-bold bg-teal-500 hover:text-white  rounded-xl">Exercise</p>
-          </a> : null}
-        <a href="/customexercise">
-          <p className="p-2 mt-5 font-bold bg-teal-500 hover:text-white  rounded-xl">Workout</p>
-        </a>
-        <a href="/yoga">
-          <p className="p-2 mt-5 font-bold bg-teal-500 hover:text-white  rounded-xl">Yoga</p>
-        </a>
+        {/* ... menu mobile ... */}
+        <a href="/"><p className="p-2 font-bold bg-teal-500 hover:text-white rounded-xl">Home</p></a>
+        <a href="/blogs"><p className="p-2 mt-5 font-bold bg-teal-500 hover:text-white rounded-xl">Blogs</p></a>
+        <a href="/nutrition"><p className="p-2 mt-5 font-bold bg-teal-500 hover:text-white rounded-xl">Nutrition</p></a>
+        {isAuth && <a href="/exercise"><p className="p-2 mt-5 font-bold bg-teal-500 hover:text-white rounded-xl">Exercise</p></a>}
+        <a href="/customexercise"><p className="p-2 mt-5 font-bold bg-teal-500 hover:text-white rounded-xl">Workout</p></a>
+        <a href="/yoga"><p className="p-2 mt-5 font-bold bg-teal-500 hover:text-white rounded-xl">Yoga</p></a>
       </div>
       <ToastContainer autoClose={2000} />
     </nav>

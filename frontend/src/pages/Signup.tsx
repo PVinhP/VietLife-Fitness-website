@@ -85,9 +85,12 @@ const Signup: React.FC = () => {
             showToastMessage(response.data.msg || "Đăng ký thành công!");
 
             // Lưu token vào localStorage để trang onboarding có thể sử dụng
-            if (response.data.token) {
+            if (response.data.token && response.data.user) {
                 localStorage.setItem('token', response.data.token);
-            }
+                localStorage.setItem('auth', 'true');
+                // Sử dụng full_name từ response hoặc từ form data
+                localStorage.setItem('VietLifeuser', response.data.user.full_name || formdata.full_name);
+    }
 
             // CHUYỂN HƯỚNG ĐẾN TRANG ONBOARDING
             setTimeout(() => {
