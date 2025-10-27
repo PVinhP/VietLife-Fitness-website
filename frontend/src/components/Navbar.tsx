@@ -1,126 +1,120 @@
+// src/components/Navbar.tsx
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import logo from "../Assests/WellLogo.png"
-import UserDropdown from "./UserDropdown"; // 1. Import UserDropdown
+import logo from "../Assests/WellLogo.png";
+import UserDropdown from "./UserDropdown";
+import NavDropdown, { DropdownItem } from "./NavDropdown"; // Import component menu con
 
 function Navbar() {
-  const [toggle, setToggle] = useState<boolean>(false)
-  const [ison, setIsOn] = useState<boolean>(false);
-  const location = useLocation()
-  const navigate = useNavigate()
-  // Lấy thông tin người dùng, đảm bảo không bị null
-  const loggeduser = localStorage.getItem("VietLifeuser") || "";
-  const isAuth = localStorage.getItem("auth") || false;
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const loggeduser = localStorage.getItem("VietLifeuser") || "User";
+  const isAuth = !!localStorage.getItem("auth");
 
   const showToastMessage = () => {
-    toast.success('Successfully Logged out!!', {
-      position: toast.POSITION.TOP_CENTER
-    });
+    toast.success('Đăng xuất thành công!', { position: toast.POSITION.TOP_CENTER });
   };
 
   const handlelogout = () => {
-    localStorage.clear()
-    setToggle(!toggle)
-    showToastMessage()
-    navigate("/")
-  }
+    localStorage.clear();
+    showToastMessage();
+    navigate("/");
+  };
 
+  // Tự động đóng menu mobile khi chuyển trang
   useEffect(() => {
-    // Logic có thể thêm ở đây nếu cần
-  }, [location.pathname]) // Thay đổi từ location.search để theo dõi thay đổi trang
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   return (
     <nav className="sticky top-0 border-gray-200 bg-teal-500 z-50">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-        <a href="/" className="flex items-center">
-          <img
-            src={logo}
-            className="h-8 mr-3"
-            alt="Logo"
-          />
-          <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
+        {/* === Logo === */}
+        <Link to="/" className="flex items-center space-x-3">
+          <img src={logo} className="h-8" alt="VietLife Logo" />
+          <span className="self-center text-2xl font-semibold whitespace-nowrap text-white">
             VietLife
           </span>
-        </a>
-        <div className="flex md:order-2 items-center">
-          {/* 2. Thay thế nút Đăng nhập/Đăng xuất bằng UserDropdown */}
+        </Link>
+
+        {/* === User/Login Buttons & Mobile Menu Toggle === */}
+        <div className="flex md:order-2 items-center space-x-3">
           {isAuth ? (
-            <div className="mr-3 md:mr-0">
-              <UserDropdown userName={loggeduser} onLogout={handlelogout} />
-            </div>
+            <UserDropdown userName={loggeduser} onLogout={handlelogout} />
           ) : (
-            <>
-              <Link to="/signin" className="mr-3">
-                <button
-                  type="button"
-                  className="text-white bg-black hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center"
-                >
+            <div className="hidden md:flex items-center space-x-2">
+              <Link to="/signin">
+                <button type="button" className="text-white bg-black hover:bg-gray-800 font-medium rounded-lg text-sm px-4 py-2 text-center">
                   Đăng nhập
                 </button>
               </Link>
               <Link to="/signup">
-                <button
-                  type="button"
-                  className="text-white bg-black hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center"
-                >
+                <button type="button" className="text-white bg-black hover:bg-gray-800 font-medium rounded-lg text-sm px-4 py-2 text-center">
                   Đăng ký
                 </button>
               </Link>
-            </>
+            </div>
           )}
-
+          {/* Mobile Menu Button */}
           <button
-            onClick={() => setIsOn(!ison)}
-            data-collapse-toggle="navbar-cta"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             type="button"
-            className="inline-flex items-center p-2 text-sm text-white rounded-lg md:hidden focus:outline-none focus:ring-2 focus:ring-gray-200 ml-3"
-            aria-controls="navbar-cta"
-            aria-expanded="false"
+            className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-white rounded-lg md:hidden hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-gray-200"
+            aria-controls="navbar-menu"
+            aria-expanded={isMobileMenuOpen}
           >
             <span className="sr-only">Open main menu</span>
-            <svg
-              className="w-6 h-6"
-              aria-hidden="true"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                clipRule="evenodd"
-              ></path>
+            <svg className="w-5 h-5" aria-hidden="true" fill="none" viewBox="0 0 17 14">
+              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 1h15M1 7h15M1 13h15"/>
             </svg>
           </button>
         </div>
+
+        {/* === Navigation Links (Desktop & Mobile) === */}
         <div
-          className="items-center justify-between hidden w-full md:flex md:w-auto md:order-1"
-          id="navbar-cta"
+          className={`items-center justify-between w-full md:flex md:w-auto md:order-1 ${isMobileMenuOpen ? "block" : "hidden"}`}
+          id="navbar-menu"
         >
-          <ul className="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:flex-row md:space-x-8 md:mt-0 md:border-0 ">
-             {/* ... các mục menu khác ... */}
-             <li><a href="/" className="text-white">Trang chủ</a></li>
-             <li><a href="/blogs" className="text-white">Tin tức</a></li>
-             <li><a href="/nutrition" className="text-white">Dinh dưỡng</a></li>
-             <li><a href="/exercise" className="text-white">Tập luyện</a></li>
-             <li><a href="/cardio" className="text-white">Cardio</a></li>
-             <li><a href="/yoga" className="text-white">Khám Phá</a></li>
+          <ul className="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-teal-500 md:flex-row md:items-center md:space-x-8 md:mt-0 md:border-0">
+            <li><Link to="/" className="block py-2 px-3 text-white rounded hover:bg-teal-600 md:hover:bg-transparent md:hover:text-teal-200 md:p-0">Trang chủ</Link></li>
+            <li><Link to="/blogs" className="block py-2 px-3 text-white rounded hover:bg-teal-600 md:hover:bg-transparent md:hover:text-teal-200 md:p-0">Kiến thức</Link></li>
+            <li><Link to="/nutrition" className="block py-2 px-3 text-white rounded hover:bg-teal-600 md:hover:bg-transparent md:hover:text-teal-200 md:p-0">Dinh dưỡng</Link></li>
+
+            {/* --- MỤC TẬP LUYỆN VỚI MENU CON --- */}
+            <li className="w-full md:w-auto">
+              <NavDropdown title="Tập luyện">
+                <DropdownItem to="/cardio">Cardio & HIIT</DropdownItem>
+                <DropdownItem to="/exercise">Tập Sức mạnh (Tạ)</DropdownItem>
+                <DropdownItem to="/exercise/yoga">Yoga & Giãn cơ</DropdownItem>
+                <DropdownItem to="/exercise/all">Xem tất cả</DropdownItem>
+              </NavDropdown>
+            </li>
+
+            <li><Link to="/programs" className="block py-2 px-3 text-white rounded hover:bg-teal-600 md:hover:bg-transparent md:hover:text-teal-200 md:p-0">Lộ trình</Link></li>
+
+            {/* Login/Signup for Mobile */}
+            {!isAuth && (
+              <li className="mt-4 border-t border-teal-400 pt-4 md:hidden">
+                <div className="flex flex-col space-y-2">
+                  <Link to="/signin">
+                    <button type="button" className="w-full text-white bg-black hover:bg-gray-800 font-medium rounded-lg text-sm px-4 py-2 text-center">
+                      Đăng nhập
+                    </button>
+                  </Link>
+                  <Link to="/signup">
+                    <button type="button" className="w-full text-white bg-black hover:bg-gray-800 font-medium rounded-lg text-sm px-4 py-2 text-center">
+                      Đăng ký
+                    </button>
+                  </Link>
+                </div>
+              </li>
+            )}
           </ul>
         </div>
-      </div>
-      <div
-        style={{ display: ison ? "block" : "none" }}
-        className="absolute top-19 border-2 w-full bg-white p-8 rounded-2xl"
-      >
-        {/* ... menu mobile ... */}
-        <a href="/"><p className="p-2 font-bold bg-teal-500 hover:text-white rounded-xl">Home</p></a>
-        <a href="/blogs"><p className="p-2 mt-5 font-bold bg-teal-500 hover:text-white rounded-xl">Blogs</p></a>
-        <a href="/nutrition"><p className="p-2 mt-5 font-bold bg-teal-500 hover:text-white rounded-xl">Nutrition</p></a>
-        {isAuth && <a href="/exercise"><p className="p-2 mt-5 font-bold bg-teal-500 hover:text-white rounded-xl">Exercise</p></a>}
-        <a href="/customexercise"><p className="p-2 mt-5 font-bold bg-teal-500 hover:text-white rounded-xl">Workout</p></a>
-        <a href="/yoga"><p className="p-2 mt-5 font-bold bg-teal-500 hover:text-white rounded-xl">Yoga</p></a>
       </div>
       <ToastContainer autoClose={2000} />
     </nav>
