@@ -89,7 +89,8 @@ function Navbar() {
               <NavDropdown title="Tập luyện">
                 <DropdownItem to="/cardio">Cardio & HIIT</DropdownItem>
                 <DropdownItem to="/exercise">Tập Sức mạnh (Tạ)</DropdownItem>
-                <DropdownItem to="/exercise/yoga">Yoga & Giãn cơ</DropdownItem>
+                <DropdownItem to="/yoga">Yoga & Giãn cơ</DropdownItem>
+                {/* <DropdownItem to="/exercise/yoga">Yoga & Giãn cơ</DropdownItem> */}
                 <DropdownItem to="/exercise/all">Xem tất cả</DropdownItem>
               </NavDropdown>
             </li>

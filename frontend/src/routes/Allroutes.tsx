@@ -16,7 +16,7 @@ import CardioGuide from '../pages/Cardio';
 import BlogDetail from '../components/BlogDetail';
 import LessonDetail from '../components/LessonDetail';
 import OnboardingQuiz from '../pages/OnboardingPage';
-
+import Profile from '../pages/ProfilePage';
 function Allroutes() {
   return (
     <Routes>
@@ -35,8 +35,10 @@ function Allroutes() {
       <Route path="/addworkout" element={<PrivateRoute><Addworkout /></PrivateRoute>} />
       <Route path="/plan" element={<PrivateRoute><Plan /></PrivateRoute>} />
       <Route path="/cardio" element={<PrivateRoute><CardioGuide /></PrivateRoute>} />
+
+      <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
     </Routes>
   );
 }
 
-export default Allroutes;
+export default Allroutes; 
