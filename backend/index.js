@@ -10,7 +10,7 @@ const { blogRouter } = require("./routes/BlogRoute"); // Import route mới
 const { lessonRouter } = require("./routes/LessonRoute"); // Import mới
 const { cardioRouter } = require("./routes/CardioRoute"); // Import route mới
 const { UserRouter } = require("./routes/UserRoutes"); // Import UserRouter
-
+const guideRoutes = require('./routes/guideRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 
 const app = express();
@@ -32,7 +32,7 @@ app.use("/cardio", cardioRouter); // Gắn API vào endpoint /cardio // mới: T
 app.use("/lesson", lessonRouter); // Gắn API vào endpoint /lessons // mới: Thêm API bài học
 
 app.use("/api/profile", profileRoutes);
-
+app.use('/api/guides', guideRoutes);
 app.listen(8080, async()=>{
   
     try {

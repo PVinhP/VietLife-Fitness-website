@@ -2,50 +2,102 @@ import { useEffect, useState } from "react";
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 
+// ... (Các interface Exercises và Guide giữ nguyên) ...
 
 interface Exercises {
     id: number;
     exercise_name: string;
     video_urls: string;
+    thumbnail_url: string; 
     description: string;
     muscle_group: string;
     equipment_required: string;
     steps: string;
 }
 
+interface Guide {
+    title: string;
+    content: string;
+}
+
 function Exercise() {
+    // ... (Các state giữ nguyên) ...
     const [exercises, setExercises] = useState<Exercises[]>([]);
     const [filteredExercises, setFilteredExercises] = useState<Exercises[]>([]);
     const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("Tất cả");
     const [muscleGroups, setMuscleGroups] = useState<string[]>([]);
     const [selectedExercise, setSelectedExercise] = useState<Exercises | null>(null);
+    const [guide, setGuide] = useState<Guide | null>(null);
+    const [isLoadingGuide, setIsLoadingGuide] = useState(false);
+    const [searchQuery, setSearchQuery] = useState<string>("");
+
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
 
-useEffect(() => {
-    axios.get("http://localhost:8080/exercise", {
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }
-        })
-            .then((res) => {
-                setExercises(res.data);
-                setFilteredExercises(res.data);
-            const uniqueMuscleGroups = extractUniqueMuscleGroups(res.data);
-                setMuscleGroups(["Tất cả", ...uniqueMuscleGroups]);
-            })
-            .catch((err) => {
-                console.error("Lỗi khi tải dữ liệu bài tập:", err);
-            });
-    }, [token]);
+    // ... (useEffect tải dữ liệu ban đầu không đổi) ...
+    useEffect(() => {
+        const token = localStorage.getItem("token"); 
 
-const extractUniqueMuscleGroups = (exerciseData: Exercises[]): string[] => {
+        const fetchInitialData = async () => {
+            setIsLoadingGuide(true); 
+            try {
+                const exerciseRes = await axios.get("http://localhost:8080/exercise", {
+                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }
+                });
+                
+                const exerciseData = exerciseRes.data;
+                setExercises(exerciseData);
+                const uniqueMuscleGroups = extractUniqueMuscleGroups(exerciseData);
+                setMuscleGroups(["Tất cả", ...uniqueMuscleGroups]);
+
+                const guideRes = await axios.get(`http://localhost:8080/api/guides/Tất cả`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setGuide(guideRes.data);
+
+            } catch (err) {
+                if (axios.isAxiosError(err) && err.response?.status !== 404) {
+                     console.error("Lỗi khi tải dữ liệu ban đầu:", err);
+                }
+            } finally {
+                setIsLoadingGuide(false); 
+            }
+        };
+
+        fetchInitialData();
+    }, []); 
+
+    // ... (useEffect lọc dữ liệu không đổi) ...
+    useEffect(() => {
+        let tempExercises = [...exercises];
+
+        if (selectedMuscleGroup !== "Tất cả") {
+            tempExercises = tempExercises.filter(exercise => 
+                exercise.muscle_group.toLowerCase().includes(selectedMuscleGroup.toLowerCase())
+            );
+        }
+
+        if (searchQuery.trim() !== "") {
+            const lowerCaseQuery = searchQuery.toLowerCase().trim();
+            tempExercises = tempExercises.filter(exercise =>
+                exercise.exercise_name.toLowerCase().includes(lowerCaseQuery)
+            );
+        }
+
+        setFilteredExercises(tempExercises);
+
+    }, [exercises, selectedMuscleGroup, searchQuery]); 
+
+    // ... (Hàm extractUniqueMuscleGroups không đổi) ...
+    const extractUniqueMuscleGroups = (exerciseData: Exercises[]): string[] => {
         const allMuscleGroups: string[] = [];
         const uniqueGroupsSet = new Set<string>();
         
         exerciseData.forEach(exercise => {
             if (exercise.muscle_group) {
-            const groups = exercise.muscle_group.split(',').map(group => group.trim());
+                const groups = exercise.muscle_group.split(',').map(group => group.trim());
                 groups.forEach(group => {
-                    if (group && !uniqueGroupsSet.has(group)) {
+                    if (group && group.toLowerCase() !== 'tất cả' && !uniqueGroupsSet.has(group)) {
                         uniqueGroupsSet.add(group);
                         allMuscleGroups.push(group);
                     }
@@ -53,66 +105,71 @@ const extractUniqueMuscleGroups = (exerciseData: Exercises[]): string[] => {
             }
         });
         
-        return allMuscleGroups;
+        return allMuscleGroups.sort();
     };
 
-const parseSteps = (stepsString: string): string[] => {
+    // ... (Hàm parseSteps không đổi) ...
+    const parseSteps = (stepsString: string): string[] => {
         if (!stepsString) return [];
-    return stepsString.split('\\n');
+        return stepsString.split('\\n');
     };
-
-const handleFilterChange = (muscleGroup: string) => {
+    
+    // ... (Hàm handleFilterChange không đổi) ...
+    const handleFilterChange = async (muscleGroup: string) => {
         setSelectedMuscleGroup(muscleGroup);
         setSelectedExercise(null);
+        setGuide(null); 
+        setIsLoadingGuide(true);
         
-        if (muscleGroup === "Tất cả") {
-            setFilteredExercises(exercises);
-        } else {
-            const filtered = exercises.filter(exercise => 
-                exercise.muscle_group.toLowerCase().includes(muscleGroup.toLowerCase())
-            );
-            setFilteredExercises(filtered);
+        try {
+            const res = await axios.get(`http://localhost:8080/api/guides/${muscleGroup}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setGuide(res.data); 
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.status !== 404) {
+                 console.error("Lỗi khi tải hướng dẫn:", error);
+            }
+            setGuide(null); 
+        } finally {
+            setIsLoadingGuide(false);
         }
     };
-const viewExerciseDetails = (exercise: Exercises) => {
+
+    // ... (Hàm viewExerciseDetails, backToList không đổi) ...
+    const viewExerciseDetails = (exercise: Exercises) => {
         setSelectedExercise(exercise);
+        window.scrollTo(0, 0); 
     };
 
-const backToList = () => {
+    const backToList = () => {
         setSelectedExercise(null);
+        window.scrollTo(0, 0);
     };
 
-const renderExerciseDetails = () => {
+    // ... (Hàm renderExerciseDetails không đổi) ...
+    const renderExerciseDetails = () => {
         if (!selectedExercise) return null;
 
         return (
-            <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-lg border border-teal-300">
+            <div 
+                className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-lg border border-teal-300"
+                onClick={(e) => e.stopPropagation()} 
+            >
                 <div className="flex justify-between items-center mb-4">
                     <h1 className="text-3xl font-bold text-teal-600">{selectedExercise.exercise_name}</h1>
-                    <button 
-                        onClick={backToList}
-                        className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg border border-teal-400 transition-colors"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 inline" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-                        </svg>
-                        Quay lại danh sách
-                    </button>
+                    
                 </div>
-
+                {/* ... (Nội dung chi tiết giữ nguyên) ... */}
                 {selectedExercise.video_urls && (
                     <div className="my-6">
-                        <video 
-                            className="w-full rounded-lg shadow-md" 
-                            controls
-                        >
+                        <video className="w-full rounded-lg shadow-md" controls autoPlay>
                             <source src={selectedExercise.video_urls} type="video/mp4" />
                             Trình duyệt của bạn không hỗ trợ video.
                         </video>
                     </div>
                 )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="bg-gray-100 p-4 rounded-lg border border-teal-300">
                         <h2 className="text-xl font-semibold text-teal-600 mb-2">Nhóm cơ</h2>
                         <p className="text-gray-900">{selectedExercise.muscle_group}</p>
@@ -121,13 +178,11 @@ const renderExerciseDetails = () => {
                         <h2 className="text-xl font-semibold text-teal-600 mb-2">Dụng cụ cần thiết</h2>
                         <p className="text-gray-900">{selectedExercise.equipment_required}</p>
                     </div>
-                </div>
-
+            </div>
                 <div className="bg-gray-100 p-4 rounded-lg mb-6 border border-teal-300">
                     <h2 className="text-xl font-semibold text-teal-600 mb-2">Mô tả</h2>
                     <p className="text-gray-900">{selectedExercise.description}</p>
-                </div>
-
+            </div>
                 <div className="bg-gray-100 p-4 rounded-lg border border-teal-300">
                     <h2 className="text-xl font-semibold text-teal-600 mb-4">Các bước thực hiện</h2>
                     <ol className="list-decimal ml-6 space-y-2 text-gray-900">
@@ -136,418 +191,42 @@ const renderExerciseDetails = () => {
                         ))}
                     </ol>
                 </div>
+                <div className="flex justify-end mt-8">
+                    <button 
+                        onClick={backToList}
+                        className="px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg border border-teal-700 transition-colors"
+                    >
+                        ← Quay lại danh sách
+                    </button>
+                </div>
             </div>
         );
     };
 
-   const isMuscleGroupSelected = (muscleType: string) => {
-        return selectedMuscleGroup.toLowerCase().includes(muscleType.toLowerCase());
-    };
-
-const renderChestRules = () => {
-        if (!isMuscleGroupSelected('ngực')) return null;
-
+    // ... (Hàm renderGuide không đổi) ...
+    const renderGuide = () => {
+        if (isLoadingGuide) {
+            return (
+                <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500 min-h-[100px]">
+                    <p className="text-gray-600">Đang tải hướng dẫn...</p>
+                </div>
+            );
+        }
+        if (!guide) return null; 
         return (
             <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
                 <h2 className="text-2xl font-bold mb-4 text-teal-600">
-                    **CÁC BÀI TẬP NGỰC TỐT NHẤT TẠI PHÒNG GYM DÀNH CHO BẠN**
+                    {guide.title}
                 </h2>
-                <h3 className="text-2xl font-bold mb-4 text-teal-600">
-                    **Quy tắc quan trọng khi tập luyện cơ ngực**
-                </h3>
-                <p className="mb-4 text-gray-900">
-                    Tập luyện phát triển cơ bắp là một quá trình dài đòi hỏi nỗ lực và sự kiên trì, không hề có đốt cháy giai đoạn để đạt được kết quả sớm hơn. Rất nhiều bạn mới tập rất mong muốn cơ ngực phát triển ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
-                </p>
-                <ul className="list-disc ml-6 space-y-2 text-gray-900">
-                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu.</li>
-                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. VietLife có mức tạ tham khảo theo trình độ đối với mỗi bài tập, các bạn tham khảo trước khi tập nhé</li>
-                </ul>
+                <div 
+                    className="prose max-w-none text-gray-900" 
+                    dangerouslySetInnerHTML={{ __html: guide.content }} 
+                />
             </div>
         );
     };
 
-    const renderAbsRules = () => {
-        if (!isMuscleGroupSelected('bụng')) return null;
-
-        return (
-            <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
-                <h2 className="text-2xl font-bold mb-4 text-teal-600">
-                    **CÁC BÀI TẬP BỤNG TỐT NHẤT TẠI PHÒNG GYM DÀNH CHO NAM**
-                </h2>
-                <h3 className="text-xl font-semibold mb-3 text-teal-600">
-                    **Quy tắc quan trọng khi tập luyện bụng dành cho phái mạnh**
-                </h3>
-                <p className="mb-4 text-gray-900">
-                    Bụng là bộ phận rất quan trọng đối với nam giới, tuy nhiên các bài tập bụng sẽ luôn có những tác động đến các nhóm cơ khác trên cơ thể như lưng và cơ liên sườn. Do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến bụng để tránh chấn thương ngoài ý muốn, vừa ảnh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn bụng phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
-                </p>
-                <ul className="list-disc ml-6 space-y-2 text-gray-900">
-                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm nóng các khớp eo và lưng trong vòng 5 phút.</li>
-                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đối với những người mới bắt đầu tập bụng, không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là vẫn có thể đạt được hiệu quả tốt nhé.</li>
-                </ul>
-            </div>
-        );
-    };
-
-    const renderCalfRules = () => {
-        if (!isMuscleGroupSelected('bắp chân')) return null;
-        
-        return (
-            <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
-                <h2 className="text-2xl font-bold mb-4 text-teal-600">
-                    **CÁC BÀI TẬP BẮP CHÂN TỐT NHẤT TẠI PHÒNG GYM DÀNH CHO NAM**
-                </h2>
-                <p className="mb-4 text-gray-900">
-                    "Bài tập bắp chân", "Làm sao để bắp chân to ra" có lẽ luôn là các cụm từ được anh em tìm kiếm nhiều nhất. Đã là nam giới thì ai cũng muốn được sở hữu bắp chân săn chắc, to khỏe và cơ bắp. Chính vì thế, hãy cùng VietLife tham khảo và tập theo các bài tập bắp chân tốt nhất tại phòng gym ngay dưới đây. Đặc biệt, bạn nhất định không thể bỏ qua các quy tắc quan trọng để gia tăng hiệu quả và giảm chấn thương khi luyện tập nhé.
-                </p>
-                <h3 className="text-xl font-bold mb-3 text-teal-600">
-                    **Quy tắc quan trọng khi tập luyện bắp chân dành cho phái mạnh**
-                </h3>
-                <p className="mb-4 text-gray-900">
-                    Bắp chân là nhóm cơ rất quan trọng đối với nam giới, do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến bắp chân để tránh chấn thương ngoài ý muốn. Điều này giúp giảm ảnh hưởng đến hoạt động hằng ngày và tăng hiệu quả tập luyện. Rất nhiều người mới bắt đầu đã mong muốn bắp chân phát triển to đẹp ngay sau 1-2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
-                </p>
-                <ul className="list-disc ml-6 space-y-2 text-gray-900">
-                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm nóng eo, hông và cổ chân trong vòng 5 phút.</li>
-                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đối với những người mới bắt đầu tập bắp chân, không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là vẫn có thể đạt được hiệu quả tốt nhé.</li>
-                </ul>
-            </div>
-        );
-    };
-
-    const renderIntercostalRules = () => {
-        if (!isMuscleGroupSelected('liên sườn')) return null;
-
-        return (
-            <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
-                <h2 className="text-2xl font-bold mb-4 text-teal-600">
-                    **Quy tắc quan trọng khi tập luyện cơ liên sườn dành cho bạn**
-                </h2>
-                <p className="mb-4 text-gray-900">
-                    Cơ liên sườn là nhóm cơ rất quan trọng đối với nam giới, tuy nhiên các bài tập cơ liên sườn sẽ luôn có những tác động đến các nhóm cơ bụng. Do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến cơ liên sườn để tránh chấn thương ngoài ý muốn, vừa ảnh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn cơ liên sườn phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
-                </p>
-                <ul className="list-disc ml-6 space-y-2 text-gray-900">
-                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm nóng eo, hông và lưng trong vòng 5 phút.</li>
-                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đối với những người mới bắt đầu tập cơ liên sườn, không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là vẫn có thể đạt được hiệu quả tốt nhé.</li>
-                </ul>
-            </div>
-        );
-    };
-
-    const renderForearmRule = () => {
-        if (!isMuscleGroupSelected('Tay trước')) return null;
-        
-        return (
-            <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
-                <h2 className="text-2xl font-bold mb-4 text-teal-600">
-                    **CÁC BÀI TẬP TAY TRƯỚC TỐT NHẤT TẠI PHÒNG GYM DÀNH CHO BẠN**
-                </h2>
-                <p className="mb-4 text-gray-900">
-                    Tay trước là nhóm cơ rất quan trọng đối với nam giới và các bài tập tay trước sẽ luôn có những tác động đến nhóm cơ cẳng tay. Vì thế, các bạn không nên thử sức với các bài tập tay trước quá phức tạp, quá nặng khi mới bắt đầu để tránh chấn thương nhé.
-                </p>
-                <h3 className="text-xl font-bold mb-3 text-teal-600">
-                    **Quy tắc quan trọng khi tập luyện tay trước**
-                </h3>
-                <p className="mb-4 text-gray-900">
-                    Tay trước là nhóm cơ rất quan trọng trong đời sống hằng ngày, do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến tay trước để tránh chấn thương ngoài ý muốn, vừa ảnh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn tay trước phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
-                </p>
-                <ul className="list-disc ml-6 space-y-2 text-gray-900">
-                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm khớp tay, cổ tay, cẳng tay và vai trong vòng 5 phút.</li>
-                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đối với những người mới bắt đầu tập tay trước, không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là vẫn có thể đạt được hiệu quả tốt nhé.</li>
-                </ul>
-            </div>
-        );
-    };
-
-    const renderTricepsRules = () => {
-        if (!isMuscleGroupSelected('tay sau')) return null;
-        
-        return (
-            <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
-                <h2 className="text-2xl font-bold mb-4 text-teal-600">
-                    **CÁC BÀI TẬP TAY SAU TỐT NHẤT TẠI PHÒNG GYM DÀNH CHO NAM**
-                </h2>
-                <p className="mb-4 text-gray-900">
-                    Khi bước chân vào con đường tập gym, chắc hẳn bạn nam nào cũng muốn mình sở hữu 1 đôi tay săn chắc, to khỏe, vạm vỡ và cuồn cuộn cơ bắp để có thể tự tin diện mọi trang phục với mọi thiết kế. Hiểu được điều đấy, VietLife đã tổng hợp các bài tập tay sau tốt nhất tại phòng gym dành cho nam giới và cả những quy tắc quan trọng khi tập tay sau để tăng hiệu quả bài tập, giảm nguy cơ chấn thương. Cùng VietLife theo dõi tiếp bài viết nhé.
-                </p>
-                <h3 className="text-xl font-bold mb-3 text-teal-600">
-                    **Quy tắc quan trọng khi tập luyện tay sau dành cho phái mạnh**
-                </h3>
-                <p className="mb-4 text-gray-900">
-                    Tay sau là nhóm cơ rất quan trọng đối với nam giới và các bài tập tay sau sẽ luôn có những tác động đến đầu ngắn, đầu dài,... Do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến tay sau để tránh chấn thương ngoài ý muốn, vừa ảnh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn tay sau phát triển to đẹp ngay sau 1-2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
-                </p>
-                <ul className="list-disc ml-6 space-y-2 text-gray-900">
-                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm khớp tay, cổ tay, cẳng tay, vai và cổ trong vòng 5 phút.</li>
-                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đối với những người mới bắt đầu tập tay sau, không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là vẫn có thể đạt được hiệu quả tốt nhé.</li>
-                </ul>
-            </div>
-        );
-    };
-
-    const renderForearmRules = () => {
-        if (!isMuscleGroupSelected('cẳng tay')) return null;
-        
-        return (
-            <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
-                <h2 className="text-2xl font-bold mb-4 text-teal-600">
-                    **Quy tắc quan trọng khi tập luyện cẳng tay dành cho bạn**
-                </h2>
-                <p className="mb-4 text-gray-900">
-                    Cẳng tay là nhóm cơ rất quan trọng đối với nam giới và các bài tập cẳng tay sẽ luôn có những tác động đến các nhóm cơ tay trước, sau. Do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến cẳng tay để tránh chấn thương ngoài ý muốn, vừa ảnh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn cẳng tay phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
-                </p>
-                <ul className="list-disc ml-6 space-y-2 text-gray-900">
-                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm khớp tay, cổ tay, cẳng tay và vai trong vòng 5 phút.</li>
-                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đối với những người mới bắt đầu tập cẳng tay, không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là vẫn có thể đạt được hiệu quả tốt nhé.</li>
-                </ul>
-            </div>
-        );
-    };
-
-    const renderLowerBackRules = () => {
-        if (!isMuscleGroupSelected('lưng dưới')) return null;
-        
-        return (
-            <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
-                <h2 className="text-2xl font-bold mb-4 text-teal-600">
-                    **CÁC BÀI TẬP LƯNG DƯỚI TỐT NHẤT TẠI PHÒNG GYM DÀNH CHO NAM**
-                </h2>
-                <p className="mb-4 text-gray-900">
-                    Lưng dưới săn chắc, cơ bắp không chỉ giúp bạn có được một chiếc body tuyệt đẹp, mà khi tăng cường luyện tập lưng dưới còn giúp bạn cải thiện sức khỏe vùng cột sống, giảm chấn thương khi luyện tập các nhóm cơ khác trên cơ thể. Vì thế hãy cùng VietLife đọc tiếp bài viết dưới đây để tham khảo thêm các bài tập lưng dưới tốt nhất dành cho nam tại phòng tập gym. Đặc biệt, bạn đừng bỏ qua các quy tắc quan trọng khi tập luyện mà VietLife nêu ra dưới đây để đảm bảo an toàn và gia tăng hiệu quả bài tập nhé.
-                </p>
-                <h3 className="text-xl font-bold mb-3 text-teal-600">
-                    **Quy tắc quan trọng khi luyện tập lưng dưới dành cho phái mạnh**
-                </h3>
-                <p className="mb-4 text-gray-900">
-                    Lưng dưới là bộ phận rất quan trọng đối với nam giới, tuy nhiên các bài tập lưng dưới sẽ luôn có những tác động đến các nhóm cơ khác trên cơ thể như đùi, bụng, mông,... Do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến lưng dưới để tránh chấn thương ngoài ý muốn, vừa ảnh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn lưng dưới phát triển to đẹp ngay sau 1-2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
-                </p>
-                <ul className="list-disc ml-6 space-y-2 text-gray-900">
-                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm nóng eo, lưng trong vòng 5 phút.</li>
-                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đối với những người mới bắt đầu tập lưng dưới, không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là vẫn có thể đạt được hiệu quả tốt nhé.</li>
-                </ul>
-            </div>
-        );
-    };
-
-    const renderHamstringRules = () => {
-        if (!isMuscleGroupSelected('đùi sau')) return null;
-        
-        return (
-            <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
-                <h2 className="text-2xl font-bold mb-4 text-teal-600">
-                    **CÁC BÀI TẬP ĐÙI SAU TỐT NHẤT TẠI PHÒNG GYM DÀNH CHO NAM**
-                </h2>
-                <p className="mb-4 text-gray-900">
-                    Đùi sau là nhóm cơ rất quan trọng đối với phái mạnh và luôn là nhóm cơ được ưu tiên khi nam giới bắt đầu tập thể hình. Khi sở hữu cơ đùi sau săn chắc, phái mạnh sẽ rất tự tin, thoải mái diện mọi loại trang phục, mọi chất liệu và mọi thiết kế. Hiểu được sự quan tâm ấy của nam giới, VietLife đã tổng hợp toàn bộ các bài tập đùi sau tốt nhất dành cho nam giới tại phòng gym trong bài viết này. Tuy nhiên, để việc tập luyện đùi sau đạt hiệu quả tốt nhất, bạn vẫn nên đọc qua một vài quy tắc quan trọng dưới đây để đảm bảo an toàn và tăng hiệu quả khi tập nhé.
-                </p>
-                <h3 className="text-xl font-bold mb-3 text-teal-600">
-                    **Quy tắc quan trọng khi tập luyện đùi sau cho phái mạnh**
-                </h3>
-                <p className="mb-4 text-gray-900">
-                    Đùi sau là một bộ phận rất quan trọng trong đời sống hằng ngày, do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến đùi sau để tránh chấn thương ngoài ý muốn, vừa ảnh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn có đùi sau phát triển to đẹp ngay sau 1-2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
-                </p>
-                <ul className="list-disc ml-6 space-y-2 text-gray-900">
-                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm nóng các khớp gối, cổ chân trong 5 phút.</li>
-                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đùi sau là nhóm cơ quan trọng mà đối với các bạn mới bắt đầu, chỉ cần tập đúng form, mức tạ vừa phải là có thể đạt được hiệu quả tốt nhé.</li>
-                </ul>
-            </div>
-        );
-    };
-
-    const renderMidBackRules = () => {
-        if (!isMuscleGroupSelected('lưng giữa')) return null;
-        
-        return (
-            <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
-                <h2 className="text-2xl font-bold mb-4 text-teal-600">
-                    **CÁC BÀI TẬP LƯNG GIỮA TỐT NHẤT TẠI PHÒNG GYM DÀNH CHO NAM**
-                </h2>
-                <p className="mb-4 text-gray-900">
-                    Nếu bạn thật sự nghiêm túc luyện tập thể hình và mong muốn sở hữu một body đẹp toàn diện, thì bạn không nên bỏ qua các bài tập lưng giữa tốt nhất tại phòng gym dành cho nam mà VietLife đã tổng hợp. Đặc biệt đừng nên bỏ qua các quy tắc quan trọng giúp hiệu quả bài tập tăng lên và giảm tối đa chấn thương mà VietLife đã nêu ra dưới đây nhé.
-                </p>
-                <h3 className="text-xl font-bold mb-3 text-teal-600">
-                    **Quy tắc quan trọng khi luyện tập lưng giữa dành cho phái mạnh**
-                </h3>
-                <p className="mb-4 text-gray-900">
-                    Lưng giữa là bộ phận rất quan trọng đối với nam giới, tuy nhiên các bài tập lưng giữa sẽ luôn có những tác động đến các nhóm cơ khác trên cơ thể như xô và lưng dưới. Do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến lưng giữa để tránh chấn thương ngoài ý muốn, vừa ảnh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn lưng giữa phát triển to đẹp ngay sau 1-2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
-                </p>
-                <ul className="list-disc ml-6 space-y-2 text-gray-900">
-                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm nóng các khớp lưng và eo trong vòng 5 phút.</li>
-                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đối với những người mới bắt đầu tập lưng giữa, không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là vẫn có thể đạt được hiệu quả tốt nhé.</li>
-                </ul>
-            </div>
-        );
-    };
-
-    const renderBackRules = () => {
-        if (!isMuscleGroupSelected('lưng xô')) return null;
-        
-        return (
-            <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
-                <h2 className="text-2xl font-bold mb-4 text-teal-600">
-                    **CÁC BÀI TẬP LƯNG XÔ TỐT NHẤT TẠI PHÒNG GYM DÀNH BẠN**
-                </h2>
-                <p className="mb-4 text-gray-900">
-                    Cơ lưng là nhóm cơ thể hiện sự mạnh mẽ của phái mạnh, bất cứ người đàn ông nào cũng mong muốn sở hữu một bộ lưng rộng và to, là điểm tựa vững chắc cho bất cứ ai. Sở hữu bộ lưng to luôn khiến thân trên nhìn rộng, dày và mạnh mẽ hơn. Lưng được cấu tạo từ 2 phần cơ chính là lưng xô, giúp cải thiện độ rộng của lưng, và lưng giữa, giúp cải thiện độ dày của lưng. Ở bài viết này chúng ta sẽ tập trung chủ yếu vào lưng xô, tất cả đều là các bài tập rất cơ bản, các bạn chỉ cần thực hiện đúng form tập, mức tạ vừa sức thì đảm bảo sau 2-3 tháng độ rộng của lưng sẽ thay đổi đáng kể.
-                </p>
-                <h3 className="text-xl font-bold mb-3 text-teal-600">
-                    **Quy tắc quan trọng khi tập luyện cơ lưng cho bạn**
-                </h3>
-                <p className="mb-4 text-gray-900">
-                    Cơ lưng là nhóm cơ rất khó cảm nhận, nhiều bạn tập các bài lưng nhưng không chú ý form tập nên vào cơ rất ít mà đa số thấy mỏi bắp tay, làm như vậy sẽ khiến cơ lưng chậm phát triển. Rất nhiều bạn mới tập rất mong muốn cơ lưng to dày lên sau vài tuần tập luyện và khi không đạt được kết quả các bạn thường dễ nản và bỏ cuộc. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
-                </p>
-                <ul className="list-disc ml-6 space-y-2 text-gray-900">
-                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Các bài kéo cần dùng rất nhiều sức của bắp tay và cổ tay, cần làm nóng kỹ để cơ và dây chằng không bị shock do tập luyện nặng quá sớm.</li>
-                    <li>Kích thích cơ lưng trước khi tập set chính, tập các bài lưng cơ bản với mức tạ nhẹ, chú ý cánh tay ép hơi sát với cơ thể để kích thích được phần cơ xô, làm vậy sẽ giúp cơ lưng dễ cảm nhận hơn khi vào set tập chính</li>
-                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, có 1 mẹo nhỏ là cũng không nên tập quá nhẹ sẽ không hiệu quả. VietLife có mức tạ tham khảo theo trình độ đối với mỗi bài tập, các bạn tham khảo trước khi tập nhé</li>
-                </ul>
-            </div>
-        );
-    };
-
-    const renderGluteRules = () => {
-        if (!isMuscleGroupSelected('mông')) return null;
-        
-        return (
-            <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
-                <h2 className="text-2xl font-bold mb-4 text-teal-600">
-                    **CÁC BÀI TẬP MÔNG TỐT NHẤT TẠI PHÒNG GYM DÀNH CHO NAM**
-                </h2>
-                <p className="mb-4 text-gray-900">
-                    Có một điều hiển nhiên là nam giới khi sở hữu một vòng 3 săn chắc, căng tròn sẽ trông có sức hút hơn đối với các bạn nam không có điều đấy. Cơ mông săn chắc sẽ giúp phái mạnh trở nên tự tin hơn khi diện bất kỳ loại trang phục nào, đồng thời còn gây được sự chú ý đến phái yếu. Vì thế, VietLife đã tổng hợp các bài tập mông tốt nhất tại phòng gym dành cho nam giới để các anh em có thể tham khảo và luyện tập theo.
-                </p>
-                <h3 className="text-xl font-bold mb-3 text-teal-600">
-                    **Quy tắc quan trọng khi tập luyện mông dành cho phái mạnh**
-                </h3>
-                <p className="mb-4 text-gray-900">
-                    Mông là bộ phận rất quan trọng đối với nam giới, tuy nhiên các bài tập mông sẽ luôn có những tác động đến các nhóm cơ khác trên cơ thể như đùi trước, đùi sau và lưng dưới. Do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến mông để tránh chấn thương ngoài ý muốn, vừa ảnh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn mông phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
-                </p>
-                <ul className="list-disc ml-6 space-y-2 text-gray-900">
-                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm nóng các khớp gối, cổ chân, hông và lưng trong vòng 5 phút.</li>
-                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đối với những người mới bắt đầu tập mông, không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là vẫn có thể đạt được hiệu quả tốt nhé.</li>
-                </ul>
-            </div>
-        );
-    };
-
-    const renderThighRules = () => {
-        if (!isMuscleGroupSelected('đùi trước')) return null;
-        
-        return (
-            <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
-                <h2 className="text-2xl font-bold mb-4 text-teal-600">
-                    **CÁC BÀI TẬP ĐÙI TRƯỚC TỐT NHẤT TẠI PHÒNG GYM DÀNH CHO NAM**
-                </h2>
-                <p className="mb-4 text-gray-900">
-                    Đùi trước là một nhóm cơ rất quan trọng ở phần thân dưới của đàn ông, một cơ đùi săn chắc chắc chắn sẽ giúp bạn tự tin hơn gấp 10 khi mặc các loại quần tây, jeans, đùi hoặc quần jogger. Vì khi sở hữu một cơ đùi săn chắc, trông bạn sẽ trở nên nam tính và thu hút ánh nhìn của người đối diện hơn. Hiểu được điều đấy, VietLife đã cho ra top các bài tập đùi vừa chi tiết, cụ thể, vừa đơn giản, dễ thực hiện theo tại phòng gym dành cho các bạn nam đây. Tuy nhiên, bạn hãy lưu ý rằng, cơ đùi là nhóm cơ rất quan trọng trong cuộc sống hằng ngày, nó phụ thuộc rất nhiều ở các hoạt động thường ngày như đi, đứng, ... của cơ thể. Vì thế, các bạn không nên thử sức với các bài tập đùi trước quá phức tạp, quá nặng khi mới bắt đầu để tránh chấn thương nhé.
-                </p>
-                <h3 className="text-xl font-bold mb-3 text-teal-600">
-                    **Quy tắc quan trọng khi tập luyện đùi trước cho phái mạnh**
-                </h3>
-                <p className="mb-4 text-gray-900">
-                    Đùi trước là cơ đùi rất quan trọng trong đời sống hằng ngày, do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến đùi trước (Squat, các bài tập sử dụng dụng cụ hỗ trợ) để tránh chấn thương ngoài ý muốn, vừa ảnh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn đùi trước phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
-                </p>
-                <ul className="list-disc ml-6 space-y-2 text-gray-900">
-                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu, xoay nhẹ và làm nóng cổ chân, khớp gối trong 5 phút.</li>
-                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Đối với những người mới bắt đầu, không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là có thể đạt được hiệu quả tốt nhé.</li>
-                </ul>
-            </div>
-        );
-    };
-
-    const renderShoulderRules = () => {
-        if (!isMuscleGroupSelected('vai')) return null;
-        
-        return (
-            <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
-                <h2 className="text-2xl font-bold mb-4 text-teal-600">
-                    **CÁC BÀI TẬP VAI TỐT NHẤT TẠI PHÒNG GYM DÀNH CHO BẠN**
-                </h2>
-                <p className="mb-4 text-gray-900">
-                    Cơ vai là nhóm cơ đem lại sự nam tính cho bất kỳ người đàn ông nào, với bộ vai to rộng, bề ngang của thân trên sẽ nhìn rất rộng và mạnh mẽ. Bộ vai rộng sẽ giúp anh em luôn tự tin khi mặc bất kỳ trang phục nào như áo sơ mi, áo thun, Oversize, ba lỗ,... Hiểu được lợi ích to lớn của bộ vai rộng, VietLife đã tổng hợp top các bài tập hiệu quả nhất tại phòng gym để độ bộ vai đẹp nhé. Khớp vai là nhóm khớp cực kỳ quan trọng trong công việc và đời sống hằng ngày, nên các bạn nên tránh các bài tập vai quá phức tạp hoặc tập quá nặng để tránh nguy cơ chấn thương nhé. Các bạn chỉ cần tập đúng form, đúng mức tạ thì chỉ cần vài tháng sẽ thấy cơ vai thay đổi rõ rệt nhé.
-                </p>
-                <h3 className="text-xl font-bold mb-3 text-teal-600">
-                    **Quy tắc quan trọng khi tập luyện cơ vai cho phái mạnh**
-                </h3>
-                <p className="mb-4 text-gray-900">
-                    Khớp vai là khớp rất quan trọng trong đời sống hằng ngày, do đó chúng ta cần cực kỳ cẩn thận khi tập luyện các bài tập liên quan đến khớp vai (Đẩy ngực, đẩy vai), tránh chấn thương ngoài ý muốn, vừa ảnh hưởng đến hoạt động hằng ngày và hiệu quả tập luyện nhé. Rất nhiều người mới bắt đầu đã mong muốn có cơ vai phát triển to đẹp ngay sau 1 2 tuần tập luyện và hậu quả chấn thương rất cao. VietLife đưa ra bộ quy tắc cơ bản trong buổi tập dưới đây, mong các bạn sẽ đọc và làm theo để đạt hiệu quả tốt nhất nhé:
-                </p>
-                <ul className="list-disc ml-6 space-y-2 text-gray-900">
-                    <li>Khởi động thật kỹ trước khi bắt đầu set tập chính. Đây là lý do lớn nhất khiến nhiều bạn mới tập gặp chấn thương, vậy nên chú ý khởi động khoảng 15 phút thật kỹ các khớp, cardio nhẹ 5 phút để tăng cường lưu thông máu. Xoay nhẹ và làm nóng các khớp vai, cánh tay, cổ tay 5 phút.</li>
-                    <li>Sử dụng mức tạ vừa sức, tránh tập quá nặng dẫn đến chấn thương ngoài ý muốn, cũng không nên tập quá nhẹ sẽ không hiệu quả. Cơ vai là nhóm cơ không yêu cầu phải tập quá nặng, các bạn chỉ cần tập đúng form, mức tạ vừa phải là vẫn có thể đạt được hiệu quả tốt nhé.</li>
-                </ul>
-            </div>
-        );
-    };
-
-    const renderBeginnerGymGuide = () => {
-        if (!isMuscleGroupSelected('Tất cả')) return null;
-        
-        return (
-            <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border-l-4 border-teal-500">
-                <h2 className="text-2xl font-bold mb-4 text-teal-600">
-                    **CÁCH TẬP LUYỆN, CHẾ ĐỘ DINH DƯỠNG VÀ LỊCH TẬP DÀNH CHO NGƯỜI MỚI TẬP GYM**
-                </h2>
-                <p className="mb-4 text-gray-900">
-                    Tập gym là một phương pháp rất tốt để cải thiện thể lực và giữ gìn dáng vóc. Hơn nữa, tập gym còn giúp giảm bớt stress và ngăn chặn được quá trình lão hóa sớm. Tuy nhiên, tập gym không phải là điều dễ dàng nếu không có kế hoạch cụ thể, việc đạt được mục tiêu sẽ trở nên khó khăn. Hãy tham khảo bài viết này để lập ra chế độ tập luyện và dinh dưỡng phù hợp cho riêng mình nhé.
-                </p>
-                <h3 className="text-xl font-bold mb-3 text-teal-600">
-                    **Người mới tập cần chuẩn bị những gì**
-                </h3>
-                <p className="mb-4 text-gray-900">
-                    Dưới đây là 4 quy tắc tập gym chuẩn chỉnh dành cho người mới bắt đầu, giúp bạn dễ dàng đạt được mục tiêu của mình nhanh hơn.
-                </p>
-                <h4 className="text-lg font-semibold mb-2 text-teal-600">
-                    1. Đề ra lịch trình tập gym hợp lý
-                </h4>
-                <p className="mb-4 text-gray-900">
-                    Nhiều người mới tập nghĩ rằng tập gym 7 ngày/tuần sẽ mang lại hiệu quả cao hơn, nhưng thực tế, tập quá nhiều có thể gây kiệt sức hoặc chán nản. Việc không có lịch tập rõ ràng, lặp lại các bài tập giống nhau mỗi ngày sẽ không hiệu quả và dễ gây chán. Hãy tạo lịch trình tập luyện cố định, tối thiểu 3-5 buổi/tuần, để cơ thể dễ thích nghi và theo kịp tiến độ. VietLife cung cấp các lịch tập cụ thể tùy theo nhu cầu, thời gian và trình độ, bạn có thể tham khảo thêm nhé.
-                </p>
-                <h4 className="text-lg font-semibold mb-2 text-teal-600">
-                    2. Lựa chọn đồ tập phù hợp, thoải mái
-                </h4>
-                <p className="mb-4 text-gray-900">
-                    Chọn trang phục thoải mái, dễ vận động để việc tập gym trở nên tiện lợi hơn. Chuẩn bị áo thun thấm hút mồ hôi, áo bra thoáng khí, quần tập bó vừa phải. Chất liệu polyester, spandex hoặc cotton pha polyester là lựa chọn hợp lý. Hãy vệ sinh quần áo cẩn thận sau khi tập để tránh mùi hôi.
-                </p>
-                <h4 className="text-lg font-semibold mb-2 text-teal-600">
-                    3. Đảm bảo nạp đủ dinh dưỡng trước, trong và sau buổi tập
-                </h4>
-                <p className="mb-4 text-gray-900">
-                    Tập gym tiêu tốn nhiều năng lượng, do đó cần nạp đủ dinh dưỡng để duy trì hiệu quả tập luyện:
-                    <ul className="list-disc ml-6 space-y-2 text-gray-900">
-                        <li><strong>Trước tập (1-2 tiếng):</strong> Ăn nhẹ với thực phẩm hấp thụ nhanh như 1 trái chuối để có năng lượng mà không gây mệt mỏi. Tránh ăn quá no hoặc đồ khó tiêu như cơm, bánh mì.</li>
-                        <li><strong>Trong khi tập:</strong> Uống ít nhất 1 lít nước/60 phút tập để tránh mất nước, chuột rút hoặc mệt mỏi.</li>
-                        <li><strong>Sau tập:</strong> Nạp đủ protein, tinh bột, chất xơ (rau củ) và vitamin. Tránh nhịn ăn sau tập vì sẽ khiến cơ thể kiệt sức, dễ nản và bỏ cuộc. Protein đặc biệt quan trọng để phát triển cơ bắp và tăng hiệu quả cho các buổi tập sau.</li>
-                    </ul>
-                </p>
-                <h4 className="text-lg font-semibold mb-2 text-teal-600">
-                    4. Luôn khởi động nhẹ trước khi vào bài tập
-                </h4>
-                <p className="mb-4 text-gray-900">
-                    Khởi động kỹ trong 15 phút với các động tác xoay khớp tay, chân, nâng gối và 5-10 phút cardio nhẹ (đạp xe, đi bộ) để tăng lưu thông máu và làm nóng cơ thể. Bước này giúp tránh chấn thương và tăng hiệu quả tập luyện.
-                </p>
-                <h3 className="text-xl font-bold mb-3 text-teal-600">
-                    **Lịch tập luyện chi tiết dành cho người mới**
-                </h3>
-                <p className="mb-4 text-gray-900">
-                    Không có lịch tập cố định phù hợp cho tất cả mọi người vì bài tập phụ thuộc vào thể trạng từng người. Tuy nhiên, bạn có thể tham khảo lịch tập gym 5 ngày/tuần dưới đây từ VietLife, kết hợp cardio nhẹ 15-30 phút sau mỗi buổi để đốt calo và giảm mỡ hiệu quả:
-                </p>
-                <ul className="list-disc ml-6 space-y-2 text-gray-900">
-                    <li><strong>Thứ 2:</strong> 💪 Tập thân trên (ngực, vai, tay) + 15’ cardio</li>
-                    <li><strong>Thứ 3:</strong> 🏃 Cardio chính + Core (bụng/lưng dưới)</li>
-                    <li><strong>Thứ 4:</strong> 🦵 Chân + Mông</li>
-                    <li><strong>Thứ 5:</strong> 🧘 Nghỉ / đi bộ nhẹ / yoga phục hồi</li>
-                    <li><strong>Thứ 6:</strong> 💪 Thân trên (lưng + xô + tay sau) + core</li>
-                    <li><strong>Thứ 7:</strong> 🏃 Cardio đốt mỡ + bài full-body nhẹ</li>
-                    <li><strong>Chủ nhật:</strong> 🧘 Nghỉ / kéo giãn / đi bộ</li>
-                </ul>
-                <h3 className="text-xl font-bold mb-3 text-teal-600">
-                    **Kết luận**
-                </h3>
-                <p className="mb-4 text-gray-900">
-                    Chỉ cần dành 45-60 phút mỗi ngày để tập gym, bạn sẽ sớm sở hữu thân hình đáng mơ ước và sức khỏe cải thiện rõ rệt. Hãy kiên trì và tuân thủ lịch tập, chế độ dinh dưỡng để đạt được kết quả tốt nhất nhé!
-                </p>
-            </div>
-        );
-    };
-
+    // ... (Hàm renderExercisesList không đổi) ...
     const renderExercisesList = () => {
         if (filteredExercises.length !== 0) {
             return (
@@ -555,19 +234,28 @@ const renderChestRules = () => {
                     {filteredExercises.map((exercise) => (
                         <div 
                             key={exercise.id} 
-                            className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border border-teal-300"
+                            className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border border-teal-300 group"
                             onClick={() => viewExerciseDetails(exercise)}
                         >
-                            <div className="aspect-video overflow-hidden">
-                                {exercise.video_urls && (
-                                    <video 
-                                        className="w-full h-full object-cover hover:scale-110 transition-transform duration-300" 
-                                        controls
-                                    >
-                                        <source src={exercise.video_urls} type="video/mp4" />
-                                        Trình duyệt của bạn không hỗ trợ video.
-                                    </video>
+                            {/* ... (Nội dung card giữ nguyên) ... */}
+                            <div className="aspect-video overflow-hidden relative">
+                                {exercise.thumbnail_url ? (
+                                    <img 
+                                        src={exercise.thumbnail_url} 
+                                        alt={exercise.exercise_name}
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                        loading="lazy"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                        <span className="text-gray-500">Không có ảnh</span>
+                                    </div>
                                 )}
+                                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
                             </div>
                             <div className="p-6">
                                 <h2 className="font-bold text-xl mb-3 text-gray-800 hover:text-teal-500 transition-colors line-clamp-2">{exercise.exercise_name}</h2>
@@ -590,15 +278,21 @@ const renderChestRules = () => {
                 </div>
             );
         } else {
-            return (
+             return (
                 <div className="flex justify-center items-center h-32">
                     <div className="text-center">
+                        {/* ... (Nội dung "Không tìm thấy" giữ nguyên) ... */}
                         {exercises.length > 0 ? (
                             <>
                                 <div className="text-xl text-gray-700 mb-4">😔 Không tìm thấy bài tập nào</div>
-                                <p className="text-gray-600 mb-4">Thử chọn nhóm cơ khác</p>
+                                <p className="text-gray-600 mb-4">
+                                    {searchQuery.trim() !== "" ? "Thử bỏ từ khóa tìm kiếm" : "Thử chọn nhóm cơ khác"}
+                                </p>
                                 <button 
-                                    onClick={() => handleFilterChange("Tất cả")} 
+                                    onClick={() => {
+                                        setSearchQuery("");
+                                        handleFilterChange("Tất cả");
+                                    }} 
                                     className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg border border-teal-700 transition-colors"
                                 >
                                     Xem tất cả bài tập
@@ -621,59 +315,96 @@ const renderChestRules = () => {
         }
     };
 
+    // --- (ĐÃ CẬP NHẬT) Hàm render chính ---
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-teal-50 to-blue-50">
-            <div className="w-full m-auto bg-white shadow-2xl rounded-2xl p-6">
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 px-4 py-12">
+            <div className="w-full max-w-7xl m-auto bg-white shadow-2xl rounded-2xl p-6">
+                
                 {selectedExercise ? (
-                    renderExerciseDetails()
+                    // Chế độ xem chi tiết
+                    <div 
+                        className="flex justify-center pt-4 animate-fade-in" 
+                        onClick={backToList} 
+                    >
+                        {renderExerciseDetails()}
+                    </div>
                 ) : (
-                    <>
+                    // Chế độ xem danh sách
+                    <div className="animate-fade-in"> 
                         <h1 className="text-4xl font-bold mb-4 text-center mt-5 text-teal-600">Các Bài Tập Sức Mạnh</h1>
-                        <p className="text-gray-600 mb-4 mx-4 md:mx-20 text-xl text-center">
+                        <p className="text-gray-600 mb-8 mx-4 md:mx-20 text-xl text-center">
                             Danh sách bài tập này bao gồm nhiều bài tập nhằm vào các nhóm cơ khác nhau. Nhấn vào một bài tập để xem thông tin chi tiết và các bước thực hiện.
                         </p>
 
-                        {exercises.length > 0 && (
-                            <div className="mb-8 p-6 bg-white rounded-lg border border-teal-200">
-                                <div className="flex flex-wrap gap-2 justify-center">
-                                    {muscleGroups.map((group, index) => (
-                                        <button
-                                            key={index}
-                                            onClick={() => handleFilterChange(group)}
-                                            className={`px-4 py-2 rounded-full text-sm font-medium border border-teal-400 transition-all duration-300 ${
-                                                selectedMuscleGroup === group
-                                                    ? 'bg-teal-500 text-white'
-                                                    : 'bg-gray-100 text-gray-900 hover:bg-gray-200 hover:scale-105'
-                                            }`}
-                                        >
-                                            {group}
-                                        </button>
-                                    ))}
-                                </div>
-                                <div className="mt-4 text-gray-600 text-sm text-center">
-                                    Hiển thị {filteredExercises.length} / {exercises.length} bài tập
-                                    {selectedMuscleGroup !== "Tất cả" && ` cho nhóm cơ "${selectedMuscleGroup}"`}
-                                </div>
+                        {/* --- (ĐÃ CẬP NHẬT) Khu vực Tìm kiếm và Lọc --- */}
+                        {/* - Sắp xếp: flex-col (mobile) và md:flex-row (desktop)
+                            - md:justify-between: Đẩy 2 item ra 2 phía
+                            - md:items-center: Căn giữa theo chiều dọc
+                        */}
+                        <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-center gap-6 px-6">
+                            
+                            {/* 1. Thanh tìm kiếm (Bên trái) */}
+                            <div className="relative w-full md:w-1/2 lg:w-2/3">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </span>
+                                <input
+                                    type="text"
+                                    placeholder="Tìm kiếm theo tên bài tập..."
+                                    className="w-full py-2 pl-10 pr-4 text-gray-900 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
                             </div>
-                        )}
+                        
+                            {/* 2. Dropdown Lọc (Bên phải) */}
+                            {exercises.length > 0 && (
+                                <div className="flex justify-start md:justify-end items-center gap-3 w-full md:w-auto md:min-w-[280px]">
+                                    
+                                    {/* Icon Lọc */}
+                                    <svg className="w-5 h-5 text-gray-600 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.572a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+                                    </svg>
+                                    
+                                    {/* Label (ẩn trên mobile để tiết kiệm không gian) */}
+                                    <label htmlFor="muscle-group-filter" className="text-gray-700 font-medium whitespace-nowrap hidden sm:block">
+                                        Lọc theo nhóm cơ:
+                                    </label>
 
-                        {renderChestRules()}
-                        {renderAbsRules()}
-                        {renderBackRules()}
-                        {renderForearmRule()}
-                        {renderForearmRules()}
-                        {renderGluteRules()}
-                        {renderShoulderRules()}
-                        {renderCalfRules()}
-                        {renderBeginnerGymGuide()}
-                        {renderTricepsRules()}
-                        {renderThighRules()}
-                        {renderLowerBackRules()}
-                        {renderMidBackRules()}
-                        {renderHamstringRules()}
-                        {renderIntercostalRules()}
+                                    {/* Dropdown Select */}
+                                    <select
+                                        id="muscle-group-filter"
+                                        value={selectedMuscleGroup}
+                                        onChange={(e) => handleFilterChange(e.target.value)}
+                                        className="appearance-none bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2.5 pr-10 cursor-pointer transition-all"
+                                        style={{ 
+                                            backgroundPosition: 'right 0.75rem center', 
+                                            backgroundSize: '0.85em auto', 
+                                            backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, 
+                                            backgroundRepeat: 'no-repeat' 
+                                        }}
+                                    >
+                                        {muscleGroups.map((group, index) => (
+                                            <option key={index} value={group}>
+                                                {group}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            {/* Dòng "Hiển thị" đã bị XÓA */}
+                        </div>
+
+                        {/* Đường kẻ ngang phân tách */}
+                        <hr className="mb-8 border-gray-100" />
+
+                        {renderGuide()}
+                        
                         {renderExercisesList()}
-                    </>
+                    </div>
                 )}
             </div>
         </div>
