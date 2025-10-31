@@ -82,7 +82,17 @@ function Navbar() {
           <ul className="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-teal-500 md:flex-row md:items-center md:space-x-8 md:mt-0 md:border-0">
             <li><Link to="/" className="block py-2 px-3 text-white rounded hover:bg-teal-600 md:hover:bg-transparent md:hover:text-teal-200 md:p-0">Trang chủ</Link></li>
             <li><Link to="/blogs" className="block py-2 px-3 text-white rounded hover:bg-teal-600 md:hover:bg-transparent md:hover:text-teal-200 md:p-0">Kiến thức</Link></li>
-            <li><Link to="/nutrition" className="block py-2 px-3 text-white rounded hover:bg-teal-600 md:hover:bg-transparent md:hover:text-teal-200 md:p-0">Dinh dưỡng</Link></li>
+            
+            {/* --- MỤC DINH DƯỠNG MỚI VỚI MENU CON --- */}
+            <li className="w-full md:w-auto">
+              <NavDropdown title="Dinh dưỡng">
+                <DropdownItem to="/nutrition/tools">Công cụ (Tra cứu & TDEE)</DropdownItem>
+                <DropdownItem to="/nutrition/recipes">Công thức & Kế hoạch</DropdownItem>
+                <DropdownItem to="/nutrition/lessons">Bài học Dinh dưỡng</DropdownItem>
+                <DropdownItem to="/nutrition/explore">Khám phá Chuyên sâu</DropdownItem>
+                <DropdownItem to="/nutrition">Xem tất cả</DropdownItem>
+              </NavDropdown>
+            </li>
 
             {/* --- MỤC TẬP LUYỆN VỚI MENU CON --- */}
             <li className="w-full md:w-auto">

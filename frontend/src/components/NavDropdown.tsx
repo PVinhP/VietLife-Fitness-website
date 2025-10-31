@@ -1,7 +1,6 @@
 // src/components/NavDropdown.tsx
 import React, { useState, useRef, useEffect } from 'react';
-// Bỏ import Link vì chúng ta sẽ dùng thẻ <a>
-// import { Link } from 'react-router-dom'; 
+import { Link } from 'react-router-dom';
 import { FaChevronDown } from 'react-icons/fa';
 
 interface NavDropdownProps {
@@ -10,7 +9,7 @@ interface NavDropdownProps {
 }
 
 interface DropdownItemProps {
-  to: string; // 'to' bây giờ sẽ được dùng cho 'href'
+  to: string;
   children: React.ReactNode;
   onClick?: () => void;
 }
@@ -35,6 +34,7 @@ const NavDropdown: React.FC<NavDropdownProps> = ({ title, children }) => {
     <div className="relative group w-full md:w-auto" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
+        // === CẢI THIỆN ACCESSIBILITY ===
         aria-haspopup="true"
         aria-expanded={isOpen}
         className="py-2 px-3 text-white rounded hover:bg-teal-600 md:hover:bg-transparent md:hover:text-teal-200 md:p-0 flex items-center justify-between w-full"
@@ -45,6 +45,7 @@ const NavDropdown: React.FC<NavDropdownProps> = ({ title, children }) => {
         />
       </button>
 
+      {/* === CẢI THIỆN GIAO DIỆN MOBILE & DESKTOP === */}
       <div
         className={`
           w-full md:absolute md:top-full md:left-0 md:mt-2 md:w-48
@@ -66,19 +67,17 @@ const NavDropdown: React.FC<NavDropdownProps> = ({ title, children }) => {
   );
 };
 
-// === THAY ĐỔI CHÍNH Ở ĐÂY ===
 export const DropdownItem: React.FC<DropdownItemProps> = ({ to, children, onClick }) => {
   return (
-    // Thay thế <Link> bằng thẻ <a>
-    // Thay thế prop 'to' bằng 'href'
-    <a
-      href={to}
+    <Link
+      to={to}
       onClick={onClick}
+      // === CLASS MỚI ĐỂ HIỂN THỊ ĐỒNG BỘ TRÊN MOBILE & DESKTOP ===
       className="block px-4 py-2 text-sm text-teal-100 hover:text-white hover:bg-teal-500 md:text-gray-700 md:hover:bg-gray-100 md:hover:text-gray-900"
       role="menuitem"
     >
       {children}
-    </a>
+    </Link>
   );
 };
 
