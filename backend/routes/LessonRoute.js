@@ -1,14 +1,67 @@
 const express = require('express');
 const router = express.Router();
-const { pool } = require('../config/db'); // Sử dụng pool từ config/db thay vì db
+const { pool } = require('../config/db'); // Sử dụng pool từ config/db
 
-// Lấy tất cả bài học
+/**
+ * API LẤY LESSONS MỚI (THAY THẾ API CŨ)
+ * Hỗ trợ filter, search, và sort
+ * Đã sửa lỗi bảo mật SQL Injection
+ */
 router.get('/', async (req, res) => {
+  const { loai, search, sort } = req.query;
+
   try {
-    const [rows] = await pool.query('SELECT * FROM lesson');
+    let query = `
+      SELECT l.*, 
+             GROUP_CONCAT(lt.ten_tag) as tags
+      FROM lesson l
+      LEFT JOIN lesson_tag_mapping ltm ON l.id = ltm.lesson_id
+      LEFT JOIN lesson_tags lt ON ltm.tag_id = lt.id
+      WHERE l.trang_thai = 'active'
+    `;
+    
+    const params = [];
+
+    if (loai) {
+      query += ` AND l.loai = ?`;
+      params.push(loai);
+    }
+    
+    if (search) {
+      query += ` AND (l.tieu_de LIKE ? OR l.tom_tat LIKE ?)`;
+      params.push(`%${search}%`);
+      params.push(`%${search}%`);
+    }
+    
+    query += ` GROUP BY l.id`;
+    
+    if (sort === 'popular') {
+      query += ` ORDER BY l.luot_xem DESC`;
+    } else if (sort === 'liked') {
+      query += ` ORDER BY l.luot_thich DESC`;
+    } else {
+      query += ` ORDER BY l.ngay_tao DESC`;
+    }
+
+    const [rows] = await pool.query(query, params);
     res.json(rows);
+
   } catch (error) {
     console.error('Lỗi truy vấn:', error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+/**
+ * API LẤY TẤT CẢ TAGS
+ * Phải đặt trước '/:id' để 'tags' không bị nhầm là một 'id'
+ */
+router.get('/tags', async (req, res) => {
+  try {
+    const [tags] = await pool.query('SELECT * FROM lesson_tags ORDER BY ten_tag');
+    res.json(tags);
+  } catch (error) {
+    console.error('Lỗi truy vấn tags:', error);
     res.status(500).json({ message: 'Lỗi server' });
   }
 });
@@ -47,6 +100,34 @@ router.post('/', async (req, res) => {
   }
 });
 
+/**
+ * API TĂNG LƯỢT XEM
+ */
+router.post('/:id/view', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query('UPDATE lesson SET luot_xem = luot_xem + 1 WHERE id = ?', [id]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Lỗi tăng lượt xem:', error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+/**
+ * API TĂNG LƯỢT THÍCH
+ */
+router.post('/:id/like', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query('UPDATE lesson SET luot_thich = luot_thich + 1 WHERE id = ?', [id]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Lỗi tăng lượt thích:', error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
 // Cập nhật bài học
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
@@ -75,33 +156,6 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy bài học để xóa' });
     }
     res.json({ message: 'Xóa bài học thành công' });
-  } catch (error) {
-    console.error('Lỗi truy vấn:', error);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
-});
-
-// Lọc theo loại
-router.get('/type/:loai', async (req, res) => {
-  const { loai } = req.params;
-  try {
-    const [rows] = await pool.query('SELECT * FROM lesson WHERE loai = ? ORDER BY id DESC', [loai]);
-    res.json(rows);
-  } catch (error) {
-    console.error('Lỗi truy vấn:', error);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
-});
-
-// Tìm kiếm theo tiêu đề hoặc tóm tắt
-router.get('/search', async (req, res) => {
-  const { q } = req.query;
-  try {
-    const [rows] = await pool.query(
-      'SELECT * FROM lesson WHERE tieu_de LIKE ? OR tom_tat LIKE ? ORDER BY id DESC',
-      [`%${q}%`, `%${q}%`]
-    );
-    res.json(rows);
   } catch (error) {
     console.error('Lỗi truy vấn:', error);
     res.status(500).json({ message: 'Lỗi server' });
