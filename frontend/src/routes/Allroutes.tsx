@@ -17,7 +17,7 @@ import BlogDetail from '../components/BlogDetail';
 import LessonDetail from '../components/LessonDetail';
 import OnboardingQuiz from '../pages/OnboardingPage';
 import Profile from '../pages/ProfilePage';
-
+import UserProgressPage from '../pages/UserProgressPage';
 //  Các trang con ( vừa di chuyển và sửa code)
 import NutritionTools from '../pages/nutrition/NutritionTools'; 
 import RecipeSection from '../pages/nutrition/RecipeSection'; 
@@ -45,7 +45,7 @@ function Allroutes() {
       <Route path="/addworkout" element={<PrivateRoute><Addworkout /></PrivateRoute>} />
       <Route path="/plan" element={<PrivateRoute><Plan /></PrivateRoute>} />
       <Route path="/cardio" element={<PrivateRoute><CardioGuide /></PrivateRoute>} />
-
+      <Route path="/progress" element={<PrivateRoute><UserProgressPage /></PrivateRoute>} />
       <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
     </Routes>
   );

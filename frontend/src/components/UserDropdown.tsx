@@ -70,7 +70,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ userName, onLogout }) => {
               Trang cá nhân
             </Link>
             <Link
-              to="/workout-history"
+              to="/progress"
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
               onClick={toggleDropdown}
             >
