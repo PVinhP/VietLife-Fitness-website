@@ -1,26 +1,22 @@
 // backend/controllers/profileController.js
-
-// Bạn không cần import Model ở đây nữa
-// vì chúng ta sẽ dùng query trực tiếp để tối ưu
 const db = require('../config/db'); // Giả sử bạn có file config kết nối DB
 
 /*
  * @controller  getCurrentProfile
- * (Hàm này còn thiếu trong file cũ của bạn)
  * @desc        Xử lý logic cho route GET /api/profile/me
  */
 const getCurrentProfile = async (req, res) => {
     try {
-        const userId = req.user.id; // Lấy ID từ authMiddleware
+        const userId = req.user.id; 
 
-        // Dùng LEFT JOIN để lấy dữ liệu từ cả 2 bảng users và health_profiles
-        // Đây là cách tối ưu nhất, chỉ cần 1 lần gọi CSDL
+        // SỬA ĐỔI 1: Thêm 'h.goal' (khớp với tên cột DB bạn vừa thêm)
         const sql = `
             SELECT 
                 u.email, u.full_name, u.avatar_url,
                 h.age, h.gender, h.weight_kg, h.height_cm, 
                 h.activity_level, h.medical_history, 
-                h.dietary_preferences, h.sleep_quality_rating
+                h.dietary_preferences, h.sleep_quality_rating,
+                h.goal  -- Đã sửa để lấy đúng cột 'goal'
             FROM users u
             LEFT JOIN health_profiles h ON u.id = h.user_id
             WHERE u.id = ?;
@@ -34,14 +30,12 @@ const getCurrentProfile = async (req, res) => {
 
         const profileData = results[0];
 
-        // Format lại data cho giống với frontend đang cần
+        // SỬA ĐỔI 2: Thêm 'goal' vào đối tượng health_profile
         const response = {
             full_name: profileData.full_name,
             email: profileData.email,
             avatar_url: profileData.avatar_url,
-            // Nếu health_profile chưa có (LEFT JOIN trả về null), 
-            // thì giá trị này sẽ là null. Frontend đã xử lý việc này.
-            health_profile: profileData.age ? { 
+            health_profile: profileData.age ? { // Kiểm tra xem health_profile có tồn tại không
                 age: profileData.age,
                 gender: profileData.gender,
                 weight_kg: profileData.weight_kg,
@@ -49,8 +43,9 @@ const getCurrentProfile = async (req, res) => {
                 activity_level: profileData.activity_level,
                 medical_history: profileData.medical_history,
                 dietary_preferences: profileData.dietary_preferences,
-                sleep_quality_rating: profileData.sleep_quality_rating
-            } : null
+                sleep_quality_rating: profileData.sleep_quality_rating,
+                goal: profileData.goal // <--- THÊM VÀO (khớp với DB)
+            } : null // Nếu không có health_profile, trả về null
         };
         
         res.json(response);
@@ -63,50 +58,45 @@ const getCurrentProfile = async (req, res) => {
 
 /*
  * @controller  createOrUpdateHealthProfile
- * (Đây là phiên bản "UPSERT" của hàm createHealthProfile cũ)
- * @desc        Xử lý logic cho route POST /api/profile
+ * @desc        Xử lý logic cho route POST /api/profile (được gọi từ OnboardingPage)
  */
 const createOrUpdateHealthProfile = async (req, res) => {
   try {
-    const userId = req.user.id; // Lấy user id từ middleware
+    const userId = req.user.id;
     
+    // SỬA ĐỔI 3: Chỉ nhận các trường mà OnboardingPage.tsx thực sự gửi
     const {
       age,
       gender,
       weight_kg,
       height_cm,
       activity_level,
-      medical_history,
-      dietary_preferences,
-      sleep_quality_rating
+      goal 
     } = req.body;
 
-    // --- Validation (Giữ lại từ code cũ của bạn) ---
-    if (!age || !gender || !weight_kg || !height_cm || !activity_level) {
-      return res.status(400).json({ msg: 'Vui lòng điền đầy đủ các trường bắt buộc.' });
+    // SỬA ĐỔI 4: Chỉ validate các trường được gửi từ form này
+    if (!age || !gender || !weight_kg || !height_cm || !activity_level || !goal) {
+      return res.status(400).json({ msg: 'Vui lòng điền đầy đủ các thông tin bắt buộc.' });
     }
     
-    // Logic "UPSERT" (Cập nhật hoặc Thêm mới)
-    // Query này yêu cầu cột 'user_id' trong 'health_profiles' 
-    // phải là UNIQUE (như tôi đã hướng dẫn)
+    // SỬA ĐỔI 5: Câu lệnh SQL chỉ INSERT/UPDATE các trường mà form Onboarding gửi
+    // Các trường như medical_history sẽ giữ giá trị NULL (hoặc giá trị cũ nếu đã có)
     const sql = `
         INSERT INTO health_profiles (
             user_id, age, gender, weight_kg, height_cm, 
-            activity_level, medical_history, dietary_preferences, 
-            sleep_quality_rating
+            activity_level, goal 
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?) -- 7 giá trị
         ON DUPLICATE KEY UPDATE
             age = VALUES(age),
             gender = VALUES(gender),
             weight_kg = VALUES(weight_kg),
             height_cm = VALUES(height_cm),
             activity_level = VALUES(activity_level),
-            medical_history = VALUES(medical_history),
-            dietary_preferences = VALUES(dietary_preferences),
-            sleep_quality_rating = VALUES(sleep_quality_rating);
+            goal = VALUES(goal); 
     `;
 
+    // SỬA ĐỔI 6: Mảng params chỉ chứa 7 giá trị này
     const params = [
         userId, 
         parseInt(age, 10), 
@@ -114,17 +104,20 @@ const createOrUpdateHealthProfile = async (req, res) => {
         parseFloat(weight_kg), 
         parseFloat(height_cm), 
         activity_level, 
-        medical_history, 
-        dietary_preferences, 
-        parseInt(sleep_quality_rating, 10)
+        goal
     ];
     
-    // Thực thi query
     await db.pool.execute(sql, params);
 
-    // Trả về thành công
+    // Lấy lại hồ sơ vừa cập nhật để trả về (giống getCurrentProfile)
+    const [updatedProfile] = await db.pool.execute(
+      `SELECT * FROM health_profiles WHERE user_id = ?`,
+      [userId]
+    );
+
     res.status(200).json({ 
-      msg: 'Hồ sơ sức khỏe đã được cập nhật thành công!'
+      msg: 'Hồ sơ sức khỏe đã được cập nhật thành công!',
+      profile: updatedProfile[0] // Trả về profile đã cập nhật
     });
 
   } catch (error) {
@@ -133,7 +126,6 @@ const createOrUpdateHealthProfile = async (req, res) => {
   }
 };
 
-// Export cả hai hàm
 module.exports = {
   getCurrentProfile,
   createOrUpdateHealthProfile,
