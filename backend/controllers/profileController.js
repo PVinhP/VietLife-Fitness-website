@@ -5,18 +5,18 @@ const db = require('../config/db'); // Giả sử bạn có file config kết n�
  * @controller  getCurrentProfile
  * @desc        Xử lý logic cho route GET /api/profile/me
  */
+// (Hàm này giữ nguyên, không cần thay đổi)
 const getCurrentProfile = async (req, res) => {
     try {
         const userId = req.user.id; 
 
-        // SỬA ĐỔI 1: Thêm 'h.goal' (khớp với tên cột DB bạn vừa thêm)
         const sql = `
             SELECT 
                 u.email, u.full_name, u.avatar_url,
                 h.age, h.gender, h.weight_kg, h.height_cm, 
                 h.activity_level, h.medical_history, 
                 h.dietary_preferences, h.sleep_quality_rating,
-                h.goal  -- Đã sửa để lấy đúng cột 'goal'
+                h.goal
             FROM users u
             LEFT JOIN health_profiles h ON u.id = h.user_id
             WHERE u.id = ?;
@@ -30,12 +30,11 @@ const getCurrentProfile = async (req, res) => {
 
         const profileData = results[0];
 
-        // SỬA ĐỔI 2: Thêm 'goal' vào đối tượng health_profile
         const response = {
             full_name: profileData.full_name,
             email: profileData.email,
             avatar_url: profileData.avatar_url,
-            health_profile: profileData.age ? { // Kiểm tra xem health_profile có tồn tại không
+            health_profile: profileData.age ? { 
                 age: profileData.age,
                 gender: profileData.gender,
                 weight_kg: profileData.weight_kg,
@@ -44,8 +43,8 @@ const getCurrentProfile = async (req, res) => {
                 medical_history: profileData.medical_history,
                 dietary_preferences: profileData.dietary_preferences,
                 sleep_quality_rating: profileData.sleep_quality_rating,
-                goal: profileData.goal // <--- THÊM VÀO (khớp với DB)
-            } : null // Nếu không có health_profile, trả về null
+                goal: profileData.goal 
+            } : null 
         };
         
         res.json(response);
@@ -59,12 +58,20 @@ const getCurrentProfile = async (req, res) => {
 /*
  * @controller  createOrUpdateHealthProfile
  * @desc        Xử lý logic cho route POST /api/profile (được gọi từ OnboardingPage)
+ * ĐÃ CẬP NHẬT: Thêm Transaction để đánh dấu is_onboarded
  */
 const createOrUpdateHealthProfile = async (req, res) => {
+  
+  // === PHẦN MỚI: Khởi tạo connection cho Transaction ===
+  let connection;
+
   try {
+    // Lấy một connection từ pool
+    connection = await db.pool.getConnection();
+    
     const userId = req.user.id;
     
-    // SỬA ĐỔI 3: Chỉ nhận các trường mà OnboardingPage.tsx thực sự gửi
+    // Lấy dữ liệu từ body (Giống code cũ của bạn)
     const {
       age,
       gender,
@@ -74,14 +81,18 @@ const createOrUpdateHealthProfile = async (req, res) => {
       goal 
     } = req.body;
 
-    // SỬA ĐỔI 4: Chỉ validate các trường được gửi từ form này
+    // Validation (Giống code cũ của bạn)
     if (!age || !gender || !weight_kg || !height_cm || !activity_level || !goal) {
+      // Phải giải phóng connection trước khi return
+      if (connection) connection.release(); 
       return res.status(400).json({ msg: 'Vui lòng điền đầy đủ các thông tin bắt buộc.' });
     }
     
-    // SỬA ĐỔI 5: Câu lệnh SQL chỉ INSERT/UPDATE các trường mà form Onboarding gửi
-    // Các trường như medical_history sẽ giữ giá trị NULL (hoặc giá trị cũ nếu đã có)
-    const sql = `
+    // === PHẦN MỚI: Bắt đầu Transaction ===
+    await connection.beginTransaction();
+
+    // === Thao tác 1: INSERT/UPDATE bảng health_profiles (Giống code cũ) ===
+    const healthProfileSql = `
         INSERT INTO health_profiles (
             user_id, age, gender, weight_kg, height_cm, 
             activity_level, goal 
@@ -96,8 +107,7 @@ const createOrUpdateHealthProfile = async (req, res) => {
             goal = VALUES(goal); 
     `;
 
-    // SỬA ĐỔI 6: Mảng params chỉ chứa 7 giá trị này
-    const params = [
+    const healthProfileParams = [
         userId, 
         parseInt(age, 10), 
         gender, 
@@ -107,22 +117,50 @@ const createOrUpdateHealthProfile = async (req, res) => {
         goal
     ];
     
-    await db.pool.execute(sql, params);
+    // Dùng 'connection.execute' thay vì 'db.pool.execute'
+    await connection.execute(healthProfileSql, healthProfileParams);
 
-    // Lấy lại hồ sơ vừa cập nhật để trả về (giống getCurrentProfile)
-    const [updatedProfile] = await db.pool.execute(
+    // === THAO TÁC 2: ĐÁNH DẤU is_onboarded = 1 TRONG BẢNG users ===
+    const updateUserSql = `
+        UPDATE users 
+        SET is_onboarded = 1 
+        WHERE id = ?;
+    `;
+    
+    // Dùng 'connection.execute'
+    await connection.execute(updateUserSql, [userId]);
+
+    // === PHẦN MỚI: Commit (Xác nhận) Transaction ===
+    // Nếu cả 2 thao tác trên thành công, lưu thay đổi vĩnh viễn
+    await connection.commit();
+
+    // Lấy lại hồ sơ vừa cập nhật để trả về (Giống code cũ)
+    // Dùng 'connection.execute'
+    const [updatedProfile] = await connection.execute(
       `SELECT * FROM health_profiles WHERE user_id = ?`,
       [userId]
     );
 
     res.status(200).json({ 
       msg: 'Hồ sơ sức khỏe đã được cập nhật thành công!',
-      profile: updatedProfile[0] // Trả về profile đã cập nhật
+      profile: updatedProfile[0] 
     });
 
   } catch (error) {
+    // === PHẦN MỚI: Rollback (Hủy bỏ) Transaction ===
+    // Nếu có bất kỳ lỗi nào xảy ra, hủy bỏ tất cả thay đổi
+    if (connection) {
+        await connection.rollback();
+    }
     console.error('Lỗi khi tạo/cập nhật hồ sơ:', error.message);
     res.status(500).json({ msg: 'Lỗi máy chủ nội bộ.' });
+
+  } finally {
+    // === PHẦN MỚI: Giải phóng connection ===
+    // Luôn luôn trả connection về pool sau khi hoàn tất
+    if (connection) {
+        connection.release();
+    }
   }
 };
 
