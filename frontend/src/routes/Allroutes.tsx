@@ -16,7 +16,7 @@ import CardioGuide from '../pages/Cardio';
 import BlogDetail from '../components/BlogDetail';
 import LessonDetail from '../components/LessonDetail';
 import OnboardingQuiz from '../pages/OnboardingPage';
-import Profile from '../pages/ProfilePage';
+import Setting from '../pages/SettingPage';
 import UserProgressPage from '../pages/UserProgressPage';
 //  Các trang con ( vừa di chuyển và sửa code)
 import NutritionTools from '../pages/nutrition/NutritionTools'; 
@@ -46,7 +46,7 @@ function Allroutes() {
       <Route path="/plan" element={<PrivateRoute><Plan /></PrivateRoute>} />
       <Route path="/cardio" element={<PrivateRoute><CardioGuide /></PrivateRoute>} />
       <Route path="/progress" element={<PrivateRoute><UserProgressPage /></PrivateRoute>} />
-      <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+      <Route path="/settings" element={<PrivateRoute><Setting /></PrivateRoute>} />
     </Routes>
   );
 }

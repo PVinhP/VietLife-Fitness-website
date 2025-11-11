@@ -1,315 +1,155 @@
-import { useState, useEffect } from "react";
-import bot from "../images/chatbot.png"
-import { useNavigate } from 'react-router-dom'
-interface WorkoutPlan {
-    name?: string,
-    description?: string,
-    sets?: number,
-    reps?: number,
-    duration?: string
-}
+import React from 'react';
+// Bạn có thể import thư viện biểu đồ ở đây, ví dụ: 'recharts' hoặc 'chart.js'
+// import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
-const Monday = [
-    {
-        "name": "Push-ups",
-        "description": "Start in a high plank position with your hands shoulder-width apart, and lower your body until your chest almost touches the ground. Push back up to the starting position.",
-        "sets": 3,
-        "reps": 10
-    },
-    {
-        "name": "Squats",
-        "description": "Stand with your feet shoulder-width apart and your toes slightly turned out. Lower your hips down and back like you're sitting in a chair, keeping your weight in your heels, until your thighs are parallel to the ground. Stand back up to the starting position.",
-        "sets": 3,
-        "reps": 10
-    },
-    {
-        "name": "Plank",
-        "description": "Start in a high plank position with your hands shoulder-width apart and your shoulders stacked over your wrists. Engage your core and hold for the desired amount of time.",
-        "sets": 3,
-        "duration": "30 seconds"
-    }
-]
-const Tuesday = [
-    {
-        "name": "Lunges",
-        "description": "Stand with your feet hip-width apart, and take a large step forward with your right foot. Bend both knees to lower your body until your left knee almost touches the ground. Push back up to the starting position and repeat with the other leg.",
-        "sets": 3,
-        "reps": 10
-    },
-    {
-        "name": "Burpees",
-        "description": "Start in a standing position, and quickly drop down to the ground into a push-up position. Do a push-up, jump your feet forward to your hands, and jump up into the air.",
-        "sets": 3,
-        "reps": 10
-    },
-    {
-        "name": "Side Plank",
-        "description": "Start in a high plank position with your hands shoulder-width apart and your shoulders stacked over your wrists. Rotate your body to one side, stacking your feet on top of each other and lifting your opposite arm towards the ceiling. Hold for the desired amount of time, then repeat on the other side.",
-        "sets": 3,
-        "duration": "30 seconds"
-    }
-]
-const Wednesday = [
-    {
-        "name": "Push-ups",
-        "description": "Start in a high plank position with your hands shoulder-width apart, and lower your body until your chest almost touches the ground. Push back up to the starting position.",
-        "sets": 3,
-        "reps": 10
-    },
-    {
-        "name": "Squats",
-        "description": "Stand with your feet shoulder-width apart and your toes slightly turned out. Lower your hips down and back like you're sitting in a chair, keeping your weight in your heels, until your thighs are parallel to the ground. Stand back up to the starting position.",
-        "sets": 3,
-        "reps": 10
-    },
-    {
-        "name": "Plank",
-        "description": "Start in a high plank position with your hands shoulder-width apart and your shoulders stacked over your wrists. Engage your core and hold for the desired amount of time.",
-        "sets": 3,
-        "duration": "30 seconds"
-    }
-]
-const Thursday = [
-    {
-        "name": "Mountain Climbers",
-        "description": "Start in a high plank position with your hands shoulder-width apart and your shoulders stacked over your wrists. Bring your right knee towards your chest, then quickly switch legs and bring your left knee towards your chest. Continue alternating legs as quickly as possible.",
-        "sets": 3,
-        "duration": "30 seconds"
-    },
-    {
-        "name": "Bicycle Crunches",
-        "description": "Lie on your back with your hands behind your head and your knees bent. Bring your right elbow towards your left knee while extending your right leg out straight. Repeat on the other side, bringing your left elbow towards your right knee while extending your left leg out straight.",
-        "sets": 3,
-        "reps": 20
-    },
-    {
-        "name": "Superman",
-        "description": "Lie face down on the ground with your arms and legs extended. Lift your arms, chest, and legs off the ground as high as possible, then lower back down to the starting position.",
-        "sets": 3,
-        "reps": 10
-    }
-]
-const Friday = [
-    {
-        "name": "Jumping Jacks",
-        "description": "Start standing with your feet together and your arms at your sides. Jump your feet out to the sides while raising your arms overhead, then jump back to the starting position with your arms at your sides.",
-        "sets": 3,
-        "reps": 20
-    },
-    {
-        "name": "Tricep Dips",
-        "description": "Sit on the edge of a sturdy chair or bench with your hands gripping the edge next to your hips. Walk your feet out a few steps and lower your body down towards the ground by bending your elbows. Push back up to the starting position.",
-        "sets": 3,
-        "reps": 12
-    },
-    {
-        "name": "Russian Twists",
-        "description": "Sit on the ground with your knees bent and your feet flat. Lean back slightly, then twist your torso to the right and tap your hands on the ground. Twist to the left and tap your hands on the ground, continuing to alternate sides.",
-        "sets": 3,
-        "reps": 20
-    }
-]
-const Saturday = [
-    {
-        "name": "Jump Squats",
-        "description": "Stand with your feet shoulder-width apart and your toes slightly turned out. Lower your hips down and back like you're sitting in a chair, then explosively jump up into the air. Land softly and immediately lower back down into the squat position.",
-        "sets": 3,
-        "reps": 10
-    },
-    {
-        "name": "Push-up to Side Plank",
-        "description": "Start in a high plank position with your hands shoulder-width apart. Lower your body into a push-up, then rotate your body to one side and lift your top arm towards the ceiling, coming into a side plank. Lower back down to the starting position and repeat on the other side.",
-        "sets": 3,
-        "reps": 8
-    },
-    {
-        "name": "Reverse Lunges",
-        "description": "Stand with your feet hip-width apart. Step your right foot back and lower your body down until your left knee is bent at a 90-degree angle. Push back up to the starting position and repeat on the other side.",
-        "sets": 3,
-        "reps": 12
-    }
-]
+// Dữ liệu mẫu cho biểu đồ
+const weightData = [
+  { name: 'Tuần 1', kg: 85 },
+  { name: 'Tuần 2', kg: 84.5 },
+  { name: 'Tuần 3', kg: 84 },
+  { name: 'Tuần 4', kg: 83 },
+];
 
+const Plan = () => {
+  return (
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">
+        Chào mừng trở lại, Đình Lực!
+      </h1>
 
-function Plan() {
-    const navigate = useNavigate()
-    const [day1, setDay1] = useState<WorkoutPlan[]>([])
-    const [day2, setDay2] = useState<WorkoutPlan[]>([])
-    const [day3, setDay3] = useState<WorkoutPlan[]>([])
-    const [day4, setDay4] = useState<WorkoutPlan[]>([])
-    const [day5, setDay5] = useState<WorkoutPlan[]>([])
-    const [day6, setDay6] = useState<WorkoutPlan[]>([])
+      {/* Container layout chính: 1 cột trên di động, 2 cột trên desktop */}
+      <div className="flex flex-col lg:flex-row gap-6">
 
-    useEffect(() => {
-        setDay1(Monday)
-        setDay2(Tuesday)
-        setDay3(Wednesday)
-        setDay4(Thursday)
-        setDay5(Friday)
-        setDay6(Saturday)
-    }, [])
-    return (
-        <div>
-            <h1 className="text-3xl font-bold my-8 text-center underline text-cyan">Full Body Workout Plan For Begineers</h1>
-            {/* Monday */}
-            <div className="text-white w-95 mx-10 text-center">
-                <h1 className="text-3xl font-bold my-8">Day-1</h1>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-                    {day1.map((el, i) => (
-                        <div key={i} className="border-2 border-cyan-500 rounded-md p-4" style={{ backgroundImage: 'url("https://images.pexels.com/photos/669584/pexels-photo-669584.jpeg?auto=compress&cs=tinysrgb&w=600")', backgroundSize: 'cover' }}>
-                            <h2 className="text-xl font-bold mb-4">Exercise No: {i + 1}</h2>
-                            <h3 className="text-lg font-bold mb-2">Exercise Name: {el.name}</h3>
-                            <details className="mb-2" open>
-                                <summary className="text-lg font-medium">Instructions</summary>
-                                <p className="text-md">{el.description}</p>
-                            </details>
-                            <h3 className="text-lg font-bold mb-2">
-                                No of sets: {el.sets}
-                            </h3>
-                            {el.reps ? (
-                                <h3 className="text-lg font-bold">No of Reps: {el.reps}</h3>
-                            ) : (
-                                <h3 className="text-lg font-bold">Duration: {el.duration}</h3>
-                            )}
-                        </div>
-                    ))}
-                </div>
+        {/* Cột chính (bên trái) */}
+        <div className="w-full lg:w-2/3 flex flex-col gap-6">
+          
+          {/* 1. Widget "Hôm nay" */}
+          <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">Thứ Ba, ngày 11/11</h2>
+            
+            {/* Phần Luyện tập */}
+            <div>
+              <p className="text-gray-500">Buổi tập hôm nay:</p>
+              <h3 className="text-2xl font-bold text-indigo-600 my-1">Ngực & Tay sau</h3>
+              <p className="text-gray-600 mb-4">~45 phút | 5 bài tập</p>
+              <button className="bg-indigo-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-indigo-700 transition-colors">
+                Bắt đầu buổi tập
+              </button>
             </div>
+            
+            {/* Phần Dinh dưỡng (Ví dụ) */}
+            <div className="mt-6">
+              <h4 className="text-lg font-semibold text-gray-700 mb-2">Mục tiêu Calo</h4>
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div 
+                  className="bg-green-500 h-2.5 rounded-full" 
+                  style={{ width: '60%' }} // 1500 / 2500 kcal
+                ></div>
+              </div>
+              <p className="text-right text-sm text-gray-600 mt-1">1500 / 2500 kcal</p>
+            </div>
+          </div>
 
-            {/* Tuesday */}
-            <div className="text-white w-95 mx-10 text-center">
-                <h1 className="text-3xl font-bold my-8">Day-2</h1>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-                    {day2.map((el, i) => (
-                        <div key={i} className="border-2 border-cyan-500 rounded-md p-4" style={{ backgroundImage: 'url("https://images.pexels.com/photos/8472147/pexels-photo-8472147.jpeg?auto=compress&cs=tinysrgb&w=600")', backgroundSize: 'cover' }}>
-                            <h2 className="text-xl font-bold mb-4">Exercise No: {i + 1}</h2>
-                            <h3 className="text-lg font-bold mb-2">Exercise Name: {el.name}</h3>
-                            <details className="mb-2" open>
-                                <summary className="text-lg font-medium">Instructions</summary>
-                                <p className="text-md">{el.description}</p>
-                            </details>
-                            <h3 className="text-lg font-bold mb-2">
-                                No of sets: {el.sets}
-                            </h3>
-                            {el.reps ? (
-                                <h3 className="text-lg font-bold">No of Reps: {el.reps}</h3>
-                            ) : (
-                                <h3 className="text-lg font-bold">Duration: {el.duration}</h3>
-                            )}
-                        </div>
-                    ))}
-                </div>
+          {/* 2. Biểu đồ "Theo dõi Tiến trình" */}
+          <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-700">Tiến trình của bạn</h2>
+              {/* Tabs lọc (placeholder) */}
+              <div className="flex gap-2">
+                <button className="text-sm font-medium text-indigo-600 border-b-2 border-indigo-600 pb-1">Cân nặng</button>
+                <button className="text-sm font-medium text-gray-400 hover:text-gray-600 pb-1">Vòng eo</button>
+                <button className="text-sm font-medium text-gray-400 hover:text-gray-600 pb-1">Vòng ngực</button>
+              </div>
             </div>
+            
+            {/* Khu vực biểu đồ (Placeholder) */}
+            <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+              <p className="text-gray-500">[Khu vực dành cho Biểu đồ đường (Line Chart)]</p>
+              {/* Đây là nơi bạn đặt component biểu đồ, ví dụ:
+              <LineChart width={500} height={250} data={weightData}>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <CartesianGrid stroke="#f5f5f5" />
+                <Line type="monotone" dataKey="kg" stroke="#8884d8" />
+              </LineChart>
+              */}
+            </div>
+          </div>
 
-            {/* Wednesday */}
-            <div className="text-white w-95 mx-10 text-center">
-                <h1 className="text-3xl font-bold my-8">Day-3</h1>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-                    {day3.map((el, i) => (
-                        <div key={i} className="border-2 border-cyan-500 rounded-md p-4" style={{ backgroundImage: 'url("https://images.pexels.com/photos/4753898/pexels-photo-4753898.jpeg?auto=compress&cs=tinysrgb&w=600")', backgroundSize: 'cover' }}>
-                            <h2 className="text-xl font-bold mb-4">Exercise No: {i + 1}</h2>
-                            <h3 className="text-lg font-bold mb-2">Exercise Name: {el.name}</h3>
-                            <details className="mb-2" open>
-                                <summary className="text-lg font-medium">Instructions</summary>
-                                <p className="text-md">{el.description}</p>
-                            </details>
-                            <h3 className="text-lg font-bold mb-2">
-                                No of sets: {el.sets}
-                            </h3>
-                            {el.reps ? (
-                                <h3 className="text-lg font-bold">No of Reps: {el.reps}</h3>
-                            ) : (
-                                <h3 className="text-lg font-bold">Duration: {el.duration}</h3>
-                            )}
-                        </div>
-                    ))}
-                </div>
+          {/* 3. Nhật ký hình ảnh (Placeholder) */}
+          <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">Ảnh Check-in</h2>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+              {/* Ảnh mẫu */}
+              <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 text-xs">Ảnh 1</div>
+              <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 text-xs">Ảnh 2</div>
+              <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 text-xs">Ảnh 3</div>
+              {/* Nút Tải ảnh */}
+              <button className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-50 hover:border-gray-400">
+                <span className="text-2xl">+</span>
+              </button>
             </div>
+          </div>
+        </div>
 
-            {/* Thursday */}
-            <div className="text-white w-95 mx-10 text-center">
-                <h1 className="text-3xl font-bold my-8">Day-4</h1>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-                    {day4.map((el, i) => (
-                        <div key={i} className="border-2 border-cyan-500 rounded-md p-4" style={{ backgroundImage: 'url("https://images.pexels.com/photos/8170745/pexels-photo-8170745.jpeg?auto=compress&cs=tinysrgb&w=600")', backgroundSize: 'cover' }}>
-                            <h2 className="text-xl font-bold mb-4">Exercise No: {i + 1}</h2>
-                            <h3 className="text-lg font-bold mb-2">Exercise Name: {el.name}</h3>
-                            <details className="mb-2" open>
-                                <summary className="text-lg font-medium">Instructions</summary>
-                                <p className="text-md">{el.description}</p>
-                            </details>
-                            <h3 className="text-lg font-bold mb-2">
-                                No of sets: {el.sets}
-                            </h3>
-                            {el.reps ? (
-                                <h3 className="text-lg font-bold">No of Reps: {el.reps}</h3>
-                            ) : (
-                                <h3 className="text-lg font-bold">Duration: {el.duration}</h3>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </div>
+        {/* Cột phụ (bên phải) */}
+        <div className="w-full lg:w-1/3 flex flex-col gap-6">
 
-            {/* Friday */}
-            <div className="text-white w-95 mx-10 text-center">
-                <h1 className="text-3xl font-bold my-8">Day-5</h1>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-                    {day5.map((el, i) => (
-                        <div key={i} className="border-2 border-cyan-500 rounded-md p-4" style={{ backgroundImage: 'url("https://images.pexels.com/photos/8472147/pexels-photo-8472147.jpeg?auto=compress&cs=tinysrgb&w=600")', backgroundSize: 'cover' }}>
-                            <h2 className="text-xl font-bold mb-4">Exercise No: {i + 1}</h2>
-                            <h3 className="text-lg font-bold mb-2">Exercise Name: {el.name}</h3>
-                            <details className="mb-2" open>
-                                <summary className="text-lg font-medium">Instructions</summary>
-                                <p className="text-md">{el.description}</p>
-                            </details>
-                            <h3 className="text-lg font-bold mb-2">
-                                No of sets: {el.sets}
-                            </h3>
-                            {el.reps ? (
-                                <h3 className="text-lg font-bold">No of Reps: {el.reps}</h3>
-                            ) : (
-                                <h3 className="text-lg font-bold">Duration: {el.duration}</h3>
-                            )}
-                        </div>
-                    ))}
-                </div>
+          {/* 1. Widget "Ghi nhanh" */}
+          <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">Ghi nhanh</h2>
+            <div className="flex flex-col gap-3">
+              <button className="w-full bg-blue-100 text-blue-700 font-semibold py-3 rounded-lg hover:bg-blue-200">
+                📝 Nhập cân nặng
+              </button>
+              <button className="w-full bg-green-100 text-green-700 font-semibold py-3 rounded-lg hover:bg-green-200">
+                🍎 Nhập bữa ăn
+              </button>
+              <button className="w-full bg-gray-100 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-200">
+                💪 Hoàn thành tập (thủ công)
+              </button>
             </div>
+          </div>
 
-            {/* Saturday */}
-            <div className="text-white w-95 mx-10 text-center">
-                <h1 className="text-3xl font-bold my-8">Day-6</h1>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-                    {day6.map((el, i) => (
-                        <div key={i} className="border-2 border-cyan-500 rounded-md p-4" style={{ backgroundImage: 'url("https://images.pexels.com/photos/4753898/pexels-photo-4753898.jpeg?auto=compress&cs=tinysrgb&w=600")', backgroundSize: 'cover' }}>
-                            <h2 className="text-xl font-bold mb-4">Exercise No: {i + 1}</h2>
-                            <h3 className="text-lg font-bold mb-2">Exercise Name: {el.name}</h3>
-                            <details className="mb-2" open>
-                                <summary className="text-lg font-medium">Instructions</summary>
-                                <p className="text-md">{el.description}</p>
-                            </details>
-                            <h3 className="text-lg font-bold mb-2">
-                                No of sets: {el.sets}
-                            </h3>
-                            {el.reps ? (
-                                <h3 className="text-lg font-bold">No of Reps: {el.reps}</h3>
-                            ) : (
-                                <h3 className="text-lg font-bold">Duration: {el.duration}</h3>
-                            )}
-                        </div>
-                    ))}
-                </div>
+          {/* 2. Widget "Thành tích & PRs" */}
+          <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">🏆 Thành tích</h2>
+            {/* Huy hiệu (placeholder) */}
+            <div className="flex gap-3 mb-4">
+              <span className="text-3xl p-2 bg-yellow-100 rounded-full">🔥</span>
+              <span className="text-3xl p-2 bg-blue-100 rounded-full">🥇</span>
+              <span className="text-3xl p-2 bg-green-100 rounded-full">💯</span>
             </div>
-            <div className="mb-20">
-                <p className="mt-6 font-bold text-2xl leading-8 text-teal-400 text-center">
-                    NOTE: Day-7 is Rest Day which is must. Do Repeat this plan for next 4 weeks for better results.</p>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">📈 Kỷ lục cá nhân (PRs)</h3>
+            <ul className="list-disc list-inside text-gray-600 space-y-1">
+              <li>Đẩy ngực: <span className="font-semibold">80kg</span></li>
+              <li>Squat: <span className="font-semibold">100kg</span></li>
+              <li>Chạy 5km: <span className="font-semibold">25:00</span></li>
+            </ul>
+          </div>
+          
+          {/* 3. Widget "Mục tiêu" */}
+          <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">Mục tiêu của tôi</h2>
+            <p className="text-gray-500 text-sm">Mục tiêu chính: <span className="font-semibold text-gray-700">Giảm cân</span></p>
+            <div className="w-full bg-gray-200 rounded-full h-2.5 my-3">
+              <div 
+                className="bg-indigo-500 h-2.5 rounded-full" 
+                style={{ width: '50%' }} // (90 - 85) / (90 - 80)
+              ></div>
             </div>
-            <div onClick={() => navigate("/expert")}>
-                <img style={{ float: 'right', width: "87px", fontSize: "70px", marginRight: "-18%", position: "fixed", top: "70%", left: "93.3%" }} src={bot} alt="ảnh minh họa"/>
+            <div className="flex justify-between text-sm font-medium text-gray-600">
+              <span>Bắt đầu: 90kg</span>
+              <span>Mục tiêu: 80kg</span>
             </div>
+            <p className="text-center text-2xl font-bold text-indigo-600 mt-3">Còn 5kg nữa!</p>
+          </div>
 
         </div>
-    )
+      </div>
+    </div>
+  );
 };
 
-export default Plan;
+export default  Plan;

@@ -8,10 +8,10 @@ import HealthProfileTab from "../components/Profile/HealthProfileTab";
 import AccountTab from "../components/Profile/AccountTab";
 
 // Định nghĩa các tab
-type ActiveTab = 'dashboard' | 'health' | 'account';
+type ActiveTab =  'health' | 'account';
 
-const ProfilePage: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+const SettingPage: React.FC = () => {
+    const [activeTab, setActiveTab] = useState<ActiveTab>('health');
 
     // Hàm render nút tab
     const renderTabButton = (tabName: ActiveTab, label: string) => {
@@ -39,7 +39,7 @@ const ProfilePage: React.FC = () => {
                 {/* 1. Phần điều hướng Tab (Tab Navigation) */}
                 <div className="border-b border-gray-200 mb-6">
                     <nav className="-mb-px flex space-x-4">
-                        {renderTabButton('dashboard', 'Bảng điều khiển')}
+                        
                         {renderTabButton('health', 'Thông tin Sức khỏe')}
                         {renderTabButton('account', 'Tài khoản')}
                     </nav>
@@ -47,7 +47,7 @@ const ProfilePage: React.FC = () => {
 
                 {/* 2. Phần nội dung Tab (Tab Content) */}
                 <div className="min-h-[400px]">
-                    {activeTab === 'dashboard' && <DashboardTab />}
+                    
                     {activeTab === 'health' && <HealthProfileTab />}
                     {activeTab === 'account' && <AccountTab />}
                 </div>
@@ -57,4 +57,4 @@ const ProfilePage: React.FC = () => {
     );
 };
 
-export default ProfilePage;
+export default SettingPage;

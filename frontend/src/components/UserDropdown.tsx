@@ -67,7 +67,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ userName, onLogout }) => {
               onClick={toggleDropdown}
             >
               <MdOutlineDashboard className="mr-3 h-5 w-5 text-gray-400" />
-              Trang cá nhân
+              Bảng điều khiển
             </Link>
             <Link
               to="/progress"
