@@ -8,6 +8,7 @@ import Nutriton from '../pages/Nutrition';
 import ExerciseInputForm from '../pages/ExerciseInputForm';
 import Exercise from '../pages/Exercise';
 import Plan from '../pages/Plan';
+import Dashboard from '../pages/Dashboard';
 import Yoga from '../components/Yoga';
 import PrivateRoute from './PrivateRoute';
 import UserPage from '../pages/UserPage';
@@ -44,6 +45,7 @@ function Allroutes() {
       <Route path="/goals" element={<PrivateRoute><UserPage /></PrivateRoute>} />
       <Route path="/addworkout" element={<PrivateRoute><Addworkout /></PrivateRoute>} />
       <Route path="/plan" element={<PrivateRoute><Plan /></PrivateRoute>} />
+      <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/cardio" element={<PrivateRoute><CardioGuide /></PrivateRoute>} />
       <Route path="/progress" element={<PrivateRoute><UserProgressPage /></PrivateRoute>} />
       <Route path="/settings" element={<PrivateRoute><Setting /></PrivateRoute>} />
