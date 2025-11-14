@@ -19,6 +19,7 @@ import LessonDetail from '../components/LessonDetail';
 import OnboardingQuiz from '../pages/OnboardingPage';
 import Setting from '../pages/SettingPage';
 import UserProgressPage from '../pages/UserProgressPage';
+import NutritionMealPlanner from '../pages/NutritionMeal'; 
 //  Các trang con ( vừa di chuyển và sửa code)
 import NutritionTools from '../pages/nutrition/NutritionTools'; 
 import RecipeSection from '../pages/nutrition/RecipeSection'; 
@@ -39,6 +40,7 @@ function Allroutes() {
       <Route path="/nutrition/recipes" element={<RecipeSection />} />
       <Route path="/nutrition/lessons" element={<LessonSection />} />
       <Route path="/nutrition/explore" element={<ExploreSection />} />
+      <Route path="/nutrition/meal-planner" element={<NutritionMealPlanner />} />
       <Route path="/lesson/:id" element={<LessonDetail />} />
       <Route path="/customexercise" element={<ExerciseInputForm />} />
       <Route path="/exercise" element={<PrivateRoute><Exercise /></PrivateRoute>} />

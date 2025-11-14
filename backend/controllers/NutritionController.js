@@ -9,14 +9,14 @@ exports.getRecipes = async (req, res) => {
     const { search, meal, goal, time, calorie } = req.query;
 
     try {
-        // 2. Xây dựng câu truy vấn SQL cơ bản (JOIN recipes với tags)
+        // 2. Xây dựng câu truy vấn SQL cơ bản (JOIN recipes với tags và nutrition_data)
         let sql = `
             SELECT 
                 r.recipe_id, 
                 r.name, 
                 r.description, 
                 r.image_url, 
-                r.total_calories, 
+                n.calories AS total_calories,
                 r.prep_time, 
                 r.cook_time,
                 r.difficulty,
@@ -24,6 +24,8 @@ exports.getRecipes = async (req, res) => {
                 GROUP_CONCAT(DISTINCT CASE WHEN t.tag_type = 'GOAL' THEN t.tag_name END) AS goals
             FROM 
                 recipes r
+            LEFT JOIN 
+                nutrition_data n ON r.recipe_id = n.id
             LEFT JOIN 
                 recipe_tags rt ON r.recipe_id = rt.recipe_id
             LEFT JOIN 
@@ -33,7 +35,7 @@ exports.getRecipes = async (req, res) => {
                 r.name, 
                 r.description, 
                 r.image_url, 
-                r.total_calories, 
+                n.calories, 
                 r.prep_time, 
                 r.cook_time,
                 r.difficulty 
@@ -59,17 +61,17 @@ exports.getRecipes = async (req, res) => {
             conditions.push(`FIND_IN_SET('${goal}', goals)`);
         }
 
-        // --- D. Lọc theo Calo (Calorie) ---
+        // --- D. Lọc theo Calo (Calorie) - Cập nhật để sử dụng n.calories ---
         if (calorie && calorie !== 'Tất cả') {
             switch (calorie) {
                 case 'Dưới 300 Calo':
-                    conditions.push('r.total_calories < 300');
+                    conditions.push('n.calories < 300');
                     break;
                 case '300-500 Calo':
-                    conditions.push('r.total_calories >= 300 AND r.total_calories <= 500');
+                    conditions.push('n.calories >= 300 AND n.calories <= 500');
                     break;
                 case 'Trên 500 Calo':
-                    conditions.push('r.total_calories > 500');
+                    conditions.push('n.calories > 500');
                     break;
             }
         }

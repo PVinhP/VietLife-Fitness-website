@@ -92,7 +92,8 @@ function Navbar() {
             <li className="w-full md:w-auto">
               <NavDropdown title="Dinh dưỡng">
                 <DropdownItem to="/nutrition/tools">Công cụ (Tra cứu & TDEE)</DropdownItem>
-                <DropdownItem to="/nutrition/recipes">Công thức & Kế hoạch ăn uống</DropdownItem>
+                <DropdownItem to="/nutrition/recipes">Công thức & Kế hoạch ăn uống</DropdownItem> 
+                <DropdownItem to="/nutrition/meal-planner">Kế hoạch bữa ăn</DropdownItem>
                 <DropdownItem to="/nutrition/explore">Khám phá Chuyên sâu</DropdownItem>
                 <DropdownItem to="/nutrition">Xem tất cả</DropdownItem>
               </NavDropdown>
