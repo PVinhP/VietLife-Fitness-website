@@ -20,6 +20,7 @@ import OnboardingQuiz from '../pages/OnboardingPage';
 import Setting from '../pages/SettingPage';
 import UserProgressPage from '../pages/UserProgressPage';
 import NutritionMealPlanner from '../pages/NutritionMeal'; 
+import NutritionDiary from '../components/NutritionDiary';
 //  Các trang con ( vừa di chuyển và sửa code)
 import NutritionTools from '../pages/nutrition/NutritionTools'; 
 import RecipeSection from '../pages/nutrition/RecipeSection'; 
@@ -41,16 +42,18 @@ function Allroutes() {
       <Route path="/nutrition/lessons" element={<LessonSection />} />
       <Route path="/nutrition/explore" element={<ExploreSection />} />
       <Route path="/nutrition/meal-planner" element={<NutritionMealPlanner />} />
+      
       <Route path="/lesson/:id" element={<LessonDetail />} />
       <Route path="/customexercise" element={<ExerciseInputForm />} />
       <Route path="/exercise" element={<PrivateRoute><Exercise /></PrivateRoute>} />
       <Route path="/goals" element={<PrivateRoute><UserPage /></PrivateRoute>} />
       <Route path="/addworkout" element={<PrivateRoute><Addworkout /></PrivateRoute>} />
       <Route path="/plan" element={<PrivateRoute><Plan /></PrivateRoute>} />
-      <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+      <Route path="/profile/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/cardio" element={<PrivateRoute><CardioGuide /></PrivateRoute>} />
-      <Route path="/progress" element={<PrivateRoute><UserProgressPage /></PrivateRoute>} />
-      <Route path="/settings" element={<PrivateRoute><Setting /></PrivateRoute>} />
+      <Route path="/profile/learning" element={<PrivateRoute><UserProgressPage /></PrivateRoute>} />
+      <Route path="/profile/settings" element={<PrivateRoute><Setting /></PrivateRoute>} />
+      <Route path="/profile/nutrition" element={<PrivateRoute><NutritionDiary /></PrivateRoute>} />
     </Routes>
   );
 }
