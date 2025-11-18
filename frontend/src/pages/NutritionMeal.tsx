@@ -441,7 +441,7 @@ const NutritionMealPlanner = () => {
                 </button>
 
                 <button
-                  onClick={() => navigate('/diary')}
+                  onClick={() => navigate('/profile/nutrition')}
                   className="w-full flex items-center justify-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-lg transition"
                 >
                   <CalendarDays size={18} />

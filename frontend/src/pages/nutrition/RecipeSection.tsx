@@ -10,7 +10,7 @@ interface Recipe {
     name: string;
     description: string;
     imageUrl: string; // Đổi tên từ image_url
-    total_calories: number;
+    calories: number;
     prep_time: number;
     cook_time: number;
     // Backend trả về mealType và goal, khớp với interface
@@ -236,7 +236,7 @@ function RecipeSection() {
                         // Đảm bảo các trường khớp 100%
                         recipeId: recipe.recipe_id,
                         imageUrl: recipe.image_url,
-                        total_calories: recipe.total_calories,
+                        calories: recipe.calories,
                         prep_time: recipe.prep_time,
                         cook_time: recipe.cook_time,
                     }));
@@ -278,7 +278,7 @@ function RecipeSection() {
                 <h3 className="text-xl font-bold text-gray-900 mb-2">{recipe.name}</h3>
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">{recipe.description}</p>
                 <div className="flex justify-between items-center">
-                    <span className="text-sm font-bold text-red-500">{recipe.total_calories} Calo</span>
+                    <span className="text-sm font-bold text-red-500">{recipe.calories} Calo</span>
                     <span className="text-teal-500 font-semibold text-sm">
                         Xem chi tiết →
                     </span>

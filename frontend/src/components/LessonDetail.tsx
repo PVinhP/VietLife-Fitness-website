@@ -1,8 +1,7 @@
-// frontend/src/pages/LessonDetail.tsx
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import ProgressService from '../services/ProgressService'; // ✅ THÊM DÒNG NÀY
 
 interface Lesson {
   id: number;
@@ -31,10 +30,27 @@ function LessonDetail() {
   const [isLiked, setIsLiked] = useState(false);
   const [localLikes, setLocalLikes] = useState(0);
 
+  // 👉 Có thể dùng để disable nút khi đang lưu (nếu muốn)
+  const [savingProgress, setSavingProgress] = useState(false);
+
   // Scroll to top
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [id]);
+
+  // ✅ Helper lưu tiến độ học
+  const saveProgress = async (lessonId: number, payload: any) => {
+    try {
+      setSavingProgress(true);
+      // ⚠️ Đổi tên hàm này cho khớp với ProgressService của bạn nếu khác
+      // Ví dụ: ProgressService.saveProgress(lessonId, payload);
+      await (ProgressService as any).updateProgress(lessonId, payload);
+    } catch (err) {
+      console.error('Lỗi lưu tiến độ:', err);
+    } finally {
+      setSavingProgress(false);
+    }
+  };
 
   // Fetch lesson
   useEffect(() => {
@@ -58,11 +74,18 @@ function LessonDetail() {
           setLesson(data);
           setLocalLikes(data.luot_thich || 0);
           
-          // Track view count
+          // Track view count (tăng luot_xem global)
           fetch(`http://localhost:8080/lesson/${id}/view`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
           }).catch(console.error);
+
+          // ✅ Lưu lịch sử: user đã mở / đang học bài này
+          // Tùy ý bạn set progress_percent bao nhiêu, ở đây tạm set 1%
+          saveProgress(data.id, {
+            progress_percent: data.thoi_gian_doc ? 1 : 0,
+            in_progress: true
+          });
 
           // Fetch related lessons
           fetchRelatedLessons(data.loai, data.id);
@@ -115,6 +138,11 @@ function LessonDetail() {
         setIsLiked(true);
         setLocalLikes(prev => prev + 1);
         
+        // ✅ Khi thích bài -> lưu vào lịch sử như 1 bài "đã lưu / bookmarked"
+        saveProgress(lesson.id, {
+          bookmark: true
+        });
+
         // Animation effect
         const button = document.getElementById('like-button');
         if (button) {
@@ -140,6 +168,23 @@ function LessonDetail() {
       navigator.clipboard.writeText(url).then(() => {
         alert('✓ Đã sao chép link bài học!');
       });
+    }
+  };
+
+  // ✅ Optional: nút "Hoàn thành bài học"
+  const handleComplete = async () => {
+    if (!lesson) return;
+
+    try {
+      await saveProgress(lesson.id, {
+        completed: true,
+        progress_percent: 100,
+        ngay_hoan_thanh: new Date().toISOString()
+      });
+      alert('🎉 Bạn đã hoàn thành bài học!');
+    } catch (err) {
+      console.error('Lỗi đánh dấu hoàn thành:', err);
+      alert('Không thể lưu trạng thái hoàn thành!');
     }
   };
 
@@ -334,7 +379,7 @@ function LessonDetail() {
             </article>
 
             {/* Action Buttons */}
-            <div className="mt-8 flex justify-between items-center">
+            <div className="mt-8 flex flex-wrap gap-3 justify-between items-center">
               <button
                 onClick={handleBackToList}
                 className="inline-flex items-center px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition-colors font-medium"
@@ -345,7 +390,20 @@ function LessonDetail() {
                 Danh sách bài học
               </button>
 
-              <div className="flex space-x-3">
+              <div className="flex flex-wrap gap-3 items-center">
+                <button
+                  onClick={handleComplete}
+                  disabled={savingProgress}
+                  className={`px-6 py-3 rounded-lg text-white font-semibold transition-all ${
+                    savingProgress
+                      ? 'bg-green-300 cursor-not-allowed'
+                      : 'bg-green-500 hover:bg-green-600'
+                  }`}
+                  title="Đánh dấu hoàn thành bài học"
+                >
+                  ✔ Hoàn thành bài học
+                </button>
+
                 <button
                   id="like-button"
                   onClick={handleLike}

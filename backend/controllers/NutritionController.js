@@ -16,7 +16,7 @@ exports.getRecipes = async (req, res) => {
                 r.name, 
                 r.description, 
                 r.image_url, 
-                n.calories AS total_calories,
+                n.calories,
                 r.prep_time, 
                 r.cook_time,
                 r.difficulty,
@@ -25,7 +25,7 @@ exports.getRecipes = async (req, res) => {
             FROM 
                 recipes r
             LEFT JOIN 
-                nutrition_data n ON r.recipe_id = n.id
+                nutrition_data n ON r.nutrition_data_id = n.id
             LEFT JOIN 
                 recipe_tags rt ON r.recipe_id = rt.recipe_id
             LEFT JOIN 
