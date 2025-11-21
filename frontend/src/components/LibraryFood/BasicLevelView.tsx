@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Info } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Info, Search, Loader2, XCircle } from 'lucide-react';
 
 // Import các Modal đã tách
 import GroupFoodListModal from './GroupFoodListModal';
@@ -10,8 +10,9 @@ import { FoodGroup, FoodItem } from '../../types/nutrition';
 
 const API_BASE_URL = 'http://localhost:8080/api/food-classification';
 
-// --- DỮ LIỆU FALLBACK (Dùng khi API lỗi hoặc chưa có data) ---
+// --- DỮ LIỆU FALLBACK ---
 const FALLBACK_GROUPS: FoodGroup[] = [
+  // ... (Giữ nguyên danh sách fallback cũ của bạn để code gọn)
   { id: 1, name: 'Tinh bột', icon: '🍞', color_class: 'bg-orange-100 text-orange-700 border-orange-200', hover: 'hover:bg-orange-200' },
   { id: 2, name: 'Đạm', icon: '🥩', color_class: 'bg-red-100 text-red-700 border-red-200', hover: 'hover:bg-red-200' },
   { id: 3, name: 'Chất béo', icon: '🥑', color_class: 'bg-yellow-100 text-yellow-700 border-yellow-200', hover: 'hover:bg-yellow-200' },
@@ -25,86 +26,171 @@ const FALLBACK_GROUPS: FoodGroup[] = [
   { id: 37, name: 'Gia vị', icon: '🧂', color_class: 'bg-gray-100 text-gray-700 border-gray-200', hover: 'hover:bg-gray-200' },
 ];
 
-type BasicGroupsResponse = {
-  success: boolean;
-  groups?: FoodGroup[];
-};
-
 const BasicLevelView: React.FC = () => {
-  // --- STATE ---
+  // --- STATE CHÍNH ---
   const [groups, setGroups] = useState<FoodGroup[]>(FALLBACK_GROUPS);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // State quản lý Modal
+  
+  // --- STATE MODAL ---
   const [selectedGroup, setSelectedGroup] = useState<FoodGroup | null>(null);
   const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
 
-  // --- EFFECT ---
+  // --- STATE TÌM KIẾM ---
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<FoodItem[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null); // Ref để click outside thì đóng dropdown
+
+  // --- INITIAL FETCH ---
   useEffect(() => {
+    const fetchBasicGroups = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`${API_BASE_URL}/basic-groups`);
+        const data = await response.json();
+        if (data.success && data.groups) {
+          const formattedGroups = data.groups.map((group: any) => {
+            const colorClass = group.color_class || 'bg-gray-100 text-gray-700 border-gray-200';
+            const bgClass = colorClass.split(' ').find((c: string) => c.startsWith('bg-')) || 'bg-gray-100';
+            const hoverBgClass = bgClass.replace('-100', '-200');
+            return { ...group, icon: group.icon || '🍽️', color_class: colorClass, hover: `hover:${hoverBgClass}` };
+          });
+          setGroups(formattedGroups);
+        }
+      } catch (err) {
+        console.error(err);
+        setGroups(FALLBACK_GROUPS);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     fetchBasicGroups();
   }, []);
 
-  // --- API CALL ---
-  const fetchBasicGroups = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const response = await fetch(`${API_BASE_URL}/basic-groups`);
-      const data: BasicGroupsResponse = await response.json();
-
-      if (data.success && data.groups) {
-        // Map dữ liệu API về format chuẩn cho UI
-        const formattedGroups: FoodGroup[] = data.groups.map((group) => {
-          const colorClass = group.color_class || 'bg-gray-100 text-gray-700 border-gray-200';
-          // Tự động tạo class hover dựa trên bg-color
-          const bgClass = colorClass.split(' ').find((c) => c.startsWith('bg-')) || 'bg-gray-100';
-          const hoverBgClass = bgClass.replace('-100', '-200');
-
-          return {
-            ...group,
-            icon: group.icon || '🍽️',
-            color_class: colorClass,
-            hover: `hover:${hoverBgClass}`,
-          };
-        });
-        setGroups(formattedGroups);
+  // --- XỬ LÝ CLICK OUTSIDE (Đóng dropdown tìm kiếm khi click ra ngoài) ---
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
       }
-    } catch (err) {
-      console.error('Lỗi khi fetch basic groups:', err);
-      setError('Không thể kết nối server. Đang hiển thị dữ liệu mẫu.');
-      setGroups(FALLBACK_GROUPS);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // --- XỬ LÝ TÌM KIẾM (DEBOUNCE) ---
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchTerm.trim().length > 1) { // Chỉ tìm khi gõ > 1 ký tự
+        setIsSearching(true);
+        setShowDropdown(true);
+        try {
+          // Gọi API tìm kiếm món ăn
+          const response = await fetch(`${API_BASE_URL}/foods?search=${encodeURIComponent(searchTerm)}`);
+          const data = await response.json();
+          if (data.success) {
+            setSearchResults(data.foods);
+          } else {
+            setSearchResults([]);
+          }
+        } catch (error) {
+          console.error("Lỗi tìm kiếm:", error);
+          setSearchResults([]);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSearchResults([]);
+        setShowDropdown(false);
+      }
+    }, 500); // Chờ 500ms sau khi ngừng gõ mới gọi API
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
 
   return (
     <div className="animate-fade-in relative min-h-[500px]">
       
-      {/* Thông báo lỗi (nếu có) */}
-      {error && (
-        <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-center gap-2 text-yellow-800 text-sm">
-          <Info size={16} />
-          <span>{error}</span>
+      {/* --- THANH TÌM KIẾM --- */}
+      <div className="max-w-2xl mx-auto mb-10 relative z-30" ref={searchRef}>
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Tìm nhanh món ăn (VD: Phở, Cơm tấm, Táo...)"
+            className="w-full pl-12 pr-10 py-4 rounded-full border-2 border-teal-100 bg-white shadow-sm focus:border-teal-500 focus:ring-4 focus:ring-teal-50 focus:outline-none transition-all text-gray-700 placeholder-gray-400"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onFocus={() => searchTerm.length > 1 && setShowDropdown(true)}
+          />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-teal-500" size={22} />
+          
+          {/* Nút xóa text */}
+          {searchTerm && (
+            <button 
+              onClick={() => { setSearchTerm(''); setSearchResults([]); setShowDropdown(false); }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500"
+            >
+              <XCircle size={20} />
+            </button>
+          )}
         </div>
-      )}
 
-      {/* Loading State */}
+        {/* --- DROPDOWN KẾT QUẢ --- */}
+        {showDropdown && (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden max-h-[400px] overflow-y-auto animate-slide-up custom-scrollbar">
+            {isSearching ? (
+              <div className="p-6 text-center text-gray-500 flex flex-col items-center gap-2">
+                <Loader2 className="animate-spin text-teal-500" size={24} />
+                <span>Đang tìm món ngon...</span>
+              </div>
+            ) : searchResults.length > 0 ? (
+              <ul>
+                {searchResults.map((food) => (
+                  <li 
+                    key={food.id}
+                    onClick={() => {
+                      setSelectedFood(food); // Mở Modal chi tiết
+                      setShowDropdown(false); // Đóng dropdown
+                    }}
+                    className="px-6 py-3 hover:bg-teal-50 cursor-pointer flex justify-between items-center group border-b border-gray-50 last:border-0 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      {/* Có thể thêm logic hiển thị icon nhóm nếu có dữ liệu food_group id */}
+                      <span className="text-lg">🍽️</span> 
+                      <div>
+                        <div className="font-bold text-gray-700 group-hover:text-teal-700">{food.name}</div>
+                        <div className="text-xs text-gray-400">Click để xem dinh dưỡng</div>
+                      </div>
+                    </div>
+                    <span className="text-sm font-medium text-orange-500 bg-orange-50 px-2 py-1 rounded-lg group-hover:bg-white">
+                      {food.calories} Kcal
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="p-6 text-center text-gray-400">
+                Không tìm thấy món nào tên "{searchTerm}" 😓
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* --- LOADING GRID --- */}
       {isLoading ? (
         <div className="flex justify-center items-center py-20">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-500"></div>
         </div>
       ) : (
         <>
-         
-          {/* --- DANH SÁCH NHÓM THỰC PHẨM (GRID) --- */}
+          {/* --- GRID DANH SÁCH NHÓM THỰC PHẨM --- */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
             {groups.map((group) => (
               <div
                 key={group.id}
-                onClick={() => setSelectedGroup(group)} // <--- SỰ KIỆN CLICK MỞ MODAL
+                onClick={() => setSelectedGroup(group)}
                 className={`
                   ${group.color_class} ${group.hover} 
                   border-2 rounded-2xl p-6 
@@ -124,29 +210,7 @@ const BasicLevelView: React.FC = () => {
             ))}
           </div>
 
-          
-        </>
-      )}
-
-      {/* --- CÁC MODAL POPUP (Render có điều kiện) --- */}
-
-      {/* 1. Modal Danh sách món (Hiện khi chọn Nhóm) */}
-      {selectedGroup && (
-        <GroupFoodListModal 
-          group={selectedGroup} 
-          onClose={() => setSelectedGroup(null)} 
-          onSelectFood={(food) => setSelectedFood(food)} // Khi chọn món -> Mở Modal chi tiết
-        />
-      )}
-
-      {/* 2. Modal Chi tiết dinh dưỡng (Hiện khi chọn Món - Đè lên trên) */}
-      {selectedFood && (
-        <FoodDetailModal 
-          food={selectedFood} 
-          onClose={() => setSelectedFood(null)} 
-        />
-      )}
-     {/* Hướng dẫn sử dụng */}
+          {/* Hướng dẫn sử dụng */}
       <div className="bg-white rounded-xl border-2 border-emerald-100 shadow-sm p-6">
         <div className="flex items-start gap-4">
           <div className="bg-emerald-100 rounded-full p-3 shrink-0">
@@ -194,6 +258,25 @@ const BasicLevelView: React.FC = () => {
           <strong> ít dầu/mề tốt (béo)</strong>. Đơn giản mà hiệu quả!
         </p>
       </div>
+    
+        </>
+      )}
+
+      {/* --- MODALS --- */}
+      {selectedGroup && (
+        <GroupFoodListModal 
+          group={selectedGroup} 
+          onClose={() => setSelectedGroup(null)} 
+          onSelectFood={(food) => setSelectedFood(food)} 
+        />
+      )}
+
+      {selectedFood && (
+        <FoodDetailModal 
+          food={selectedFood} 
+          onClose={() => setSelectedFood(null)} 
+        />
+      )}
     </div>
   );
 };
