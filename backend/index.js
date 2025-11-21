@@ -14,6 +14,9 @@ const { userProgressRouter } = require("./routes/UserProgressRoute");
 const  recipesRouter  = require("./routes/RecipesRoutes");
 const guideRoutes = require('./routes/guideRoutes');
 const profileRoutes = require('./routes/profileRoutes');
+// Import route mới
+const { foodClassificationRouter } = require("./routes/LibraryFoodRoute");
+
 
 
 
@@ -26,7 +29,8 @@ app.get("/",(req,res)=>{
  res.send("OK")
 })
 app.use("/user",UserRouter) // Gắn API vào endpoint /user // mới: Thêm API người dùng
-
+// Đăng ký route (thêm vào sau các routes khác)
+app.use("/api/food-classification", foodClassificationRouter);
 //app.use(AuthMiddleware)     // tắt để test nhớ bật lại
 app.use("/workouts",workoutRouter);
 app.use("/exercise",exerciseRouter);

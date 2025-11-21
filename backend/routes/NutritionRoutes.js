@@ -132,7 +132,45 @@ router.get('/meal-logs', async (req, res) => {
     console.error('Lỗi khi lấy lịch sử:', error);
     res.status(500).json({ error: 'Lỗi máy chủ khi lấy lịch sử.' });
   }
-});
 
+  // =================================================================
+// [MỚI] API 3: LẤY CHI TIẾT MỘT MÓN ĂN THEO ID
+// GET /api/nutrition/foods/:id
+// =================================================================
+router.get('/foods/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await pool.query(
+      "SELECT * FROM nutrition_data WHERE id = ?", 
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy thực phẩm" });
+    }
+
+    // Map dữ liệu để khớp với Frontend (nếu cần)
+    const food = rows[0];
+    res.json({
+      success: true,
+      food: {
+        id: food.id,
+        name: food.food_name, // Đổi tên trường cho khớp UI
+        calories: food.calories,
+        protein_g: food.protein_g,
+        fats_g: food.fats_g,
+        carbs_g: food.carbs_g,
+        fiber_g: food.fiber_g,
+        description: food.description,
+        // Thêm các trường khác nếu cần
+      }
+    });
+
+  } catch (error) {
+    console.error("Lỗi lấy chi tiết thực phẩm:", error);
+    res.status(500).json({ success: false, message: "Lỗi server" });
+  }
+});
+});
 module.exports = { nutritionRouter: router };
 
