@@ -1,38 +1,84 @@
-import React, { useState } from 'react';
-import { Layers, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Layers, X, Filter, Loader2, Frown } from 'lucide-react';
 
-// Đặt trong: frontend/src/pages/nutrition/foodClassification/AdvancedLevelView.tsx
+// Import Modal chi tiết món ăn (để xem được Calories, Macro...)
+import FoodDetailModal from './FoodDetailModal'; 
+import { FoodItem } from '../../types/nutrition';
 
-const ADVANCED_FILTERS = {
-  functional: [
-    'High-protein', 'High-fiber', 'Vitamin C', 'Omega-3', 'Canxi', 'Sắt',
-    'Low-carb', 'Low-fat', 'Low-calorie', 'High-calorie', 'Low GI',
-    'Whole-food', 'Processed food'
-  ],
-  diet: [
-    'EatClean', 'Keto / Low-carb', 'Mediterranean', 'High-protein', 
-    'Vegan', 'Vegetarian', 'Paleo'
-  ],
-  nova: [
-    'NOVA 1: Unprocessed', 'NOVA 2: Culinary ingredients', 
-    'NOVA 3: Processed', 'NOVA 4: Ultra-processed (UPF)'
-  ]
-};
+const API_BASE_URL = 'http://localhost:8080/api/food-classification';
 
-const FOOD_DATABASE = [
-  { name: 'Ức gà', tags: ['High-protein', 'Low-fat', 'Whole-food', 'EatClean', 'NOVA 1: Unprocessed'], calo: 165, desc: 'Nguồn protein nạc tuyệt vời' },
-  { name: 'Khoai lang', tags: ['High-fiber', 'Low GI', 'EatClean', 'Vegan', 'NOVA 1: Unprocessed'], calo: 86, desc: 'Tinh bột tốt, giàu vitamin A' },
-  { name: 'Cá hồi', tags: ['High-protein', 'Omega-3', 'Low-carb', 'Keto / Low-carb', 'NOVA 1: Unprocessed'], calo: 208, desc: 'Giàu omega-3, tốt cho tim mạch' },
-  { name: 'Xúc xích', tags: ['Processed food', 'High-calorie', 'NOVA 4: Ultra-processed (UPF)'], calo: 301, desc: 'Nên hạn chế sử dụng' },
-  { name: 'Yến mạch', tags: ['High-fiber', 'Whole-food', 'Low GI', 'EatClean', 'Vegan', 'NOVA 1: Unprocessed'], calo: 389, desc: 'Ngũ cốc nguyên hạt giàu chất xơ' },
-  { name: 'Đậu phụ', tags: ['High-protein', 'Vegan', 'Vegetarian', 'Low-carb', 'NOVA 1: Unprocessed'], calo: 76, desc: 'Protein thực vật hoàn chỉnh' },
-  { name: 'Bơ (Avocado)', tags: ['Omega-3', 'Low-carb', 'Keto / Low-carb', 'Whole-food', 'NOVA 1: Unprocessed'], calo: 160, desc: 'Chất béo tốt, giàu kali' },
-  { name: 'Trứng gà', tags: ['High-protein', 'Low-carb', 'Whole-food', 'EatClean', 'NOVA 1: Unprocessed'], calo: 155, desc: 'Protein hoàn hảo, nhiều vitamin' },
-];
+interface FilterState {
+  functional: string[];
+  diet: string[];
+  nova: string[];
+}
 
 function AdvancedLevelView() {
+  // --- STATE ---
+  // Danh sách tags load từ API
+  const [availableFilters, setAvailableFilters] = useState<FilterState>({ functional: [], diet: [], nova: [] });
+  // Các tags người dùng đang chọn
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  // Danh sách món ăn kết quả
+  const [foods, setFoods] = useState<FoodItem[]>([]);
+  
+  const [loadingTags, setLoadingTags] = useState(true);
+  const [loadingFoods, setLoadingFoods] = useState(false);
+  const [selectedFoodDetail, setSelectedFoodDetail] = useState<FoodItem | null>(null);
 
+  // --- 1. FETCH DANH SÁCH TAGS (Lúc mới vào trang) ---
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/tags`);
+        const data = await res.json();
+        if (data.success) {
+          setAvailableFilters(data.filters);
+        }
+      } catch (error) {
+        console.error("Lỗi tải tags:", error);
+      } finally {
+        setLoadingTags(false);
+      }
+    };
+    fetchTags();
+  }, []);
+
+  // --- 2. FETCH MÓN ĂN (Khi selectedTags thay đổi) ---
+  useEffect(() => {
+    const fetchFilteredFoods = async () => {
+      setLoadingFoods(true);
+      try {
+        // Tạo query string: ?tags=High-protein,EatClean
+        const queryParams = selectedTags.length > 0 
+          ? `?tags=${encodeURIComponent(selectedTags.join(','))}`
+          : ''; // Nếu không chọn tag nào thì lấy tất cả (hoặc rỗng tuỳ logic backend, ở đây backend sẽ limit 100 món)
+        
+        const res = await fetch(`${API_BASE_URL}/foods${queryParams}`);
+        const data = await res.json();
+        
+        if (data.success) {
+          setFoods(data.foods);
+        } else {
+          setFoods([]);
+        }
+      } catch (error) {
+        console.error("Lỗi lọc món ăn:", error);
+        setFoods([]);
+      } finally {
+        setLoadingFoods(false);
+      }
+    };
+
+    // Debounce nhỏ để tránh spam API khi click nhanh
+    const timer = setTimeout(() => {
+      fetchFilteredFoods();
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [selectedTags]);
+
+  // --- HANDLERS ---
   const toggleTag = (tag: string) => {
     if (selectedTags.includes(tag)) {
       setSelectedTags(selectedTags.filter(t => t !== tag));
@@ -45,72 +91,79 @@ function AdvancedLevelView() {
     setSelectedTags([]);
   };
 
-  // Logic lọc: Thực phẩm phải có TẤT CẢ các tag được chọn
-  const filteredFood = selectedTags.length === 0 
-    ? FOOD_DATABASE 
-    : FOOD_DATABASE.filter(food => selectedTags.every(tag => food.tags.includes(tag)));
-
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in min-h-[600px]">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* === SIDEBAR FILTERS === */}
+        {/* === LEFT SIDEBAR: BỘ LỌC === */}
         <div className="lg:col-span-4 space-y-6">
-          <FilterSection 
-            title="🎯 Mục tiêu Dinh dưỡng" 
-            tags={ADVANCED_FILTERS.functional} 
-            selected={selectedTags} 
-            onToggle={toggleTag} 
-            color="blue" 
-          />
-          <FilterSection 
-            title="🥗 Chế độ ăn (Diet)" 
-            tags={ADVANCED_FILTERS.diet} 
-            selected={selectedTags} 
-            onToggle={toggleTag} 
-            color="emerald" 
-          />
-          <FilterSection 
-            title="🍭 Mức độ chế biến (NOVA)" 
-            tags={ADVANCED_FILTERS.nova} 
-            selected={selectedTags} 
-            onToggle={toggleTag} 
-            color="purple" 
-          />
+          {loadingTags ? (
+             <div className="flex justify-center py-10"><Loader2 className="animate-spin text-teal-500"/></div>
+          ) : (
+            <>
+              <FilterSection 
+                title="🎯 Mục tiêu Dinh dưỡng" 
+                tags={availableFilters.functional} 
+                selected={selectedTags} 
+                onToggle={toggleTag} 
+                color="blue" 
+              />
+              <FilterSection 
+                title="🥗 Chế độ ăn (Diet)" 
+                tags={availableFilters.diet} 
+                selected={selectedTags} 
+                onToggle={toggleTag} 
+                color="emerald" 
+              />
+              <FilterSection 
+                title="🍭 Mức độ chế biến (NOVA)" 
+                tags={availableFilters.nova} 
+                selected={selectedTags} 
+                onToggle={toggleTag} 
+                color="purple" 
+              />
+            </>
+          )}
         </div>
 
-        {/* === RESULTS AREA === */}
+        {/* === RIGHT SIDE: KẾT QUẢ === */}
         <div className="lg:col-span-8">
-          <div className="bg-white rounded-xl border-2 border-gray-200 shadow-lg p-6 min-h-[600px]">
+          <div className="bg-white rounded-xl border-2 border-gray-200 shadow-lg p-6 min-h-[600px] flex flex-col">
             
             {/* Header kết quả */}
             <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-gray-100">
               <div className="flex items-center gap-3">
-                <Layers size={24} className="text-teal-600" />
+                <div className="p-2 bg-teal-100 text-teal-600 rounded-lg">
+                   <Layers size={24} />
+                </div>
                 <div>
                   <h3 className="font-bold text-gray-800 text-lg">Kết quả phân tích</h3>
                   <p className="text-sm text-gray-500">
                     {selectedTags.length > 0 
                       ? `Đang lọc theo ${selectedTags.length} tiêu chí` 
-                      : 'Hiển thị tất cả thực phẩm'}
+                      : 'Hiển thị tất cả thực phẩm phổ biến'}
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-teal-600">{filteredFood.length}</div>
-                <div className="text-xs text-gray-500">thực phẩm</div>
+                <div className="text-2xl font-bold text-teal-600">
+                    {loadingFoods ? '...' : foods.length}
+                </div>
+                <div className="text-xs text-gray-500 font-medium">thực phẩm khớp</div>
               </div>
             </div>
 
-            {/* Active filters chips */}
+            {/* Chips hiển thị các filter đang chọn */}
             {selectedTags.length > 0 && (
-              <div className="mb-6 flex flex-wrap gap-2 items-center">
-                <span className="text-sm font-semibold text-gray-600">Bộ lọc đang áp dụng:</span>
+              <div className="mb-6 flex flex-wrap gap-2 items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <span className="text-sm font-semibold text-gray-600 flex items-center gap-1">
+                  <Filter size={14}/> Đang lọc:
+                </span>
                 {selectedTags.map(tag => (
                   <button
                     key={tag}
                     onClick={() => toggleTag(tag)}
-                    className="flex items-center gap-1 bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-xs font-semibold hover:bg-teal-200 transition-colors"
+                    className="flex items-center gap-1 bg-white border border-teal-200 text-teal-700 px-3 py-1 rounded-full text-xs font-semibold hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors shadow-sm"
                   >
                     {tag}
                     <X size={14} />
@@ -118,7 +171,7 @@ function AdvancedLevelView() {
                 ))}
                 <button 
                   onClick={clearAllFilters}
-                  className="text-xs text-red-600 hover:text-red-700 font-semibold underline ml-2"
+                  className="text-xs text-red-500 hover:text-red-700 font-semibold underline ml-auto pl-2"
                 >
                   Xóa tất cả
                 </button>
@@ -126,60 +179,74 @@ function AdvancedLevelView() {
             )}
 
             {/* Danh sách kết quả */}
-            <div className="space-y-4">
-              {filteredFood.length > 0 ? (
-                filteredFood.map((item, idx) => (
+            <div className="space-y-4 flex-1">
+              {loadingFoods ? (
+                <div className="flex flex-col items-center justify-center h-64 text-gray-400 gap-3">
+                  <Loader2 className="animate-spin text-teal-500" size={40} />
+                  <p>Đang tìm món ngon phù hợp...</p>
+                </div>
+              ) : foods.length > 0 ? (
+                foods.map((item) => (
                   <div 
-                    key={idx} 
-                    className="border-2 border-gray-100 rounded-xl p-5 hover:shadow-lg hover:border-teal-200 transition-all duration-300 bg-gradient-to-r from-white to-gray-50 hover:from-teal-50 hover:to-white"
+                    key={item.id} 
+                    onClick={() => setSelectedFoodDetail(item)} // Mở Modal chi tiết
+                    className="group border border-gray-100 rounded-xl p-4 hover:shadow-md hover:border-teal-300 transition-all duration-300 bg-white cursor-pointer relative overflow-hidden"
                   >
-                    <div className="flex justify-between items-start mb-3">
+                    {/* Hover Effect Bar */}
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-teal-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
+                    <div className="flex justify-between items-start mb-3 pl-2">
                       <div className="flex-1">
-                        <h4 className="font-bold text-xl text-gray-800 mb-1">{item.name}</h4>
-                        <p className="text-sm text-gray-600">{item.desc}</p>
+                        <h4 className="font-bold text-lg text-gray-800 mb-1 group-hover:text-teal-700 transition-colors">
+                          {item.name}
+                        </h4>
+                        <p className="text-sm text-gray-500 line-clamp-1">
+                          {item.description || 'Chưa có mô tả chi tiết'}
+                        </p>
                       </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <span className="text-2xl font-bold text-red-500">{item.calo}</span>
-                        <span className="text-xs text-gray-500">Calo/100g</span>
+                      <div className="flex flex-col items-end gap-1 bg-orange-50 px-3 py-1 rounded-lg border border-orange-100">
+                        <span className="text-xl font-bold text-orange-500">{item.calories}</span>
+                        <span className="text-[10px] uppercase font-bold text-gray-400">Kcal</span>
                       </div>
                     </div>
                     
-                    {/* Tags */}
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {item.tags.map(tag => (
+                    {/* Tags Badge của từng món */}
+                    <div className="flex flex-wrap gap-2 pl-2">
+                      {/* Hiển thị tối đa 4 tags để đỡ rối */}
+                      {(item.tags || []).slice(0, 4).map((tag: any, idx: number) => (
                         <span 
-                          key={tag} 
-                          className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
+                          key={idx} 
+                          className={`text-[10px] px-2 py-0.5 rounded-full border transition-all ${
                             selectedTags.includes(tag) 
-                              ? 'bg-teal-600 text-white border-teal-600 font-semibold' 
-                              : 'bg-white text-gray-600 border-gray-300 hover:border-teal-300'
+                              ? 'bg-teal-600 text-white border-teal-600 font-medium shadow-sm' 
+                              : 'bg-gray-50 text-gray-500 border-gray-200'
                           }`}
                         >
                           {tag}
                         </span>
                       ))}
+                      {(item.tags || []).length > 4 && (
+                         <span className="text-[10px] text-gray-400 px-1 py-0.5"> +{(item.tags || []).length - 4}</span>
+                      )}
                     </div>
-
-                    {/* Action button */}
-                    <button className="w-full mt-2 bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors shadow-md hover:shadow-lg">
-                      + Thêm vào Menu
-                    </button>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-16">
-                  <div className="text-6xl mb-4">🔍</div>
+                <div className="text-center py-16 flex flex-col items-center">
+                  <div className="bg-gray-50 p-6 rounded-full mb-4">
+                    <Frown size={48} className="text-gray-300" />
+                  </div>
                   <h4 className="text-xl font-bold text-gray-800 mb-2">
-                    Không có thực phẩm nào khớp
+                    Không tìm thấy thực phẩm nào
                   </h4>
-                  <p className="text-gray-600 mb-4">
-                    Thử điều chỉnh bộ lọc để tìm thấy thực phẩm phù hợp
+                  <p className="text-gray-500 mb-6 max-w-xs mx-auto">
+                    Có vẻ như chưa có món ăn nào thỏa mãn TẤT CẢ các tiêu chí bạn chọn. Hãy thử bỏ bớt một vài bộ lọc xem sao nhé!
                   </p>
                   <button 
                     onClick={clearAllFilters}
-                    className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+                    className="bg-white border-2 border-teal-500 text-teal-600 hover:bg-teal-50 px-6 py-2 rounded-lg font-bold transition-colors"
                   >
-                    Đặt lại bộ lọc
+                    Xóa bộ lọc & Thử lại
                   </button>
                 </div>
               )}
@@ -187,32 +254,62 @@ function AdvancedLevelView() {
           </div>
         </div>
       </div>
+
+      {/* MODAL CHI TIẾT */}
+      {selectedFoodDetail && (
+        <FoodDetailModal 
+          food={selectedFoodDetail} 
+          onClose={() => setSelectedFoodDetail(null)} 
+        />
+      )}
     </div>
   );
 }
 
-// Component phụ: Filter Section
-const FilterSection = ({ title, tags, selected, onToggle, color }: any) => (
-  <div className="bg-white rounded-xl border-2 border-gray-200 p-5 shadow-md hover:shadow-lg transition-shadow">
-    <h4 className="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wider flex items-center gap-2">
-      {title}
-    </h4>
-    <div className="flex flex-wrap gap-2">
-      {tags.map((tag: string) => (
-        <button
-          key={tag}
-          onClick={() => onToggle(tag)}
-          className={`text-xs px-3 py-2 rounded-lg transition-all border-2 font-medium ${
-            selected.includes(tag)
-              ? `bg-${color}-100 text-${color}-800 border-${color}-300 shadow-md`
-              : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-          }`}
-        >
-          {tag}
-        </button>
-      ))}
+// Component phụ: Filter Section (Giữ nguyên style nhưng thêm logic loading)
+const FilterSection = ({ title, tags, selected, onToggle, color }: any) => {
+  // Map màu sắc cho đẹp
+  const colorStyles: any = {
+    blue: {
+      active: 'bg-blue-100 text-blue-800 border-blue-300',
+      hover: 'hover:border-blue-300 hover:bg-blue-50'
+    },
+    emerald: {
+      active: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+      hover: 'hover:border-emerald-300 hover:bg-emerald-50'
+    },
+    purple: {
+      active: 'bg-purple-100 text-purple-800 border-purple-300',
+      hover: 'hover:border-purple-300 hover:bg-purple-50'
+    }
+  };
+
+  const style = colorStyles[color] || colorStyles.blue;
+
+  if (!tags || tags.length === 0) return null;
+
+  return (
+    <div className="bg-white rounded-xl border-2 border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+      <h4 className="font-bold text-gray-700 mb-4 text-xs uppercase tracking-wider flex items-center gap-2 border-b pb-2 border-gray-100">
+        {title}
+      </h4>
+      <div className="flex flex-wrap gap-2">
+        {tags.map((tag: string) => (
+          <button
+            key={tag}
+            onClick={() => onToggle(tag)}
+            className={`text-xs px-3 py-1.5 rounded-lg transition-all border font-medium ${
+              selected.includes(tag)
+                ? `${style.active} shadow-sm ring-1 ring-offset-1 ring-white ring-${color}-200`
+                : `bg-white text-gray-500 border-gray-200 ${style.hover}`
+            }`}
+          >
+            {tag}
+          </button>
+        ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default AdvancedLevelView;

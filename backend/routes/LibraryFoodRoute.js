@@ -40,23 +40,26 @@ router.get("/basic-groups", async (req, res) => {
     });
   }
 });
-
 // ========================================
 // API 2: LẤY NHÓM THỰC PHẨM MỨC TRUNG CẤP (LEVEL 2)
 // GET /api/food-classification/intermediate-groups
 // ========================================
 router.get("/intermediate-groups", async (req, res) => {
   try {
+    // 1. Thêm p.color_class vào câu Query
     const [rows] = await pool.query(`
       SELECT 
         p.id as parent_id,
         p.name as parent_name,
         p.icon as parent_icon,
+        p.color_class as parent_color_class, 
         c.id as child_id,
         c.name as child_name,
         c.name_en as child_name_en,
         c.description as child_desc,
         c.health_rating,
+        c.color_class as child_color_class, 
+        c.icon as child_icon,
         c.sort_order
       FROM food_groups p
       INNER JOIN food_groups c ON c.parent_id = p.id
@@ -69,9 +72,11 @@ router.get("/intermediate-groups", async (req, res) => {
       const parentKey = row.parent_id;
       if (!acc[parentKey]) {
         acc[parentKey] = {
-          parentId: row.parent_id,
-          parentName: row.parent_name,
+          // 2. Sửa tên Key cho khớp với Interface ở Frontend
+          id: row.parent_id,           // Frontend dùng .id (không phải parentId)
+          name: row.parent_name,       // Frontend dùng .name (không phải parentName)
           icon: row.parent_icon,
+          color_class: row.parent_color_class, // QUAN TRỌNG: Thêm trường này để fix lỗi .split()
           items: []
         };
       }
@@ -80,7 +85,10 @@ router.get("/intermediate-groups", async (req, res) => {
         name: row.child_name,
         nameEn: row.child_name_en,
         desc: row.child_desc,
-        healthy: row.health_rating
+        healthy: row.health_rating,
+        // Kế thừa icon/màu của cha nếu con không có (để hiển thị modal đẹp)
+        icon: row.child_icon || row.parent_icon, 
+        color_class: row.child_color_class || row.parent_color_class 
       });
       return acc;
     }, {});
@@ -151,85 +159,20 @@ router.get("/tags", async (req, res) => {
 });
 
 // ========================================
-// API 4: TÌM KIẾM THỰC PHẨM (CẬP NHẬT)
-// GET /api/food-classification/foods?groupId=1&search=...
+// API 4: TÌM KIẾM THỰC PHẨM ĐA NĂNG (Hỗ trợ Search tên + Filter Tags)
+// GET /api/food-classification/foods?tags=High-protein,EatClean&search=gà&groupId=1
 // ========================================
 router.get("/foods", async (req, res) => {
   try {
-    const { tags, search, groupId } = req.query; // Thêm groupId
-    const tagArray = tags ? tags.split(',').map(t => t.trim()) : [];
+    const { tags, search, groupId } = req.query;
 
+    // 1. Xử lý danh sách tags từ query param (ngăn cách bởi dấu phẩy)
+    // Ví dụ: tags="High-protein,EatClean" -> array=["High-protein", "EatClean"]
+    const tagArray = tags ? tags.split(',').filter(t => t.trim() !== '') : [];
+
+    // 2. Base Query
     let query = `
-      SELECT DISTINCT
-        n.id,
-        n.food_name as name,
-        n.food_group,
-        n.calories,
-        n.protein_g,
-        n.carbs_g,
-        n.fats_g,
-        n.fiber_g,
-        n.description
-      FROM nutrition_data n
-    `;
-
-    // Join bảng mapping nếu lọc theo groupId
-    if (groupId) {
-      query += ` INNER JOIN food_group_mapping fgm ON n.id = fgm.food_id `;
-    }
-
-    const conditions = [];
-    const params = [];
-
-    // Filter theo Group ID
-    if (groupId) {
-      conditions.push(`fgm.group_id = ?`);
-      params.push(groupId);
-    }
-
-    // Filter theo Tags (Logic cũ giữ nguyên)
-    if (tagArray.length > 0) {
-      // ... (Code xử lý tags như cũ)
-    }
-
-    // Search theo tên
-    if (search) {
-      conditions.push(`n.food_name LIKE ?`);
-      params.push(`%${search}%`);
-    }
-
-    if (conditions.length > 0) {
-      query += ` WHERE ` + conditions.join(' AND ');
-    }
-
-    query += ` LIMIT 100`;
-
-    const [foods] = await pool.query(query, params);
-
-    res.json({
-      success: true,
-      count: foods.length,
-      foods: foods
-    });
-
-  } catch (error) {
-    console.error("Lỗi khi tìm kiếm thực phẩm:", error);
-    res.status(500).json({ success: false, message: "Lỗi server" });
-  }
-});
-
-/*
-// ========================================
-// API 4: TÌM KIẾM THỰC PHẨM VỚI BỘ LỌC (MỨC NÂNG CAO)
-// GET /api/food-classification/foods?tags=high-protein,low-carb&search=gà
-// ========================================
-router.get("/foods", async (req, res) => {
-  try {
-    const { tags, search } = req.query;
-    const tagArray = tags ? tags.split(',').map(t => t.trim()) : [];
-
-    let query = `
-      SELECT DISTINCT
+      SELECT 
         n.id,
         n.food_name as name,
         n.food_group,
@@ -239,72 +182,69 @@ router.get("/foods", async (req, res) => {
         n.fats_g,
         n.fiber_g,
         n.description,
-        GROUP_CONCAT(DISTINCT ft.tag_name_display ORDER BY ft.sort_order SEPARATOR ',') as tags
+        n.image_url,
+        -- Lấy danh sách tags của món ăn đó để hiển thị ra UI
+        (
+          SELECT GROUP_CONCAT(ft_sub.tag_name_display SEPARATOR ', ')
+          FROM food_tags ft_sub
+          JOIN food_tag_mapping ftm_sub ON ft_sub.id = ftm_sub.tag_id
+          WHERE ftm_sub.food_id = n.id
+        ) as tags_display
       FROM nutrition_data n
     `;
 
     const conditions = [];
     const params = [];
 
-    // Nếu có tags filter
-    if (tagArray.length > 0) {
-      query += `
-        INNER JOIN food_tag_mapping ftm ON n.id = ftm.food_id
-        INNER JOIN food_tags ft ON ftm.tag_id = ft.id
-      `;
-
-      // Lấy tag IDs
-      const [tagRows] = await pool.query(
-        `SELECT id FROM food_tags WHERE tag_name_display IN (?)`,
-        [tagArray]
-      );
-      const tagIds = tagRows.map(t => t.id);
-
-      if (tagIds.length > 0) {
-        conditions.push(`ftm.tag_id IN (?)`);
-        params.push(tagIds);
-      }
-    } else {
-      // Không có filter tags, vẫn JOIN để lấy tags của thực phẩm
-      query += `
-        LEFT JOIN food_tag_mapping ftm ON n.id = ftm.food_id
-        LEFT JOIN food_tags ft ON ftm.tag_id = ft.id
-      `;
+    // 3. Xử lý lọc theo Group ID (nếu có - dùng cho Basic/Intermediate View)
+    if (groupId) {
+      query += ` JOIN food_group_mapping fgm ON n.id = fgm.food_id `;
+      conditions.push(`fgm.group_id = ?`);
+      params.push(groupId);
     }
 
-    // Search by name
+    // 4. Xử lý lọc theo Tags (Logic "AND" - Món ăn phải có ĐỦ tất cả tags đã chọn)
+    if (tagArray.length > 0) {
+      // Join bảng tags
+      query += ` 
+        JOIN food_tag_mapping ftm ON n.id = ftm.food_id 
+        JOIN food_tags ft ON ftm.tag_id = ft.id 
+      `;
+      
+      // Chỉ lấy những dòng có tag nằm trong danh sách chọn
+      conditions.push(`ft.tag_name_display IN (?)`);
+      params.push(tagArray);
+    }
+
+    // 5. Xử lý tìm kiếm theo tên
     if (search) {
       conditions.push(`n.food_name LIKE ?`);
       params.push(`%${search}%`);
     }
 
+    // Gắn điều kiện WHERE
     if (conditions.length > 0) {
       query += ` WHERE ` + conditions.join(' AND ');
     }
 
+    // 6. Group By & Having (Quan trọng cho logic lọc Tags)
     query += ` GROUP BY n.id`;
 
-    // Nếu có nhiều tags, chỉ lấy thực phẩm có ĐỦ tất cả tags
+    // Nếu người dùng chọn 2 tags, thì món ăn tìm thấy phải có số lượng tags khớp >= 2
     if (tagArray.length > 0) {
-      query += ` HAVING COUNT(DISTINCT ftm.tag_id) >= ?`;
+      query += ` HAVING COUNT(DISTINCT ft.id) >= ?`;
       params.push(tagArray.length);
     }
 
-    query += ` LIMIT 100`; // Giới hạn kết quả
+    // Giới hạn kết quả
+    query += ` LIMIT 100`;
 
     const [foods] = await pool.query(query, params);
 
-    // Format kết quả
-    const formattedFoods = foods.map(food => ({
-      id: food.id,
-      name: food.name,
-      desc: food.description || `Nhóm: ${food.food_group}`,
-      calo: food.calories,
-      protein: food.protein_g,
-      carbs: food.carbs_g,
-      fats: food.fats_g,
-      fiber: food.fiber_g,
-      tags: food.tags ? food.tags.split(',') : []
+    // Format lại dữ liệu tag từ chuỗi sang mảng để Frontend dễ dùng
+    const formattedFoods = foods.map(f => ({
+      ...f,
+      tags: f.tags_display ? f.tags_display.split(', ') : []
     }));
 
     res.json({
@@ -314,14 +254,10 @@ router.get("/foods", async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Lỗi khi tìm kiếm thực phẩm:", error);
-    res.status(500).json({ 
-      success: false,
-      message: "Lỗi server khi tìm kiếm thực phẩm" 
-    });
+    console.error("Lỗi tìm kiếm thực phẩm:", error);
+    res.status(500).json({ success: false, message: "Lỗi server" });
   }
 });
-*/
 
 // ========================================
 // API 5: LẤY CHI TIẾT THỰC PHẨM
