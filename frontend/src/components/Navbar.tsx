@@ -5,7 +5,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import logo from "../Assests/WellLogo.png";
 import UserDropdown from "./UserDropdown";
-import NavDropdown, { DropdownItem } from "./NavDropdown"; // Import component menu con
+import NavDropdown, { DropdownItem } from "./NavDropdown";
 
 function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
@@ -48,12 +48,18 @@ function Navbar() {
           ) : (
             <div className="hidden md:flex items-center space-x-2">
               <Link to="/signin">
-                <button type="button" className="text-white bg-black hover:bg-gray-800 font-medium rounded-lg text-sm px-4 py-2 text-center">
+                <button
+                  type="button"
+                  className="text-white bg-black hover:bg-gray-800 font-medium rounded-lg text-sm px-4 py-2 text-center"
+                >
                   Đăng nhập
                 </button>
               </Link>
               <Link to="/signup">
-                <button type="button" className="text-white bg-black hover:bg-gray-800 font-medium rounded-lg text-sm px-4 py-2 text-center">
+                <button
+                  type="button"
+                  className="text-white bg-black hover:bg-gray-800 font-medium rounded-lg text-sm px-4 py-2 text-center"
+                >
                   Đăng ký
                 </button>
               </Link>
@@ -69,60 +75,110 @@ function Navbar() {
           >
             <span className="sr-only">Open main menu</span>
             <svg className="w-5 h-5" aria-hidden="true" fill="none" viewBox="0 0 17 14">
-              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 1h15M1 7h15M1 13h15"/>
+              <path
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M1 1h15M1 7h15M1 13h15"
+              />
             </svg>
           </button>
         </div>
 
         {/* === Navigation Links (Desktop & Mobile) === */}
         <div
-          className={`items-center justify-between w-full md:flex md:w-auto md:order-1 ${isMobileMenuOpen ? "block" : "hidden"}`}
+          className={`items-center justify-between w-full md:flex md:w-auto md:order-1 ${
+            isMobileMenuOpen ? "block" : "hidden"
+          }`}
           id="navbar-menu"
         >
           <ul className="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-teal-500 md:flex-row md:items-center md:space-x-8 md:mt-0 md:border-0">
-            <li><Link to="/" className="block py-2 px-3 text-white rounded hover:bg-teal-600 md:hover:bg-transparent md:hover:text-teal-200 md:p-0">Trang chủ</Link></li>
-            {/*<li><Link to="/blogs" className="block py-2 px-3 text-white rounded hover:bg-teal-600 md:hover:bg-transparent md:hover:text-teal-200 md:p-0">Kiến thức</Link></li>*/}
-             <li className="w-full md:w-auto">
+            <li>
+              <Link
+                to="/"
+                className="block py-2 px-3 text-white rounded hover:bg-teal-600 md:hover:bg-transparent md:hover:text-teal-200 md:p-0"
+              >
+                Trang chủ
+              </Link>
+            </li>
+
+            {/* KIẾN THỨC */}
+            <li className="w-full md:w-auto">
               <NavDropdown title="Kiến thức">
                 <DropdownItem to="/nutrition/lessons">Bài học Dinh dưỡng</DropdownItem>
                 <DropdownItem to="/blogs">Khám phá Chuyên sâu</DropdownItem>
               </NavDropdown>
             </li>
-            {/* --- MỤC DINH DƯỠNG MỚI VỚI MENU CON --- */}
+
+            {/* DINH DƯỠNG */}
             <li className="w-full md:w-auto">
               <NavDropdown title="Dinh dưỡng">
-                <DropdownItem to="/nutrition/tools">Công cụ (Tra cứu & TDEE)</DropdownItem>
-                <DropdownItem to="/nutrition/recipes">Thư viện công thức ăn uống</DropdownItem> 
+                <DropdownItem to="/nutrition/tools">Công cụ (Tra cứu &amp; TDEE)</DropdownItem>
+                <DropdownItem to="/nutrition/recipes">Thư viện công thức ăn uống</DropdownItem>
                 <DropdownItem to="/nutrition/meal-planner">Nhật ký thực đơn</DropdownItem>
                 <DropdownItem to="/nutrition/library-food">Thư viện Thực phẩm</DropdownItem>
                 <DropdownItem to="/nutrition">Xem tất cả</DropdownItem>
               </NavDropdown>
             </li>
 
-            {/* --- MỤC TẬP LUYỆN VỚI MENU CON --- */}
+            {/* 🔥 TẬP LUYỆN – ĐÃ TỐI ƯU */}
             <li className="w-full md:w-auto">
               <NavDropdown title="Tập luyện">
-                <DropdownItem to="/cardio">Cardio & HIIT</DropdownItem>
-                <DropdownItem to="/exercise">Tập Sức mạnh (Tạ)</DropdownItem>
-                <DropdownItem to="/yoga">Yoga & Giãn cơ</DropdownItem>
-                {/* <DropdownItem to="/exercise/yoga">Yoga & Giãn cơ</DropdownItem> */}
-                <DropdownItem to="/exercise/all">Xem tất cả</DropdownItem>
+                {/* Wizard: Giúp người mới định hướng */}
+                <DropdownItem to="/training/start">
+                  🚀 Bắt đầu ngay
+                </DropdownItem>
+
+                {/* Library: Kho dữ liệu bài tập */}
+                <DropdownItem to="/exercise">
+                  📚 Thư viện bài tập
+                </DropdownItem>
+
+                {/* Sport: Điểm nhấn cho đối tượng thể thao */}
+                <DropdownItem to="/training/sports">
+                  ⚽ Bổ trợ Thể thao
+                </DropdownItem>
+
+                 {/* Plans: Các giáo án Gym/Fitness có sẵn */}
+                <DropdownItem to="/training/plans">
+                  📋 Giáo án Gym/Fitness
+                </DropdownItem>
+
+                {/* Tools: Công cụ hỗ trợ */}
+                <DropdownItem to="/training/tools">
+                  🛠️ Công cụ & Bài test
+                </DropdownItem>
               </NavDropdown>
             </li>
 
-            <li><Link to="/plan" className="block py-2 px-3 text-white rounded hover:bg-teal-600 md:hover:bg-transparent md:hover:text-teal-200 md:p-0">Lộ trình</Link></li>
+            {/* LỘ TRÌNH – GIỮ NGUYÊN */}
+            <li>
+              <Link
+                to="/plan"
+                className="block py-2 px-3 text-white rounded hover:bg-teal-600 md:hover:bg-transparent md:hover:text-teal-200 md:p-0"
+              >
+                Lộ trình
+              </Link>
+            </li>
 
             {/* Login/Signup for Mobile */}
             {!isAuth && (
               <li className="mt-4 border-t border-teal-400 pt-4 md:hidden">
                 <div className="flex flex-col space-y-2">
                   <Link to="/signin">
-                    <button type="button" className="w-full text-white bg-black hover:bg-gray-800 font-medium rounded-lg text-sm px-4 py-2 text-center">
+                    <button
+                      type="button"
+                      className="w-full text-white bg-black hover:bg-gray-800 font-medium rounded-lg text-sm px-4 py-2 text-center"
+                    >
                       Đăng nhập
                     </button>
                   </Link>
                   <Link to="/signup">
-                    <button type="button" className="w-full text-white bg-black hover:bg-gray-800 font-medium rounded-lg text-sm px-4 py-2 text-center">
+                    <button
+                      type="button"
+                      className="w-full text-white bg-black hover:bg-gray-800 font-medium rounded-lg text-sm px-4 py-2 text-center"
+                    >
                       Đăng ký
                     </button>
                   </Link>

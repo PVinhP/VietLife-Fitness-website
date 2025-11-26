@@ -27,6 +27,8 @@ import NutritionTools from '../pages/nutrition/NutritionTools';
 import RecipeSection from '../pages/nutrition/RecipeSection'; 
 import LessonSection from '../pages/nutrition/LessonSection'; 
 import ExploreSection from '../pages/nutrition/ExploreSection';
+import SportsList from '../pages/trainning/SportsList'
+import SportDetail from '../pages/trainning/SportDetail';
 function Allroutes() {
   return (
     <Routes>
@@ -47,6 +49,8 @@ function Allroutes() {
       <Route path="/lesson/:id" element={<LessonDetail />} />
       <Route path="/customexercise" element={<ExerciseInputForm />} />
       <Route path="/exercise" element={<PrivateRoute><Exercise /></PrivateRoute>} />
+      <Route path="/training/sports" element={<SportsList/>} />
+      <Route path="/training/sports/:slug" element={<SportDetail/>} />
       <Route path="/goals" element={<PrivateRoute><UserPage /></PrivateRoute>} />
       <Route path="/addworkout" element={<PrivateRoute><Addworkout /></PrivateRoute>} />
       <Route path="/plan" element={<PrivateRoute><Plan /></PrivateRoute>} />
