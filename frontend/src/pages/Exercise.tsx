@@ -174,16 +174,21 @@ function Exercise() {
         window.scrollTo(0, 0); 
     };
 
+    // Hàm quay lại thông minh (Hỗ trợ cả Sport và Plan)
     const backToList = () => {
-        if (location.state && location.state.fromSport) {
+        // Kiểm tra xem người dùng đến từ Sport hay Plan
+        if (location.state && (location.state.fromSport || location.state.fromPlan)) {
+            // Nếu đến từ 1 trong 2 trang đó -> Quay lại lịch sử trình duyệt
             navigate(-1); 
         } else {
+            // Nếu không (vào trực tiếp thư viện) -> Chỉ tắt popup chi tiết
             setSelectedExercise(null);
             window.scrollTo(0, 0);
+            
+            // Xóa state để tránh lỗi khi F5
             window.history.replaceState({}, document.title);
         }
     };
-
     // --- Render Components ---
 
     const renderExerciseDetails = () => {

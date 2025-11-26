@@ -17,7 +17,7 @@ const profileRoutes = require('./routes/profileRoutes');
 // Import route mới
 const { foodClassificationRouter } = require("./routes/LibraryFoodRoute");
 const { sportRouter } = require("./routes/SportRoutes");
-
+const { planRouter } = require("./routes/PlanRoutes");
 
 
 
@@ -44,6 +44,7 @@ app.use("/api/profile", profileRoutes);
 app.use('/api/guides', guideRoutes);
 app.use('/api/progress', userProgressRouter);
 app.use("/api/sports", sportRouter);
+app.use("/api/plans", planRouter);
 app.listen(8080, async()=>{
   
     try {

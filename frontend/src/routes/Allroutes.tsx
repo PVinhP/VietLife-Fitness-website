@@ -29,6 +29,8 @@ import LessonSection from '../pages/nutrition/LessonSection';
 import ExploreSection from '../pages/nutrition/ExploreSection';
 import SportsList from '../pages/trainning/SportsList'
 import SportDetail from '../pages/trainning/SportDetail';
+import PlanList from '../pages/trainning/PlanList';
+import PlanDetail from '../pages/trainning/PlanDetail';
 function Allroutes() {
   return (
     <Routes>
@@ -51,6 +53,8 @@ function Allroutes() {
       <Route path="/exercise" element={<PrivateRoute><Exercise /></PrivateRoute>} />
       <Route path="/training/sports" element={<SportsList/>} />
       <Route path="/training/sports/:slug" element={<SportDetail/>} />
+      <Route path="/training/plans" element={<PlanList/>} />
+      <Route path="/training/plans/:id" element={<PlanDetail/>} />
       <Route path="/goals" element={<PrivateRoute><UserPage /></PrivateRoute>} />
       <Route path="/addworkout" element={<PrivateRoute><Addworkout /></PrivateRoute>} />
       <Route path="/plan" element={<PrivateRoute><Plan /></PrivateRoute>} />
