@@ -31,6 +31,14 @@ import SportsList from '../pages/trainning/SportsList'
 import SportDetail from '../pages/trainning/SportDetail';
 import PlanList from '../pages/trainning/PlanList';
 import PlanDetail from '../pages/trainning/PlanDetail';
+import ToolsList from '../pages/trainning/ToolsList';
+import OneRepMax from '../pages/trainning/tools/OneRepMax';
+import HeartRateZones from '../pages/trainning/tools/HeartRateZones';
+import IntervalTimer from '../pages/trainning/tools/IntervalTimer';
+import TrainingWizard from '../pages/trainning/TrainingWizard';
+import PaceCalculator from '../pages/trainning/tools/PaceCalculator';
+import WilksCalculator from '../pages/trainning/tools/WilksScore';
+import PlateCalculator from '../pages/trainning/tools/PlateCalculator';
 function Allroutes() {
   return (
     <Routes>
@@ -55,6 +63,14 @@ function Allroutes() {
       <Route path="/training/sports/:slug" element={<SportDetail/>} />
       <Route path="/training/plans" element={<PlanList/>} />
       <Route path="/training/plans/:id" element={<PlanDetail/>} />
+      <Route path="/training/tools" element={<ToolsList />} />
+      <Route path="/training/tools/1rm" element={<OneRepMax />} />  
+      <Route path="/training/tools/heartratezones" element={<HeartRateZones />} />
+      <Route path="/training/tools/timer" element={<IntervalTimer />} />
+      <Route path="/training/start" element={<TrainingWizard />} />
+      <Route path="/training/tools/pace" element={<PaceCalculator />} />
+      <Route path="/training/tools/plate-calculator" element={<PlateCalculator />} />
+      <Route path="/training/tools/wilks" element={<WilksCalculator />} />
       <Route path="/goals" element={<PrivateRoute><UserPage /></PrivateRoute>} />
       <Route path="/addworkout" element={<PrivateRoute><Addworkout /></PrivateRoute>} />
       <Route path="/plan" element={<PrivateRoute><Plan /></PrivateRoute>} />

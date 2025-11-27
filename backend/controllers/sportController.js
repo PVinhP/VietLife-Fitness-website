@@ -13,38 +13,38 @@ exports.getAllSports = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
-
-// API lấy chi tiết môn + bài tập
 exports.getSportDetail = async (req, res) => {
-    const slug = req.params.slug;
+    const { slug } = req.params;
+    
     try {
         // 1. Lấy thông tin môn
-        // Lưu ý: pool.query trả về [rows, fields], nên ta dùng destructuring [sportRows]
-        const [sportRows] = await pool.query("SELECT * FROM sports WHERE slug = ?", [slug]);
-        
-        if (sportRows.length === 0) {
-            return res.status(404).json({ message: "Môn này không tồn tại" });
-        }
-        
+        const sportSql = "SELECT * FROM sports WHERE slug = ?";
+        // ... (đoạn này giữ nguyên, dùng pool.query) ...
+        const [sportRows] = await pool.query(sportSql, [slug]);
+        if (sportRows.length === 0) return res.status(404).json({ message: "Không tìm thấy" });
         const sport = sportRows[0];
 
-        // 2. Lấy các bài tập liên quan qua bảng trung gian
-        const sqlExercises = `
-            SELECT e.* FROM exercises e
+        // 2. Lấy bài tập Gym + LÝ DO (Thêm cột se.reason)
+        const exerciseSql = `
+            SELECT e.*, se.reason 
+            FROM exercises e
             JOIN sport_exercises se ON e.id = se.exercise_id
             WHERE se.sport_id = ?
         `;
-        
-        const [exerciseRows] = await pool.query(sqlExercises, [sport.id]);
+        const [exerciseRows] = await pool.query(exerciseSql, [sport.id]);
 
-        // 3. Trả về kết quả gộp
+        // 3. Lấy Kỹ năng chuyên môn (MỚI)
+        const skillSql = "SELECT * FROM sport_skills WHERE sport_id = ?";
+        const [skillRows] = await pool.query(skillSql, [sport.id]);
+
+        // 4. Trả về kết quả gộp
         res.json({
-            ...sport,       
-            exercises: exerciseRows 
+            ...sport,
+            exercises: exerciseRows,
+            skills: skillRows // Trả thêm mảng skills
         });
 
     } catch (error) {
-        console.error("Lỗi lấy chi tiết môn:", error);
         res.status(500).json({ error: error.message });
     }
 };
