@@ -3,7 +3,7 @@
 const jwt = require('jsonwebtoken');
 
 // Middleware để xác thực JWT token
-const authMiddleware = (req, res, next) => {
+const AuthMiddleware = (req, res, next) => {
   // Lấy token từ header 'Authorization'
   const authHeader = req.headers.authorization;
 
@@ -17,12 +17,10 @@ const authMiddleware = (req, res, next) => {
     const token = authHeader.split(' ')[1];
 
     // Xác thực token với secret key của bạn
-    // Chắc chắn rằng bạn đã định nghĩa JWT_SECRET trong file .env
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "VietLife");
 
     // Gắn thông tin user đã giải mã vào đối tượng request
-    // Ở đây tôi giả định payload của bạn chứa object user có id
-    req.user = { id: decoded.userId }; // Hoặc tên field id tương ứng trong payload của bạn
+    req.user = { id: decoded.userId };
 
     next(); // Chuyển sang middleware hoặc controller tiếp theo
   } catch (error) {
@@ -31,55 +29,6 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-module.exports = authMiddleware;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* const jwt = require("jsonwebtoken")
-
-const AuthMiddleware=(req,res,next)=>{
-  const token = req.headers.authorization
-  if(token){
-    try {
-        const decoded = jwt.verify(token.split(" ")[1],"VietLife")
-        if(decoded){
-            // console.log(decoded)
-            req.body.userId=decoded.userId
-            req.body.username=decoded.username
-            console.log(req.body)
-            next()
-        }else{
-            res.status(400).send({"msg":"Please login to access this function!!!"})
-        }
-    } catch (error) {
-        res.send({"msg":"Please login to access this function!!!"})
-    }
-  }else{
-    res.status(400).send({"msg":"Please login to access this function!!!"})
-  }
-}
-
-module.exports={AuthMiddleware}
-
-*/
+// Export cả 2 cách để tương thích
+module.exports = AuthMiddleware; // Export mặc định
+module.exports.AuthMiddleware = AuthMiddleware; // Export named

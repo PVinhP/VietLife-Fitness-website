@@ -18,7 +18,7 @@ const profileRoutes = require('./routes/profileRoutes');
 const { foodClassificationRouter } = require("./routes/LibraryFoodRoute");
 const { sportRouter } = require("./routes/SportRoutes");
 const { planRouter } = require("./routes/PlanRoutes");
-
+const { progressRouter } = require("./routes/ProgressRoutes");
 
 
 const app = express();
@@ -45,6 +45,7 @@ app.use('/api/guides', guideRoutes);
 app.use('/api/progress', userProgressRouter);
 app.use("/api/sports", sportRouter);
 app.use("/api/plans", planRouter);
+app.use("/api/workout-progress", progressRouter);
 app.listen(8080, async()=>{
   
     try {
