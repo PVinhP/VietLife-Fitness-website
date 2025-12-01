@@ -151,6 +151,7 @@ const SportDetail = () => {
                                     {/* Video Player - Dùng iframe */}
                                     <div className="w-full md:w-80 aspect-video rounded-xl overflow-hidden shadow-md flex-shrink-0 bg-black">
                                         <iframe 
+                                            loading="lazy"
                                             width="100%" 
                                             height="100%" 
                                             src={getEmbedUrl(skill.video_url)} 

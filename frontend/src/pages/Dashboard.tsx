@@ -180,7 +180,7 @@ const Dashboard = () => {
           </div>
 
           {/* Biểu đồ Tiến trình */}
-          <ProgressChart chartData={data.weightProgress} />
+          <ProgressChart  />
 
           {/* Ảnh Check-in */}
           <CheckInPhotos />

@@ -19,6 +19,7 @@ const { foodClassificationRouter } = require("./routes/LibraryFoodRoute");
 const { sportRouter } = require("./routes/SportRoutes");
 const { planRouter } = require("./routes/PlanRoutes");
 const { progressRouter } = require("./routes/ProgressRoutes");
+const {trackingRouter} = require("./routes/trackingRoutes");
 
 
 const app = express();
@@ -46,6 +47,7 @@ app.use('/api/progress', userProgressRouter);
 app.use("/api/sports", sportRouter);
 app.use("/api/plans", planRouter);
 app.use("/api/workout-progress", progressRouter);
+app.use("/api/tracking", trackingRouter); // Gắn API vào endpoint /api/tracking
 app.listen(8080, async()=>{
   
     try {
