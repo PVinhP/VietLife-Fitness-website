@@ -4,6 +4,7 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import confetti from 'canvas-confetti';
+import ExerciseNoteModal from '../../components/ExerciseNoteModal';
 
 // --- INTERFACES ---
 interface ExerciseItem {
@@ -34,21 +35,33 @@ interface PlanDetailType {
     schedule: DaySchedule[];
 }
 
+interface NoteHistory {
+    date: string;
+    note: string;
+}
+
 const PlanDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     
-    // State
+    // State cũ
     const [plan, setPlan] = useState<PlanDetailType | null>(null);
     const [loading, setLoading] = useState(true);
     const [completedExercises, setCompletedExercises] = useState<number[]>([]);
-    
-    // State quản lý đóng/mở các ngày
     const [expandedDays, setExpandedDays] = useState<{[key: number]: boolean}>({});
     const [showTips, setShowTips] = useState(false);
 
+    // STATE MỚI CHO GHI CHÚ
+    const [noteModalOpen, setNoteModalOpen] = useState(false);
+    const [selectedExercise, setSelectedExercise] = useState<{id: number, name: string} | null>(null);
+    const [exerciseNotes, setExerciseNotes] = useState<{[key: number]: string}>({});
+    const [noteHistory, setNoteHistory] = useState<NoteHistory[]>([]);
+
     const token = localStorage.getItem("token");
-    const today = new Date().toISOString().split('T')[0]; 
+
+    // [SỬA 1] Dùng toLocaleDateString('en-CA') để lấy đúng ngày YYYY-MM-DD theo giờ máy tính người dùng
+    // Thay vì toISOString() (Giờ UTC) sẽ bị lệch ngày nếu tập vào sáng sớm tại VN.
+    const today = new Date().toLocaleDateString('en-CA'); 
 
     // --- FETCH DATA ---
     useEffect(() => {
@@ -68,10 +81,13 @@ const PlanDetail = () => {
                             headers: { Authorization: `Bearer ${token}` }
                         });
                         
-                        if (Array.isArray(progressRes.data)) {
+                        // XỬ LÝ CẢ exerciseIds VÀ notes
+                        if (progressRes.data.exerciseIds) {
+                            setCompletedExercises(progressRes.data.exerciseIds);
+                            setExerciseNotes(progressRes.data.notes || {});
+                        } else if (Array.isArray(progressRes.data)) {
+                            // Fallback nếu backend chưa update
                             setCompletedExercises(progressRes.data);
-                        } else {
-                            setCompletedExercises([]);
                         }
                     } catch (err) {
                         setCompletedExercises([]);
@@ -84,10 +100,9 @@ const PlanDetail = () => {
             }
         };
         fetchData();
-    }, [id, token, today]);
+    }, [id, token, today]); // today thay đổi sẽ fetch lại đúng ngày
 
-    // --- HANDLERS ---
-
+    // --- HANDLERS CŨ ---
     const handleViewExercise = (exerciseId: number) => {
         navigate('/exercise', { 
             state: { selectedExerciseId: exerciseId, fromPlan: true } 
@@ -103,11 +118,11 @@ const PlanDetail = () => {
 
         const isCurrentlyChecked = completedExercises.includes(exerciseId);
         
+        // Optimistic update
         if (isCurrentlyChecked) {
             setCompletedExercises(prev => prev.filter(id => id !== exerciseId));
         } else {
             setCompletedExercises(prev => [...prev, exerciseId]);
-            // Hiệu ứng pháo hoa nhỏ khi check
             confetti({
                 particleCount: 30,
                 spread: 50,
@@ -124,34 +139,68 @@ const PlanDetail = () => {
             }, { headers: { Authorization: `Bearer ${token}` } });
         } catch (error) {
             toast.error("Lỗi kết nối!");
+            // Revert nếu lỗi
             if (isCurrentlyChecked) setCompletedExercises(prev => [...prev, exerciseId]);
             else setCompletedExercises(prev => prev.filter(id => id !== exerciseId));
         }
     };
 
-    // --- MỚI: HÀM XỬ LÝ GHI CHÚ ---
-    const handleAddNote = async (exerciseId: number, e: React.MouseEvent) => {
+    // --- HANDLERS MỚI CHO GHI CHÚ ---
+    const handleOpenNoteModal = async (exerciseId: number, exerciseName: string, e: React.MouseEvent) => {
         e.stopPropagation();
         if (!token) {
             toast.warn("Vui lòng đăng nhập để ghi chú!");
             return;
         }
 
-        const note = window.prompt("Ghi chú cho bài tập này (VD: Tạ 30kg):");
+        setSelectedExercise({ id: exerciseId, name: exerciseName });
         
-        if (note !== null) {
-            try {
-                await axios.post(`http://localhost:8080/api/workout-progress/note`, {
-                    planId: id,
-                    exerciseId: exerciseId,
-                    date: today,
-                    note: note
-                }, { headers: { Authorization: `Bearer ${token}` } });
-                
-                toast.info("Đã lưu ghi chú 📝");
-            } catch (error) {
-                toast.error("Lỗi khi lưu ghi chú");
+        // Lấy lịch sử ghi chú
+        try {
+            const historyRes = await axios.get(`http://localhost:8080/api/workout-progress/note-history`, {
+                params: { planId: id, exerciseId },
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setNoteHistory(historyRes.data);
+        } catch (error) {
+            setNoteHistory([]);
+        }
+        
+        setNoteModalOpen(true);
+    };
+
+    // [SỬA 2] Cập nhật Logic Lưu Ghi Chú để đồng bộ Checkbox và History
+    const handleSaveNote = async (note: string) => {
+        if (!selectedExercise) return;
+        
+        try {
+            await axios.post(`http://localhost:8080/api/workout-progress/note`, {
+                planId: id,
+                exerciseId: selectedExercise.id,
+                date: today,
+                note: note
+            }, { headers: { Authorization: `Bearer ${token}` } });
+            
+            // 1. Cập nhật note hiện tại UI
+            setExerciseNotes(prev => ({ ...prev, [selectedExercise.id]: note }));
+            
+            // 2. [QUAN TRỌNG]: Tự động Check-in (Màu xanh) nếu chưa check
+            // Để tránh lỗi người dùng bấm vào check -> Backend hiểu là uncheck (delete)
+            if (!completedExercises.includes(selectedExercise.id)) {
+                setCompletedExercises(prev => [...prev, selectedExercise.id]);
             }
+
+            // 3. [QUAN TRỌNG]: Cập nhật ngay vào Note History (để hiển thị trong Modal ngay lập tức)
+            const newHistoryItem: NoteHistory = {
+                date: today,
+                note: note
+            };
+            setNoteHistory(prev => [newHistoryItem, ...prev]);
+
+            toast.success("✅ Đã lưu ghi chú!");
+        } catch (error) {
+            console.error(error);
+            toast.error("Lỗi khi lưu ghi chú");
         }
     };
 
@@ -160,7 +209,6 @@ const PlanDetail = () => {
     };
 
     // --- RENDER ---
-
     if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div></div>;
     if (!plan) return <div className="p-10 text-center">Giáo án không tồn tại!</div>;
 
@@ -263,7 +311,7 @@ const PlanDetail = () => {
                                     <span className="text-2xl">⚖️</span>
                                     <div>
                                         <p className="font-bold text-yellow-900 text-sm">Mức tạ</p>
-                                        <p className="text-xs text-yellow-800">Đủ nặng để 2 cái cuối mỏi nhừ</p>
+                                        <p className="text-xs text-yellow-800">Đủ nặng để 2 cái cuối mới nhả</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 bg-white/60 p-3 rounded-xl">
@@ -325,6 +373,8 @@ const PlanDetail = () => {
                                     <div className="divide-y divide-gray-50">
                                         {day.exercises.map((ex, index) => {
                                             const isDone = completedExercises.includes(ex.exercise_id);
+                                            const hasNote = exerciseNotes[ex.exercise_id];
+                                            
                                             return (
                                                 <div 
                                                     key={index} 
@@ -361,30 +411,41 @@ const PlanDetail = () => {
                                                         <h4 className={`font-bold text-base md:text-lg text-gray-800 truncate group-hover:text-teal-600 transition-colors ${isDone ? 'line-through decoration-teal-500 decoration-2 text-gray-400' : ''}`}>
                                                             {ex.exercise_name}
                                                         </h4>
+                                                        
+                                                        {/* HIỂN THỊ GHI CHÚ NẾU CÓ */}
+                                                        {hasNote && (
+                                                            <p className="text-xs text-orange-600 mt-1 flex items-center gap-1 font-medium">
+                                                                <span>📝</span>
+                                                                <span className="truncate max-w-[200px]">{hasNote}</span>
+                                                            </p>
+                                                        )}
+                                                        
                                                         <p className="text-xs text-gray-400 mt-1 hidden md:block">Bấm để xem video hướng dẫn</p>
                                                     </div>
 
-                                                    {/* --- NÚT GHI CHÚ (MỚI THÊM) --- */}
-                                                    <div 
-                                                        onClick={(e) => handleAddNote(ex.exercise_id, e)}
-                                                        className="p-2 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-full transition-colors flex-shrink-0"
-                                                        title="Thêm ghi chú"
+                                                    {/* NÚT GHI CHÚ */}
+                                                    <button 
+                                                        onClick={(e) => handleOpenNoteModal(ex.exercise_id, ex.exercise_name, e)}
+                                                        className={`p-2 rounded-full transition-colors flex-shrink-0 ${
+                                                            hasNote 
+                                                            ? 'bg-orange-100 text-orange-600 hover:bg-orange-200' 
+                                                            : 'text-gray-400 hover:text-orange-500 hover:bg-orange-50'
+                                                        }`}
+                                                        title={hasNote ? "Sửa ghi chú" : "Thêm ghi chú"}
                                                     >
                                                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                                         </svg>
-                                                    </div>
+                                                    </button>
 
-                                                    {/* Stats Box (ĐÃ CHỈNH FONT TO HƠN) */}
+                                                    {/* Stats Box */}
                                                     <div className="flex gap-2 text-center">
                                                         <div className={`px-3 py-2 rounded-lg border min-w-[60px] ${isDone ? 'bg-white/50 border-teal-100' : 'bg-gray-50 border-gray-100'}`}>
                                                             <div className="text-[10px] font-bold text-gray-400 uppercase">Set</div>
-                                                            {/* Font XL cho to rõ */}
                                                             <div className="font-mono font-black text-teal-600 text-xl">{ex.sets}</div>
                                                         </div>
                                                         <div className={`px-3 py-2 rounded-lg border min-w-[60px] ${isDone ? 'bg-white/50 border-teal-100' : 'bg-gray-50 border-gray-100'}`}>
                                                             <div className="text-[10px] font-bold text-gray-400 uppercase">Rep</div>
-                                                            {/* Font XL cho to rõ */}
                                                             <div className="font-mono font-black text-gray-800 text-xl">{ex.reps}</div>
                                                         </div>
                                                     </div>
@@ -402,6 +463,18 @@ const PlanDetail = () => {
                     })}
                 </div>
             </div>
+
+            {/* MODAL GHI CHÚ */}
+            {selectedExercise && (
+                <ExerciseNoteModal
+                    isOpen={noteModalOpen}
+                    onClose={() => setNoteModalOpen(false)}
+                    onSave={handleSaveNote}
+                    exerciseName={selectedExercise.name}
+                    currentNote={exerciseNotes[selectedExercise.id] || ''}
+                    previousNotes={noteHistory}
+                />
+            )}
         </div>
     );
 };
