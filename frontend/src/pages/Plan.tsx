@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 import { ChevronLeft, CheckCircle, AlertCircle } from 'lucide-react';
+import manhKhanhImg from '../images/manhkhanh.png';
+import trungBinhImg from '../images/trungbinh.png';
+import tichMoImg from '../images/tichmo.png';
+import thonGonImg from '../images/thongon.png'; 
+import sanChacImg from '../images/sanchac.png';
+import coBapImg from '../images/cobap.png';
 
 interface IFormData {
   body_type: string;
@@ -152,7 +158,9 @@ const Plan: React.FC = () => {
     );
   }
 
-  const VisualCard: React.FC<VisualCardProps> = ({ name, value, text, isSelected }) => (
+  // Tìm đoạn VisualCard cũ và thay thế bằng đoạn này:
+
+  const VisualCard: React.FC<VisualCardProps> = ({ name, value, text, isSelected, icon }) => (
     <button
       type="button"
       onClick={() => handleCardSelect(name, value)}
@@ -162,10 +170,22 @@ const Plan: React.FC = () => {
           : 'bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-teal-400'
       }`}
     >
-      <div className={`w-full aspect-square rounded-lg mb-3 flex items-center justify-center text-sm font-semibold transition-all ${
+      <div className={`w-full aspect-square rounded-lg mb-3 flex items-center justify-center overflow-hidden transition-all ${
         isSelected ? 'bg-teal-400/20' : 'bg-gray-100 group-hover:bg-gray-200'
       }`}>
-        {['💪', '⚖️', '🍔'][Math.random() * 3 | 0]}
+        {/* Logic mới: Nếu có icon (ảnh) thì hiện ảnh, nếu không thì hiện emoji mặc định */}
+        {icon ? (
+          <img 
+            src={icon} 
+            alt={text} 
+            className="w-full h-full object-contain p-2 mix-blend-multiply" 
+          />
+        ) : (
+          <span className="text-4xl">
+             {/* Giữ lại random emoji cho các card khác không có ảnh */}
+             {['💪', '⚖️', '🍔'][Math.random() * 3 | 0]}
+          </span>
+        )}
       </div>
       <span className={`text-lg font-bold ${isSelected ? 'text-white' : 'text-gray-800'}`}>{text}</span>
     </button>
@@ -232,9 +252,27 @@ const Plan: React.FC = () => {
               <h2 className="text-4xl font-bold text-center mb-2">Hình dáng hiện tại</h2>
               <p className="text-center text-gray-400 mb-8">của bạn giống nhất với hình nào?</p>
               <div className="grid grid-cols-3 gap-4">
-                <VisualCard name="body_type" value="ectomorph" text="Mảnh khảnh" isSelected={formData.body_type === 'ectomorph'} />
-                <VisualCard name="body_type" value="mesomorph" text="Trung bình" isSelected={formData.body_type === 'mesomorph'} />
-                <VisualCard name="body_type" value="endomorph" text="Tích mỡ" isSelected={formData.body_type === 'endomorph'} />
+                <VisualCard 
+                  name="body_type" 
+                  value="ectomorph" 
+                  text="Mảnh khảnh" 
+                  isSelected={formData.body_type === 'ectomorph'} 
+                  icon={manhKhanhImg} // Thêm dòng này
+                />
+                <VisualCard 
+                  name="body_type" 
+                  value="mesomorph" 
+                  text="Trung bình" 
+                  isSelected={formData.body_type === 'mesomorph'} 
+                  icon={trungBinhImg} // Thêm dòng này
+                />
+                <VisualCard 
+                  name="body_type" 
+                  value="endomorph" 
+                  text="Tích mỡ" 
+                  isSelected={formData.body_type === 'endomorph'} 
+                  icon={tichMoImg} // Thêm dòng này
+                />
               </div>
             </div>
           )}
@@ -244,13 +282,30 @@ const Plan: React.FC = () => {
               <h2 className="text-4xl font-bold text-center mb-2">Mục tiêu của bạn</h2>
               <p className="text-center text-gray-400 mb-8">là gì?</p>
               <div className="grid grid-cols-3 gap-4">
-                <VisualCard name="goal_body" value="lean" text="Thon gọn" isSelected={formData.goal_body === 'lean'} />
-                <VisualCard name="goal_body" value="toned" text="Săn chắc" isSelected={formData.goal_body === 'toned'} />
-                <VisualCard name="goal_body" value="muscular" text="Cơ bắp" isSelected={formData.goal_body === 'muscular'} />
+                <VisualCard 
+                  name="goal_body" 
+                  value="lean" 
+                  text="Thon gọn" 
+                  isSelected={formData.goal_body === 'lean'} 
+                  icon={thonGonImg} // Thêm icon
+                />
+                <VisualCard 
+                  name="goal_body" 
+                  value="toned" 
+                  text="Săn chắc" 
+                  isSelected={formData.goal_body === 'toned'} 
+                  icon={sanChacImg} // Thêm icon
+                />
+                <VisualCard 
+                  name="goal_body" 
+                  value="muscular" 
+                  text="Cơ bắp" 
+                  isSelected={formData.goal_body === 'muscular'} 
+                  icon={coBapImg} // Thêm icon
+                />
               </div>
             </div>
           )}
-
           {step === 3 && (
             <div className="animate-fadeIn">
               <h2 className="text-4xl font-bold text-center mb-8">Khu vực ưu tiên</h2>
@@ -365,7 +420,7 @@ const Plan: React.FC = () => {
                   onChange={handleChange}
                   rows={3}
                   placeholder="Vd: Dị ứng đậu phộng, không ăn cà..."
-                  className="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                  className="w-full p-4  border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
                 ></textarea>
               </div>
             </div>
@@ -381,7 +436,7 @@ const Plan: React.FC = () => {
                   name="sleep_hours"
                   value={formData.sleep_hours}
                   onChange={handleChange}
-                  className="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                  className="w-full p-4 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
                 >
                   <option value="under_6">Dưới 6 tiếng</option>
                   <option value="6-8">6 - 8 tiếng</option>
@@ -396,7 +451,7 @@ const Plan: React.FC = () => {
                   name="daily_activity_level"
                   value={formData.daily_activity_level}
                   onChange={handleChange}
-                  className="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                  className="w-full p-4 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
                 >
                   <option value="low">Thấp (Ngồi văn phòng)</option>
                   <option value="medium">Vừa (Đi lại, làm việc nhà)</option>
