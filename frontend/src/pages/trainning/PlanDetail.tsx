@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -43,7 +43,7 @@ interface NoteHistory {
 const PlanDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    
+    const location = useLocation();
     // State cũ
     const [plan, setPlan] = useState<PlanDetailType | null>(null);
     const [loading, setLoading] = useState(true);
@@ -62,7 +62,14 @@ const PlanDetail = () => {
     // [SỬA 1] Dùng toLocaleDateString('en-CA') để lấy đúng ngày YYYY-MM-DD theo giờ máy tính người dùng
     // Thay vì toISOString() (Giờ UTC) sẽ bị lệch ngày nếu tập vào sáng sớm tại VN.
     const today = new Date().toLocaleDateString('en-CA'); 
-
+    const handleBack = () => {
+        // Kiểm tra xem người dùng đến từ đâu
+        if (location.state?.from === 'history') {
+            navigate('/training/history'); // Quay về Lịch sử nếu đến từ Lịch sử
+        } else {
+            navigate('/training/plans');   // Mặc định quay về Danh sách chung
+        }
+    };
     // --- FETCH DATA ---
     useEffect(() => {
         const fetchData = async () => {
@@ -108,7 +115,7 @@ const PlanDetail = () => {
             state: { selectedExerciseId: exerciseId, fromPlan: true } 
         });
     };
-
+    
     const handleCheckIn = async (exerciseId: number, e: React.MouseEvent) => {
         e.stopPropagation(); 
         if (!token) {
@@ -229,7 +236,7 @@ const PlanDetail = () => {
                 
                 <div className="absolute bottom-0 left-0 w-full p-6 md:p-12 text-white z-10">
                     <div className="max-w-6xl mx-auto animate-fade-in-up">
-                        <button onClick={() => navigate('/training/plans')} className="mb-6 flex items-center gap-2 text-teal-200 hover:text-white transition-colors font-bold text-sm uppercase tracking-wide">
+                        <button onClick={handleBack} className="mb-6 flex items-center gap-2 text-teal-200 hover:text-white transition-colors font-bold text-sm uppercase tracking-wide">
                             ← Quay lại danh sách
                         </button>
                         <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tight drop-shadow-lg leading-tight">
