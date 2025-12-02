@@ -42,7 +42,7 @@ UserRouter.post("/register", async (req, res) => {
     const newUser = newUserRow[0];
 
     const tokenPayload = { userId: newUser.id, email: newUser.email };
-    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: "7d" });
 
     res.status(201).send({
       msg: "Đăng ký thành công",

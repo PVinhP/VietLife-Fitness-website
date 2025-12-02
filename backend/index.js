@@ -19,7 +19,7 @@ const { foodClassificationRouter } = require("./routes/LibraryFoodRoute");
 const { sportRouter } = require("./routes/SportRoutes");
 const { planRouter } = require("./routes/PlanRoutes");
 const { progressRouter } = require("./routes/ProgressRoutes");
-const {trackingRouter} = require("./routes/trackingRoutes");
+const { trackingRouter} = require("./routes/trackingRoutes");
 
 
 const app = express();
