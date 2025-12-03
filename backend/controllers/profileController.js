@@ -163,6 +163,37 @@ const createOrUpdateHealthProfile = async (req, res) => {
     }
   }
 };
+// API: Cập nhật Training Preferences (Gọi từ trang Plan.tsx)
+exports.updateTrainingPreferences = async (req, res) => {
+    const userId = req.user.id; // Lấy từ AuthMiddleware
+    const preferences = req.body; // Đây là cục formData gửi lên
+
+    try {
+        // Kiểm tra xem user đã có health_profile chưa
+        const checkSql = "SELECT id FROM health_profiles WHERE user_id = ?";
+        const [existing] = await pool.query(checkSql, [userId]);
+
+        if (existing.length === 0) {
+            return res.status(404).json({ msg: "Vui lòng hoàn thành hồ sơ cơ bản (Onboarding) trước!" });
+        }
+
+        // Cập nhật cột training_preferences
+        // Lưu ý: JSON.stringify để biến object thành chuỗi lưu vào MySQL
+        const sql = `
+            UPDATE health_profiles 
+            SET training_preferences = ?, updated_at = NOW() 
+            WHERE user_id = ?
+        `;
+        
+        await pool.query(sql, [JSON.stringify(preferences), userId]);
+
+        res.json({ msg: "Đã lưu hồ sơ tập luyện thành công!" });
+
+    } catch (error) {
+        console.error("Lỗi lưu preferences:", error);
+        res.status(500).json({ msg: "Lỗi server, không lưu được dữ liệu." });
+    }
+};
 
 module.exports = {
   getCurrentProfile,

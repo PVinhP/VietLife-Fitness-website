@@ -40,6 +40,7 @@ import PaceCalculator from '../pages/trainning/tools/PaceCalculator';
 import WilksCalculator from '../pages/trainning/tools/WilksScore';
 import PlateCalculator from '../pages/trainning/tools/PlateCalculator';
 import WorkoutHistory from '../components/Profile/WorkoutHistory';
+import AIPlanDashboard from '../pages/trainning/AIPlanDashboard';
 function Allroutes() {
   return (
     <Routes>
@@ -73,6 +74,7 @@ function Allroutes() {
       <Route path="/training/tools/plate-calculator" element={<PlateCalculator />} />
       <Route path="/training/tools/wilks" element={<WilksCalculator />} />
       <Route path="/training/history" element={<WorkoutHistory />} />
+      <Route path="/training/ai-plan" element={<AIPlanDashboard />} />
       <Route path="/goals" element={<PrivateRoute><UserPage /></PrivateRoute>} />
       <Route path="/addworkout" element={<PrivateRoute><Addworkout /></PrivateRoute>} />
       <Route path="/plan" element={<PrivateRoute><Plan /></PrivateRoute>} />
