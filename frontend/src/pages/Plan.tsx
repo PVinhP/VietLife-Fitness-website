@@ -9,7 +9,7 @@ import coBapImg from '../images/cobap.png';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-
+import { useLocation } from 'react-router-dom';
 
 interface IFormData {
   body_type: string;
@@ -54,6 +54,8 @@ const Plan: React.FC = () => {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
+  const isEditing = location.state && location.state.isEditing;
   const [formData, setFormData] = useState<IFormData>({
     body_type: '',
     goal_body: '',
@@ -83,23 +85,43 @@ const Plan: React.FC = () => {
         const res = await axios.get('http://localhost:8080/api/profile/me', {
           headers: { Authorization: `Bearer ${token}` }
         });
+        
+        const profile = res.data.health_profile;
 
-        // Kiểm tra cờ has_onboarding từ health_profile
-        if (res.data.health_profile && res.data.health_profile.has_onboarding === 1) {
+        // LOGIC MỚI:
+        // 1. Nếu đã làm onboarding VÀ KHÔNG PHẢI đang edit -> Chuyển hướng (Logic cũ)
+        if (profile?.has_onboarding === 1 && !isEditing) {
           toast.info("Bạn đã có lộ trình, đang chuyển hướng...");
-          navigate('/training/ai-plan'); // Chuyển hướng ngay
-        } else {
-          // Nếu chưa làm, tắt loading để hiện form
-          setIsLoading(false);
+          navigate('/training/ai-plan'); 
+          return;
         }
+
+        // 2. Nếu đang Edit HOẶC đã có dữ liệu cũ -> Điền vào Form
+        if (profile?.training_preferences) {
+            // Merge dữ liệu cũ vào formData
+            // Lưu ý: Cần đảm bảo cấu trúc dữ liệu khớp nhau
+            setFormData(prev => ({
+                ...prev,
+                ...profile.training_preferences
+            }));
+            
+            // Nếu đang edit, có thể hiển thị thông báo nhỏ
+            if (isEditing) {
+                toast.success("Đã tải lại thông tin cũ của bạn.");
+            }
+        }
+
+        // Tắt loading để hiện form
+        setIsLoading(false);
+
       } catch (error) {
         console.error("Lỗi kiểm tra trạng thái:", error);
-        setIsLoading(false); // Vẫn hiện form nếu lỗi (để user có thể thử lại hoặc điền mới)
+        setIsLoading(false); 
       }
     };
 
     checkOnboardingStatus();
-  }, [navigate]);
+  }, [navigate, isEditing]); // Thêm isEditing vào dependency
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;

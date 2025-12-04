@@ -103,9 +103,9 @@ const AIPlanDashboard = () => {
         fetchAIPlan(false);
     }, []);
 
-    // Hàm chuyển đến trang Plan để chỉnh sửa
     const handleEditPreferences = () => {
-        navigate('/plan');
+        // Truyền state { isEditing: true } qua router
+        navigate('/plan', { state: { isEditing: true } });
     };
 
     // LOADING SCREEN

@@ -1,23 +1,22 @@
 // backend/controllers/profileController.js
 const db = require('../config/db'); // Giả sử bạn có file config kết nối DB
 
-/*
- * @controller  getCurrentProfile
- * @desc        Xử lý logic cho route GET /api/profile/me
- */
-// (Hàm này giữ nguyên, không cần thay đổi)
+
+// backend/controllers/profileController.js
+
 const getCurrentProfile = async (req, res) => {
     try {
         const userId = req.user.id; 
 
-        // 1. THÊM h.has_onboarding VÀO CÂU SELECT
+        // 1. THÊM h.training_preferences VÀO SELECT
         const sql = `
             SELECT 
                 u.email, u.full_name, u.avatar_url,
                 h.age, h.gender, h.weight_kg, h.height_cm, 
                 h.activity_level, h.medical_history, 
                 h.dietary_preferences, h.sleep_quality_rating,
-                h.goal, h.has_onboarding 
+                h.goal, h.has_onboarding,
+                h.training_preferences -- <--- THÊM CÁI NÀY
             FROM users u
             LEFT JOIN health_profiles h ON u.id = h.user_id
             WHERE u.id = ?;
@@ -31,11 +30,21 @@ const getCurrentProfile = async (req, res) => {
 
         const profileData = results[0];
 
+        // Xử lý training_preferences (vì trong DB nó là JSON string, cần parse ra Object)
+        let preferencesParsed = null;
+        if (profileData.training_preferences) {
+            // Kiểm tra nếu là string thì parse, nếu driver tự parse rồi thì thôi
+            preferencesParsed = typeof profileData.training_preferences === 'string' 
+                ? JSON.parse(profileData.training_preferences) 
+                : profileData.training_preferences;
+        }
+
         const response = {
             full_name: profileData.full_name,
             email: profileData.email,
             avatar_url: profileData.avatar_url,
             health_profile: profileData.age ? { 
+                // ... các trường cũ giữ nguyên
                 age: profileData.age,
                 gender: profileData.gender,
                 weight_kg: profileData.weight_kg,
@@ -45,8 +54,10 @@ const getCurrentProfile = async (req, res) => {
                 dietary_preferences: profileData.dietary_preferences,
                 sleep_quality_rating: profileData.sleep_quality_rating,
                 goal: profileData.goal,
-                // 2. TRẢ VỀ FIELD has_onboarding
-                has_onboarding: profileData.has_onboarding 
+                has_onboarding: profileData.has_onboarding,
+                
+                // 2. TRẢ VỀ PREFERENCES ĐỂ FRONTEND ĐIỀN FORM
+                training_preferences: preferencesParsed 
             } : null 
         };
         
@@ -57,7 +68,6 @@ const getCurrentProfile = async (req, res) => {
         res.status(500).send('Lỗi máy chủ');
     }
 };
-
 
 
 /*
