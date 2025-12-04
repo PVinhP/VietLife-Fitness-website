@@ -1,83 +1,121 @@
 import React, { useState, useEffect } from 'react';
 import { FaDumbbell, FaUtensils, FaRobot, FaRedo, FaExclamationTriangle } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom'; // Dùng để chuyển trang
+import { useNavigate } from 'react-router-dom';
 
-// Định nghĩa kiểu dữ liệu cho Plan (TS Interface)
+// 1. Cập nhật Interface khớp với JSON từ Backend (Gemini trả về)
 interface AIPlanData {
     analysis: {
-        title?: string; // Backend hiện tại trả về bmi, tdee, advice, cần map lại cho khớp UI
         bmi: string;
         tdee: string;
         advice: string;
-        // tags: string[]; // Backend chưa trả về tags, ta có thể tự generate hoặc ẩn đi
     };
-    schedule: any[];
+    schedule: {
+        day: string;
+        focus: string;
+        exercises: {
+            name: string;
+            sets: string;
+            reps: string;
+            note: string;
+        }[];
+    }[];
     nutrition: {
         calories: number;
-        menu: any[];
-        // macro: any; // Backend chưa trả về macro chi tiết, ta sẽ handle hiển thị an toàn
+        menu: {
+            meal: string;
+            suggestion: string;
+        }[];
     };
 }
 
 const AIPlanDashboard = () => {
     const navigate = useNavigate();
     
-    // State quản lý dữ liệu thực
+    // State
     const [plan, setPlan] = useState<AIPlanData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isRegenerating, setIsRegenerating] = useState(false); // State riêng cho loading khi tạo lại
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'workout' | 'nutrition'>('workout');
 
-    // Hàm gọi API tạo lộ trình
-    const fetchAIPlan = async () => {
-        setIsLoading(true);
+    // 2. Hàm gọi API (Đã sửa lỗi TypeScript TS7023)
+    const fetchAIPlan = async (forceRegenerate: boolean = false): Promise<void> => {
+        // Nếu là tạo mới thì set loading riêng để UI mượt hơn (không bị mất plan cũ ngay lập tức)
+        if (forceRegenerate) {
+            setIsRegenerating(true);
+        } else {
+            setIsLoading(true);
+        }
         setError(null);
 
         try {
-            const token = localStorage.getItem('token'); // Lấy token đăng nhập
+            const token = localStorage.getItem('token'); // Hoặc lấy từ key bạn đã lưu, ví dụ 'VietLifeToken'
             if (!token) {
-                throw new Error("Bạn chưa đăng nhập.");
+                // Nếu chưa đăng nhập, đá về trang login
+                navigate('/signin');
+                return;
             }
 
-            // Gọi API Backend
-            const response = await fetch('http://localhost:8080/api/ai-plan/generate', {
-                method: 'POST',
+            // A. Xác định URL và Method
+            let url = 'http://localhost:8080/api/ai-plan/current';
+            let method = 'GET';
+
+            if (forceRegenerate) {
+                url = 'http://localhost:8080/api/ai-plan/generate';
+                method = 'POST';
+            }
+
+            // B. Gọi API
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` // Gửi token để qua AuthMiddleware
+                    'Authorization': `Bearer ${token}`
                 }
             });
 
             const data = await response.json();
 
-            // Xử lý trường hợp Backend yêu cầu Redirect (User chưa điền form)
-            if (response.status === 400 && data.action === 'REDIRECT_TO_WIZARD') {
-                alert(data.msg); // Thông báo cho user
-                navigate('/wizard'); // Chuyển hướng về trang điền form (sửa '/wizard' theo route thực tế của bạn)
+            // C. Xử lý các trường hợp đặc biệt
+            
+            // Trường hợp 1: Chưa có Plan nào (404 từ API GET)
+            if (response.status === 404 && !forceRegenerate) {
+                console.log("Chưa có lộ trình, hệ thống đang tự tạo mới...");
+                // Gọi đệ quy để tạo mới. Dùng await để đảm bảo luồng chạy đúng.
+                await fetchAIPlan(true); 
                 return;
             }
 
-            if (!response.ok) {
-                throw new Error(data.msg || "Lỗi khi tạo lộ trình.");
+            // Trường hợp 2: Chưa có Profile (400 + Action redirect)
+            if (response.status === 400 && data.action === 'REDIRECT_TO_WIZARD') {
+                alert("Bạn cần cập nhật hồ sơ sức khỏe trước khi xem lộ trình.");
+                navigate('/wizard'); // Chuyển hướng đến trang OnboardingPage
+                return;
             }
 
-            // Thành công
+            // Trường hợp 3: Lỗi khác
+            if (!response.ok) {
+                throw new Error(data.msg || "Không thể tải lộ trình.");
+            }
+
+            // D. Thành công -> Lưu vào state
             setPlan(data.plan);
 
         } catch (err: any) {
-            console.error("Lỗi fetch plan:", err);
-            setError(err.message);
+            console.error("Lỗi:", err);
+            setError(err.message || "Lỗi kết nối server");
         } finally {
             setIsLoading(false);
+            setIsRegenerating(false);
         }
     };
 
-    // Gọi API khi component được mount
+    // 3. useEffect gọi API lần đầu (GET)
     useEffect(() => {
-        fetchAIPlan();
+        fetchAIPlan(false);
     }, []);
 
-    // --- MÀN HÌNH CHỜ (LOADING) ---
+    // --- RENDER: LOADING SCREEN ---
     if (isLoading) {
         return (
             <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white px-4">
@@ -87,12 +125,12 @@ const AIPlanDashboard = () => {
                     <FaRobot className="absolute inset-0 m-auto text-4xl text-teal-400" />
                 </div>
                 <h2 className="text-2xl font-bold mb-2 animate-pulse text-center">VietLife AI đang phân tích...</h2>
-                <div className="text-teal-300/70 text-sm">Quá trình này có thể mất khoảng 10-20 giây</div>
+                <div className="text-teal-300/70 text-sm">Đang tìm lộ trình phù hợp nhất với cơ thể bạn</div>
             </div>
         );
     }
 
-    // --- MÀN HÌNH LỖI ---
+    // --- RENDER: ERROR SCREEN ---
     if (error) {
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
@@ -100,23 +138,23 @@ const AIPlanDashboard = () => {
                 <h3 className="text-xl font-bold text-gray-800 mb-2">Đã xảy ra lỗi</h3>
                 <p className="text-gray-600 mb-6 text-center max-w-md">{error}</p>
                 <button 
-                    onClick={fetchAIPlan}
-                    className="px-6 py-2 bg-teal-600 text-white rounded-full font-bold hover:bg-teal-700 transition"
+                    onClick={() => fetchAIPlan(true)} 
+                    className="bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700 transition flex items-center gap-2"
                 >
-                    Thử lại
+                    <FaRedo /> Thử lại
                 </button>
             </div>
         );
     }
 
-    // Nếu không có dữ liệu plan (tránh crash)
+    // Safety Check
     if (!plan) return null;
 
-    // --- MÀN HÌNH CHÍNH (DASHBOARD) ---
+    // --- RENDER: MAIN DASHBOARD ---
     return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans">
             
-            {/* 1. HEADER PHÂN TÍCH */}
+            {/* Header Area */}
             <div className="bg-gradient-to-br from-slate-900 via-teal-900 to-slate-900 text-white p-6 md:p-10 rounded-b-[40px] shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
                 
@@ -131,25 +169,32 @@ const AIPlanDashboard = () => {
                                 <h1 className="text-2xl font-bold">Lộ trình cá nhân hóa</h1>
                             </div>
                         </div>
-                        <button onClick={fetchAIPlan} className="text-white/60 hover:text-white transition-colors" title="Tạo lại">
-                            <FaRedo />
+                        
+                        {/* Nút Refresh: Disabled khi đang regenerate */}
+                        <button 
+                            onClick={() => fetchAIPlan(true)} 
+                            disabled={isRegenerating}
+                            className={`text-white/80 hover:text-white transition-all p-2 rounded-full hover:bg-white/10 ${isRegenerating ? 'animate-spin opacity-50' : ''}`} 
+                            title="Tạo lộ trình mới"
+                        >
+                            <FaRedo size={20} />
                         </button>
                     </div>
 
                     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10">
                         <div className="flex gap-4 mb-3 text-sm font-bold text-teal-300">
-                            <span>BMI: {plan.analysis.bmi}</span>
-                            <span>|</span>
-                            <span>TDEE: {plan.analysis.tdee}</span>
+                            <span>BMI: {plan.analysis?.bmi}</span>
+                            <span className="opacity-50">|</span>
+                            <span>TDEE: {plan.analysis?.tdee}</span>
                         </div>
-                        <p className="text-gray-200 leading-relaxed text-sm md:text-base">
-                            "{plan.analysis.advice}"
+                        <p className="text-gray-200 leading-relaxed text-sm md:text-base italic">
+                            "{plan.analysis?.advice}"
                         </p>
                     </div>
                 </div>
             </div>
 
-            {/* 2. BODY CONTENT */}
+            {/* Body Content */}
             <div className="max-w-4xl mx-auto px-4 -mt-8 relative z-20">
                 
                 {/* Tabs Switcher */}
@@ -171,20 +216,20 @@ const AIPlanDashboard = () => {
                 {/* TAB: WORKOUT PLAN */}
                 {activeTab === 'workout' && (
                     <div className="space-y-6 animate-fade-in-up">
-                        {plan.schedule.map((day: any, idx: number) => (
+                        {plan.schedule?.map((day, idx) => (
                             <div key={idx} className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
                                 <div className="bg-teal-50 px-6 py-4 border-b border-teal-100 flex justify-between items-center">
                                     <h3 className="font-bold text-teal-800">{day.day}</h3>
-                                    <span className="text-xs font-bold bg-white px-3 py-1 rounded text-teal-600 shadow-sm">
+                                    <span className="text-xs font-bold bg-white px-3 py-1 rounded text-teal-600 shadow-sm border border-teal-100">
                                         {day.focus}
                                     </span>
                                 </div>
                                 <div className="divide-y divide-gray-50">
-                                    {day.exercises.map((ex: any, exIdx: number) => (
+                                    {day.exercises?.map((ex, exIdx) => (
                                         <div key={exIdx} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
                                             <div>
                                                 <h4 className="font-bold text-gray-800 text-sm">{ex.name}</h4>
-                                                <p className="text-xs text-gray-500 italic">{ex.note}</p>
+                                                <p className="text-xs text-gray-500 italic mt-1">{ex.note}</p>
                                             </div>
                                             <div className="text-right flex-shrink-0 ml-4">
                                                 <div className="font-mono font-bold text-teal-600">{ex.sets} sets</div>
@@ -201,18 +246,16 @@ const AIPlanDashboard = () => {
                 {/* TAB: NUTRITION PLAN */}
                 {activeTab === 'nutrition' && (
                     <div className="animate-fade-in-up">
-                        {/* Macro Summary - Giản lược vì backend hiện tại chỉ trả về Calories */}
                         <div className="flex justify-center mb-6">
                             <div className="bg-orange-500 text-white px-8 py-3 rounded-2xl text-center shadow-lg shadow-orange-200">
                                 <div className="text-[10px] uppercase font-bold opacity-80">Tổng Calo Mục Tiêu</div>
-                                <div className="text-2xl font-black">{plan.nutrition.calories} kcal</div>
+                                <div className="text-2xl font-black">{plan.nutrition?.calories} kcal</div>
                             </div>
                         </div>
 
-                        {/* Meal List */}
                         <div className="space-y-4">
-                            {plan.nutrition.menu.map((meal: any, idx: number) => (
-                                <div key={idx} className="bg-white p-5 rounded-2xl shadow-sm border border-orange-50 flex gap-4 items-start">
+                            {plan.nutrition?.menu?.map((meal, idx) => (
+                                <div key={idx} className="bg-white p-5 rounded-2xl shadow-sm border border-orange-50 flex gap-4 items-start hover:shadow-md transition-shadow">
                                     <div className="w-16 flex-shrink-0 text-center">
                                         <span className="text-xs font-bold text-orange-400 uppercase">{meal.meal}</span>
                                         <div className="w-10 h-10 bg-orange-100 rounded-full mx-auto mt-2 flex items-center justify-center text-orange-600">

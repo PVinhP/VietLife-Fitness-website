@@ -43,7 +43,7 @@ const buildUserContext = (preferences, profile) => {
     // --- TẠO PROMPT ---
     return `
     HỒ SƠ KHÁCH HÀNG (USER PROFILE):
-    - Thông tin cơ bản: ${profile.age} tuổi, ${profile.gender}, Cao ${profile.height}cm, Nặng ${profile.weight}kg.
+    - Thông tin cơ bản: ${profile.age} tuổi, ${profile.gender}, Cao ${profile.height_cm}cm, Nặng ${profile.weight_kg}kg.
     - Tạng người: ${maps.body_type[preferences.body_type] || preferences.body_type}.
     - Mức độ vận động hiện tại: ${maps.activity[preferences.activity_level] || preferences.activity_level}.
     - Sức mạnh nền tảng (Hít đất): ${maps.pushup[preferences.pushup_count]}.

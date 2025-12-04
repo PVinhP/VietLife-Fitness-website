@@ -45,7 +45,7 @@ exports.generatePlan = async (req, res) => {
         // 2. Tạo Prompt (Ngữ cảnh)
         // Giờ thì biến preferences chắc chắn đã an toàn để dùng
         const userContext = buildUserContext(preferences, profile);
-
+        console.log(userContext);
         // 3. Cấu hình Prompt cho Gemini (Yêu cầu trả về JSON chuẩn)
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
         
