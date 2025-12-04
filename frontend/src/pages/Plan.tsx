@@ -6,6 +6,9 @@ import tichMoImg from '../images/tichmo.png';
 import thonGonImg from '../images/thongon.png'; 
 import sanChacImg from '../images/sanchac.png';
 import coBapImg from '../images/cobap.png';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 interface IFormData {
   body_type: string;
@@ -49,7 +52,7 @@ interface RadioOptionProps {
 const Plan: React.FC = () => {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<IFormData>({
     body_type: '',
     goal_body: '',
@@ -112,24 +115,39 @@ const Plan: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.agree_safety) {
-      alert("Bạn phải đồng ý với cam kết an toàn để tiếp tục.");
+      toast.warn("Bạn phải đồng ý với cam kết an toàn để tiếp tục.");
       return;
     }
     
     setIsLoading(true);
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        toast.error("Vui lòng đăng nhập để lưu lộ trình!");
+        navigate('/signin');
+        return;
+    }
     
     try {
-      // Simulating API calls
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log('Form submitted:', formData);
-      setIsLoading(false);
-      alert('Kế hoạch của bạn đã được tạo!');
+      // 1. Gọi API lưu dữ liệu vào Database
+      await axios.put('http://localhost:8080/api/profile/preferences', formData, {
+          headers: { Authorization: `Bearer ${token}` }
+      });
+
+      toast.success("Đã lưu hồ sơ thành công! Đang chuyển hướng...");
+
+      // 2. Chuyển hướng sang trang Dashboard AI (Để bắt đầu tạo lộ trình)
+      setTimeout(() => {
+          navigate('/training/ai-plan'); 
+      }, 1500);
+
     } catch (error) {
       console.error('Lỗi khi gửi thông tin:', error);
+      toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+    } finally {
       setIsLoading(false);
     }
   };
-
   const progress = (step / 10) * 100;
 
   if (isLoading) {

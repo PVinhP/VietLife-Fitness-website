@@ -1,21 +1,83 @@
 import React, { useState, useEffect } from 'react';
-import { FaDumbbell, FaUtensils, FaRobot, FaRedo, FaCheckCircle, FaFire } from 'react-icons/fa';
-import { MOCK_AI_PLAN } from './ai_data_mock'; // Import dữ liệu giả
+import { FaDumbbell, FaUtensils, FaRobot, FaRedo, FaExclamationTriangle } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom'; // Dùng để chuyển trang
+
+// Định nghĩa kiểu dữ liệu cho Plan (TS Interface)
+interface AIPlanData {
+    analysis: {
+        title?: string; // Backend hiện tại trả về bmi, tdee, advice, cần map lại cho khớp UI
+        bmi: string;
+        tdee: string;
+        advice: string;
+        // tags: string[]; // Backend chưa trả về tags, ta có thể tự generate hoặc ẩn đi
+    };
+    schedule: any[];
+    nutrition: {
+        calories: number;
+        menu: any[];
+        // macro: any; // Backend chưa trả về macro chi tiết, ta sẽ handle hiển thị an toàn
+    };
+}
 
 const AIPlanDashboard = () => {
-    // State giả lập quá trình loading của AI
+    const navigate = useNavigate();
+    
+    // State quản lý dữ liệu thực
+    const [plan, setPlan] = useState<AIPlanData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'workout' | 'nutrition'>('workout');
 
-    // Giả lập hiệu ứng AI đang suy nghĩ
-    useEffect(() => {
-        const timer = setTimeout(() => {
+    // Hàm gọi API tạo lộ trình
+    const fetchAIPlan = async () => {
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const token = localStorage.getItem('token'); // Lấy token đăng nhập
+            if (!token) {
+                throw new Error("Bạn chưa đăng nhập.");
+            }
+
+            // Gọi API Backend
+            const response = await fetch('http://localhost:8080/api/ai-plan/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` // Gửi token để qua AuthMiddleware
+                }
+            });
+
+            const data = await response.json();
+
+            // Xử lý trường hợp Backend yêu cầu Redirect (User chưa điền form)
+            if (response.status === 400 && data.action === 'REDIRECT_TO_WIZARD') {
+                alert(data.msg); // Thông báo cho user
+                navigate('/wizard'); // Chuyển hướng về trang điền form (sửa '/wizard' theo route thực tế của bạn)
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(data.msg || "Lỗi khi tạo lộ trình.");
+            }
+
+            // Thành công
+            setPlan(data.plan);
+
+        } catch (err: any) {
+            console.error("Lỗi fetch plan:", err);
+            setError(err.message);
+        } finally {
             setIsLoading(false);
-        }, 3000); // 3 giây
-        return () => clearTimeout(timer);
+        }
+    };
+
+    // Gọi API khi component được mount
+    useEffect(() => {
+        fetchAIPlan();
     }, []);
 
-    // --- MÀN HÌNH CHỜ (LOADING SCREEN) ---
+    // --- MÀN HÌNH CHỜ (LOADING) ---
     if (isLoading) {
         return (
             <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white px-4">
@@ -24,25 +86,38 @@ const AIPlanDashboard = () => {
                     <div className="absolute inset-0 border-4 border-t-teal-400 rounded-full animate-spin"></div>
                     <FaRobot className="absolute inset-0 m-auto text-4xl text-teal-400" />
                 </div>
-                <h2 className="text-2xl font-bold mb-2 animate-pulse text-center">VietLife AI đang thiết kế lộ trình...</h2>
-                <div className="flex flex-col gap-2 text-sm text-teal-300/70 text-center">
-                    <p>✓ Đang phân tích chỉ số cơ thể...</p>
-                    <p>✓ Đang tính toán TDEE & Macro...</p>
-                    <p>✓ Đang lựa chọn bài tập phù hợp...</p>
-                </div>
+                <h2 className="text-2xl font-bold mb-2 animate-pulse text-center">VietLife AI đang phân tích...</h2>
+                <div className="text-teal-300/70 text-sm">Quá trình này có thể mất khoảng 10-20 giây</div>
             </div>
         );
     }
 
-    // --- MÀN HÌNH CHÍNH (DASHBOARD) ---
-    const { analysis, workout_schedule, nutrition_plan } = MOCK_AI_PLAN;
+    // --- MÀN HÌNH LỖI ---
+    if (error) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
+                <FaExclamationTriangle className="text-red-500 text-5xl mb-4" />
+                <h3 className="text-xl font-bold text-gray-800 mb-2">Đã xảy ra lỗi</h3>
+                <p className="text-gray-600 mb-6 text-center max-w-md">{error}</p>
+                <button 
+                    onClick={fetchAIPlan}
+                    className="px-6 py-2 bg-teal-600 text-white rounded-full font-bold hover:bg-teal-700 transition"
+                >
+                    Thử lại
+                </button>
+            </div>
+        );
+    }
 
+    // Nếu không có dữ liệu plan (tránh crash)
+    if (!plan) return null;
+
+    // --- MÀN HÌNH CHÍNH (DASHBOARD) ---
     return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans">
             
-            {/* 1. HEADER PHÂN TÍCH (AI ANALYSIS) */}
+            {/* 1. HEADER PHÂN TÍCH */}
             <div className="bg-gradient-to-br from-slate-900 via-teal-900 to-slate-900 text-white p-6 md:p-10 rounded-b-[40px] shadow-2xl relative overflow-hidden">
-                {/* Background Decor */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
                 
                 <div className="max-w-4xl mx-auto relative z-10">
@@ -53,26 +128,23 @@ const AIPlanDashboard = () => {
                             </div>
                             <div>
                                 <p className="text-teal-300 text-xs font-bold uppercase tracking-wider">Trợ lý ảo VietLife</p>
-                                <h1 className="text-2xl font-bold">Lộ trình dành riêng cho {MOCK_AI_PLAN.user_name}</h1>
+                                <h1 className="text-2xl font-bold">Lộ trình cá nhân hóa</h1>
                             </div>
                         </div>
-                        <button className="text-white/60 hover:text-white transition-colors" title="Tạo lại">
+                        <button onClick={fetchAIPlan} className="text-white/60 hover:text-white transition-colors" title="Tạo lại">
                             <FaRedo />
                         </button>
                     </div>
 
                     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10">
-                        <h2 className="text-xl font-bold text-teal-300 mb-3">{analysis.title}</h2>
-                        <p className="text-gray-200 leading-relaxed text-sm md:text-base">
-                            "{analysis.content}"
-                        </p>
-                        <div className="flex gap-2 mt-4 flex-wrap">
-                            {analysis.tags.map((tag, idx) => (
-                                <span key={idx} className="px-3 py-1 bg-teal-500/20 text-teal-200 text-xs font-bold rounded-full border border-teal-500/30">
-                                    #{tag}
-                                </span>
-                            ))}
+                        <div className="flex gap-4 mb-3 text-sm font-bold text-teal-300">
+                            <span>BMI: {plan.analysis.bmi}</span>
+                            <span>|</span>
+                            <span>TDEE: {plan.analysis.tdee}</span>
                         </div>
+                        <p className="text-gray-200 leading-relaxed text-sm md:text-base">
+                            "{plan.analysis.advice}"
+                        </p>
                     </div>
                 </div>
             </div>
@@ -99,7 +171,7 @@ const AIPlanDashboard = () => {
                 {/* TAB: WORKOUT PLAN */}
                 {activeTab === 'workout' && (
                     <div className="space-y-6 animate-fade-in-up">
-                        {workout_schedule.map((day, idx) => (
+                        {plan.schedule.map((day: any, idx: number) => (
                             <div key={idx} className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
                                 <div className="bg-teal-50 px-6 py-4 border-b border-teal-100 flex justify-between items-center">
                                     <h3 className="font-bold text-teal-800">{day.day}</h3>
@@ -108,20 +180,15 @@ const AIPlanDashboard = () => {
                                     </span>
                                 </div>
                                 <div className="divide-y divide-gray-50">
-                                    {day.exercises.map((ex) => (
-                                        <div key={ex.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-gray-200 rounded-lg flex-shrink-0">
-                                                    {/* Chỗ này sau này sẽ là ảnh thumb bài tập */}
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-bold text-gray-800 text-sm">{ex.name}</h4>
-                                                    <p className="text-xs text-gray-500">ID: {ex.id}</p>
-                                                </div>
+                                    {day.exercises.map((ex: any, exIdx: number) => (
+                                        <div key={exIdx} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                                            <div>
+                                                <h4 className="font-bold text-gray-800 text-sm">{ex.name}</h4>
+                                                <p className="text-xs text-gray-500 italic">{ex.note}</p>
                                             </div>
-                                            <div className="text-right">
-                                                <div className="font-mono font-bold text-teal-600">{ex.sets} set</div>
-                                                <div className="font-mono text-xs text-gray-500">{ex.reps} rep</div>
+                                            <div className="text-right flex-shrink-0 ml-4">
+                                                <div className="font-mono font-bold text-teal-600">{ex.sets} sets</div>
+                                                <div className="font-mono text-xs text-gray-500">{ex.reps} reps</div>
                                             </div>
                                         </div>
                                     ))}
@@ -134,40 +201,28 @@ const AIPlanDashboard = () => {
                 {/* TAB: NUTRITION PLAN */}
                 {activeTab === 'nutrition' && (
                     <div className="animate-fade-in-up">
-                        {/* Macro Summary */}
-                        <div className="grid grid-cols-4 gap-2 mb-6">
-                            <div className="bg-orange-500 text-white p-3 rounded-2xl text-center shadow-lg shadow-orange-200">
-                                <div className="text-[10px] uppercase font-bold opacity-80">Calo</div>
-                                <div className="text-xl font-black">{nutrition_plan.calories}</div>
-                            </div>
-                            <div className="bg-white p-3 rounded-2xl text-center border border-gray-100 shadow-sm">
-                                <div className="text-[10px] uppercase font-bold text-gray-400">Đạm</div>
-                                <div className="text-lg font-bold text-gray-800">{nutrition_plan.macro.p}g</div>
-                            </div>
-                            <div className="bg-white p-3 rounded-2xl text-center border border-gray-100 shadow-sm">
-                                <div className="text-[10px] uppercase font-bold text-gray-400">Tinh bột</div>
-                                <div className="text-lg font-bold text-gray-800">{nutrition_plan.macro.c}g</div>
-                            </div>
-                            <div className="bg-white p-3 rounded-2xl text-center border border-gray-100 shadow-sm">
-                                <div className="text-[10px] uppercase font-bold text-gray-400">Béo</div>
-                                <div className="text-lg font-bold text-gray-800">{nutrition_plan.macro.f}g</div>
+                        {/* Macro Summary - Giản lược vì backend hiện tại chỉ trả về Calories */}
+                        <div className="flex justify-center mb-6">
+                            <div className="bg-orange-500 text-white px-8 py-3 rounded-2xl text-center shadow-lg shadow-orange-200">
+                                <div className="text-[10px] uppercase font-bold opacity-80">Tổng Calo Mục Tiêu</div>
+                                <div className="text-2xl font-black">{plan.nutrition.calories} kcal</div>
                             </div>
                         </div>
 
                         {/* Meal List */}
                         <div className="space-y-4">
-                            {nutrition_plan.meals.map((meal, idx) => (
+                            {plan.nutrition.menu.map((meal: any, idx: number) => (
                                 <div key={idx} className="bg-white p-5 rounded-2xl shadow-sm border border-orange-50 flex gap-4 items-start">
                                     <div className="w-16 flex-shrink-0 text-center">
-                                        <span className="text-xs font-bold text-orange-400 uppercase">{meal.time}</span>
+                                        <span className="text-xs font-bold text-orange-400 uppercase">{meal.meal}</span>
                                         <div className="w-10 h-10 bg-orange-100 rounded-full mx-auto mt-2 flex items-center justify-center text-orange-600">
                                             <FaUtensils size={14}/>
                                         </div>
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-gray-800 text-lg">{meal.name}</h4>
+                                        <h4 className="font-bold text-gray-800 text-lg">Gợi ý món ăn</h4>
                                         <p className="text-sm text-gray-500 mt-1 leading-relaxed">
-                                            {meal.desc}
+                                            {meal.suggestion}
                                         </p>
                                     </div>
                                 </div>
@@ -175,13 +230,7 @@ const AIPlanDashboard = () => {
                         </div>
                     </div>
                 )}
-
             </div>
-
-            {/* FLOATING ACTION BUTTON (Chatbot Trigger) */}
-            <button className="fixed bottom-6 right-6 bg-slate-900 text-white p-4 rounded-full shadow-2xl hover:bg-teal-600 transition-colors z-50 animate-bounce-slow">
-                <FaRobot size={24} />
-            </button>
         </div>
     );
 };
