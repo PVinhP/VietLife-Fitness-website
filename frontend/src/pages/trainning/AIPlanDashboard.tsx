@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { FaDumbbell, FaUtensils, FaRobot, FaRedo, FaExclamationTriangle } from 'react-icons/fa';
+import { FaDumbbell, FaUtensils, FaRobot, FaRedo, FaExclamationTriangle, FaEdit } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
-// 1. Cập nhật Interface khớp với JSON từ Backend (Gemini trả về)
+// Interface
 interface AIPlanData {
     analysis: {
         bmi: string;
@@ -34,13 +34,12 @@ const AIPlanDashboard = () => {
     // State
     const [plan, setPlan] = useState<AIPlanData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [isRegenerating, setIsRegenerating] = useState(false); // State riêng cho loading khi tạo lại
+    const [isRegenerating, setIsRegenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'workout' | 'nutrition'>('workout');
 
-    // 2. Hàm gọi API (Đã sửa lỗi TypeScript TS7023)
+    // Hàm gọi API
     const fetchAIPlan = async (forceRegenerate: boolean = false): Promise<void> => {
-        // Nếu là tạo mới thì set loading riêng để UI mượt hơn (không bị mất plan cũ ngay lập tức)
         if (forceRegenerate) {
             setIsRegenerating(true);
         } else {
@@ -49,14 +48,12 @@ const AIPlanDashboard = () => {
         setError(null);
 
         try {
-            const token = localStorage.getItem('token'); // Hoặc lấy từ key bạn đã lưu, ví dụ 'VietLifeToken'
+            const token = localStorage.getItem('token');
             if (!token) {
-                // Nếu chưa đăng nhập, đá về trang login
                 navigate('/signin');
                 return;
             }
 
-            // A. Xác định URL và Method
             let url = 'http://localhost:8080/api/ai-plan/current';
             let method = 'GET';
 
@@ -65,7 +62,6 @@ const AIPlanDashboard = () => {
                 method = 'POST';
             }
 
-            // B. Gọi API
             const response = await fetch(url, {
                 method: method,
                 headers: {
@@ -76,29 +72,22 @@ const AIPlanDashboard = () => {
 
             const data = await response.json();
 
-            // C. Xử lý các trường hợp đặc biệt
-            
-            // Trường hợp 1: Chưa có Plan nào (404 từ API GET)
             if (response.status === 404 && !forceRegenerate) {
                 console.log("Chưa có lộ trình, hệ thống đang tự tạo mới...");
-                // Gọi đệ quy để tạo mới. Dùng await để đảm bảo luồng chạy đúng.
                 await fetchAIPlan(true); 
                 return;
             }
 
-            // Trường hợp 2: Chưa có Profile (400 + Action redirect)
             if (response.status === 400 && data.action === 'REDIRECT_TO_WIZARD') {
                 alert("Bạn cần cập nhật hồ sơ sức khỏe trước khi xem lộ trình.");
-                navigate('/wizard'); // Chuyển hướng đến trang OnboardingPage
+                navigate('/wizard');
                 return;
             }
 
-            // Trường hợp 3: Lỗi khác
             if (!response.ok) {
                 throw new Error(data.msg || "Không thể tải lộ trình.");
             }
 
-            // D. Thành công -> Lưu vào state
             setPlan(data.plan);
 
         } catch (err: any) {
@@ -110,12 +99,16 @@ const AIPlanDashboard = () => {
         }
     };
 
-    // 3. useEffect gọi API lần đầu (GET)
     useEffect(() => {
         fetchAIPlan(false);
     }, []);
 
-    // --- RENDER: LOADING SCREEN ---
+    // Hàm chuyển đến trang Plan để chỉnh sửa
+    const handleEditPreferences = () => {
+        navigate('/plan');
+    };
+
+    // LOADING SCREEN
     if (isLoading) {
         return (
             <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white px-4">
@@ -130,7 +123,7 @@ const AIPlanDashboard = () => {
         );
     }
 
-    // --- RENDER: ERROR SCREEN ---
+    // ERROR SCREEN
     if (error) {
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
@@ -147,10 +140,9 @@ const AIPlanDashboard = () => {
         );
     }
 
-    // Safety Check
     if (!plan) return null;
 
-    // --- RENDER: MAIN DASHBOARD ---
+    // MAIN DASHBOARD
     return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans">
             
@@ -170,15 +162,31 @@ const AIPlanDashboard = () => {
                             </div>
                         </div>
                         
-                        {/* Nút Refresh: Disabled khi đang regenerate */}
-                        <button 
-                            onClick={() => fetchAIPlan(true)} 
-                            disabled={isRegenerating}
-                            className={`text-white/80 hover:text-white transition-all p-2 rounded-full hover:bg-white/10 ${isRegenerating ? 'animate-spin opacity-50' : ''}`} 
-                            title="Tạo lộ trình mới"
-                        >
-                            <FaRedo size={20} />
-                        </button>
+                        {/* Button Group: Edit & Refresh */}
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={handleEditPreferences}
+                                className="text-white/80 hover:text-white transition-all p-2 rounded-full hover:bg-white/10 group relative" 
+                                title="Chỉnh sửa sở thích"
+                            >
+                                <FaEdit size={20} />
+                                <span className="absolute -bottom-8 right-0 bg-slate-800 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                    Chỉnh sửa
+                                </span>
+                            </button>
+                            
+                            <button 
+                                onClick={() => fetchAIPlan(true)} 
+                                disabled={isRegenerating}
+                                className={`text-white/80 hover:text-white transition-all p-2 rounded-full hover:bg-white/10 group relative ${isRegenerating ? 'animate-spin opacity-50' : ''}`} 
+                                title="Tạo lộ trình mới"
+                            >
+                                <FaRedo size={20} />
+                                <span className="absolute -bottom-8 right-0 bg-slate-800 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                    Tạo lại
+                                </span>
+                            </button>
+                        </div>
                     </div>
 
                     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10">
@@ -274,6 +282,22 @@ const AIPlanDashboard = () => {
                     </div>
                 )}
             </div>
+
+            <style>{`
+                @keyframes fade-in-up {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                .animate-fade-in-up {
+                    animation: fade-in-up 0.5s ease-out;
+                }
+            `}</style>
         </div>
     );
 };

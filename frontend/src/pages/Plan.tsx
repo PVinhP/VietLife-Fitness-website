@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import manhKhanhImg from '../images/manhkhanh.png';
 import trungBinhImg from '../images/trungbinh.png';
@@ -9,6 +9,7 @@ import coBapImg from '../images/cobap.png';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+
 
 interface IFormData {
   body_type: string;
@@ -51,7 +52,7 @@ interface RadioOptionProps {
 
 const Plan: React.FC = () => {
   const [step, setStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const [formData, setFormData] = useState<IFormData>({
     body_type: '',
@@ -70,6 +71,35 @@ const Plan: React.FC = () => {
     daily_activity_level: 'low',
     agree_safety: false,
   });
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate('/signin');
+        return;
+      }
+
+      try {
+        const res = await axios.get('http://localhost:8080/api/profile/me', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        // Kiểm tra cờ has_onboarding từ health_profile
+        if (res.data.health_profile && res.data.health_profile.has_onboarding === 1) {
+          toast.info("Bạn đã có lộ trình, đang chuyển hướng...");
+          navigate('/training/ai-plan'); // Chuyển hướng ngay
+        } else {
+          // Nếu chưa làm, tắt loading để hiện form
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Lỗi kiểm tra trạng thái:", error);
+        setIsLoading(false); // Vẫn hiện form nếu lỗi (để user có thể thử lại hoặc điền mới)
+      }
+    };
+
+    checkOnboardingStatus();
+  }, [navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -156,22 +186,8 @@ const Plan: React.FC = () => {
         <div className="mb-8">
           <div className="animate-spin rounded-full h-20 w-20 border-4 border-gray-300 border-t-teal-500"></div>
         </div>
-        <h2 className="text-4xl font-bold mb-3">Tuyệt vời!</h2>
-        <h3 className="text-2xl font-semibold text-teal-600 mb-8">AI đang xây dựng kế hoạch cho bạn...</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl">
-          <div className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm">
-            <CheckCircle className="w-8 h-8 text-teal-500 mb-2" />
-            <p className="text-sm text-gray-700">Phân tích thể chất</p>
-          </div>
-          <div className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm">
-            <CheckCircle className="w-8 h-8 text-teal-500 mb-2" />
-            <p className="text-sm text-gray-700">Tối ưu hóa mục tiêu</p>
-          </div>
-          <div className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm">
-            <CheckCircle className="w-8 h-8 text-teal-500 mb-2" />
-            <p className="text-sm text-gray-700">Tạo lịch trình</p>
-          </div>
-        </div>
+        {/* Sửa text loading một chút cho phù hợp ngữ cảnh check data */}
+        <h3 className="text-2xl font-semibold text-teal-600 mb-8">Đang kiểm tra dữ liệu...</h3>
       </div>
     );
   }
@@ -545,11 +561,11 @@ const Plan: React.FC = () => {
           }
           to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
           }
         }
         .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
+          animation: fadeIn 0.5s cubic-bezier(0.21, 1.02, 0.32, 1);
         }
       `}</style>
     </div>

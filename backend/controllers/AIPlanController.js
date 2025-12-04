@@ -1,3 +1,4 @@
+// backend/controllers/AIPlanController.js
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { pool } = require('../config/db');
 const { buildUserContext } = require('../utils/promptBuilder');
@@ -5,48 +6,74 @@ const { buildUserContext } = require('../utils/promptBuilder');
 // Khởi tạo Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// --- 1. HÀM LẤY LỘ TRÌNH HIỆN TẠI (GET) ---
+exports.getCurrentPlan = async (req, res) => {
+    // Trong JS không cần khai báo kiểu :Request hay :Response
+    const userId = req.user.id; 
+
+    try {
+        const [rows] = await pool.query(
+            "SELECT ai_data, created_at FROM user_ai_plans WHERE user_id = ? AND status = 'active' ORDER BY id DESC LIMIT 1",
+            [userId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ msg: "Chưa có lộ trình nào." });
+        }
+
+        let planData = rows[0].ai_data;
+        // Kiểm tra nếu MySQL trả về string thì parse ra JSON
+        if (typeof planData === 'string') {
+            planData = JSON.parse(planData);
+        }
+
+        return res.status(200).json({ 
+            msg: "Lấy lộ trình thành công", 
+            plan: planData,
+            created_at: rows[0].created_at 
+        });
+
+    } catch (error) {
+        console.error("Lỗi lấy lộ trình:", error);
+        return res.status(500).json({ msg: "Lỗi server khi lấy lộ trình." });
+    }
+};
+
+// --- 2. HÀM TẠO LỘ TRÌNH MỚI (POST) ---
 exports.generatePlan = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        // 1. Lấy dữ liệu user từ DB
+        // A. Kiểm tra User đã có Profile chưa
         const [rows] = await pool.query("SELECT * FROM health_profiles WHERE user_id = ?", [userId]);
         
         if (rows.length === 0) {
-            return res.status(404).json({ msg: "Chưa có hồ sơ sức khỏe cơ bản (Tuổi, Chiều cao...)." });
+            return res.status(400).json({ 
+                msg: "Bạn chưa có hồ sơ sức khỏe.", 
+                action: "REDIRECT_TO_WIZARD" 
+            });
         }
         
         const profile = rows[0];
         let preferences = profile.training_preferences;
 
-        // --- BẮT ĐẦU ĐOẠN CODE SỬA LỖI ---
-
-        // Kiểm tra 1: Xử lý trường hợp MySQL trả về chuỗi JSON thay vì Object
         if (typeof preferences === 'string') {
             try {
                 preferences = JSON.parse(preferences);
             } catch (e) {
-                console.error("Lỗi parse JSON preferences:", e);
                 return res.status(500).json({ msg: "Dữ liệu hồ sơ bị lỗi định dạng." });
             }
         }
 
-        // Kiểm tra 2: Nếu preferences vẫn là NULL hoặc thiếu thông tin quan trọng
-        // (Lỗi 'Cannot read properties of null' thường do preferences bị null ở đây)
-        if (!preferences || !preferences.workout_location) {
+        if (!preferences) {
             return res.status(400).json({ 
-                msg: "Bạn chưa điền thông tin sở thích tập luyện. Vui lòng quay lại bước trước.",
-                action: "REDIRECT_TO_WIZARD" // Frontend sẽ bắt signal này để navigate
+                msg: "Thiếu thông tin sở thích tập luyện.",
+                action: "REDIRECT_TO_WIZARD"
             });
         }
 
-        // --- KẾT THÚC ĐOẠN CODE SỬA LỖI ---
-
-        // 2. Tạo Prompt (Ngữ cảnh)
-        // Giờ thì biến preferences chắc chắn đã an toàn để dùng
+        // B. Xây dựng Prompt & Gọi AI
         const userContext = buildUserContext(preferences, profile);
-        console.log(userContext);
-        // 3. Cấu hình Prompt cho Gemini (Yêu cầu trả về JSON chuẩn)
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
         
         const prompt = `
@@ -54,72 +81,72 @@ exports.generatePlan = async (req, res) => {
         
         ${userContext}
 
-        YÊU CẦU ĐẦU RA (QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN, KHÔNG DÙNG MARKDOWN):
+        YÊU CẦU ĐẦU RA (JSON THUẦN):
         {
             "analysis": {
-                "bmi": "Tính BMI và nhận xét ngắn",
-                "tdee": "Tính TDEE ước tính",
-                "advice": "Lời khuyên chiến thuật ngắn gọn (khoảng 3 câu)"
+                "bmi": "Số liệu BMI",
+                "tdee": "Số liệu TDEE",
+                "advice": "Lời khuyên ngắn gọn"
             },
             "schedule": [
                 { 
                     "day": "Thứ 2", 
-                    "focus": "Ngực & Tay sau", 
+                    "focus": "Nhóm cơ", 
                     "exercises": [ 
-                        { "name": "Hít đất", "sets": "3", "reps": "12-15", "note": "Xuống chậm" } 
-                    ] 
-                },
-                { 
-                    "day": "Thứ 3", 
-                    "focus": "Chân & Bụng", 
-                    "exercises": [ 
-                        { "name": "Squat", "sets": "4", "reps": "12", "note": "Lưng thẳng" } 
+                        { "name": "Tên bài", "sets": "3", "reps": "12", "note": "Lưu ý" } 
                     ] 
                 }
-                // ... Tiếp tục cho đủ 1 tuần
             ],
             "nutrition": {
                 "calories": 2500,
                 "menu": [
-                    { "meal": "Sáng", "suggestion": "Bánh mì..." },
-                    { "meal": "Trưa", "suggestion": "Cơm..." },
-                    { "meal": "Tối", "suggestion": "..." }
+                    { "meal": "Sáng", "suggestion": "Món ăn" }
                 ]
             }
         }
         `;
 
-        // 4. Gọi Gemini
         const result = await model.generateContent(prompt);
         const response = await result.response;
         let text = response.text();
 
-        // 5. Làm sạch JSON (AI hay trả về ```json ... ```)
         text = text.replace(/```json/g, "").replace(/```/g, "").trim();
         
         let aiPlanJson;
         try {
             aiPlanJson = JSON.parse(text);
         } catch (jsonError) {
-            console.error("Lỗi parse kết quả từ AI:", text);
-            return res.status(500).json({ msg: "AI trả về dữ liệu không đúng định dạng, vui lòng thử lại." });
+            console.error("AI JSON Parse Error:", text);
+            return res.status(500).json({ msg: "AI trả về lỗi định dạng. Vui lòng thử lại." });
         }
 
-        // 6. Lưu vào Database (Bảng user_ai_plans)
-        // Ẩn plan cũ
-        await pool.query("UPDATE user_ai_plans SET status = 'archived' WHERE user_id = ?", [userId]);
-        
-        // Tạo plan mới
-        await pool.query(
-            "INSERT INTO user_ai_plans (user_id, ai_data, status) VALUES (?, ?, 'active')",
-            [userId, JSON.stringify(aiPlanJson)]
-        );
+        // C. Database Transaction
+        const connection = await pool.getConnection();
+        try {
+            await connection.beginTransaction();
 
-        // 7. Trả về cho Frontend
-        res.json({ msg: "Thành công", plan: aiPlanJson });
+            await connection.query(
+                "UPDATE user_ai_plans SET status = 'archived' WHERE user_id = ? AND status = 'active'", 
+                [userId]
+            );
+
+            await connection.query(
+                "INSERT INTO user_ai_plans (user_id, ai_data, status) VALUES (?, ?, 'active')",
+                [userId, JSON.stringify(aiPlanJson)]
+            );
+
+            await connection.commit();
+        } catch (dbError) {
+            await connection.rollback();
+            throw dbError;
+        } finally {
+            connection.release();
+        }
+
+        res.json({ msg: "Tạo lộ trình thành công", plan: aiPlanJson });
 
     } catch (error) {
-        console.error("Lỗi tạo lộ trình AI:", error);
-        res.status(500).json({ msg: "AI đang bận hoặc có lỗi hệ thống.", error: error.message });
+        console.error("Lỗi tạo lộ trình:", error);
+        res.status(500).json({ msg: "Hệ thống đang bận.", error: error.message });
     }
 };

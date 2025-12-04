@@ -10,13 +10,14 @@ const getCurrentProfile = async (req, res) => {
     try {
         const userId = req.user.id; 
 
+        // 1. THÊM h.has_onboarding VÀO CÂU SELECT
         const sql = `
             SELECT 
                 u.email, u.full_name, u.avatar_url,
                 h.age, h.gender, h.weight_kg, h.height_cm, 
                 h.activity_level, h.medical_history, 
                 h.dietary_preferences, h.sleep_quality_rating,
-                h.goal
+                h.goal, h.has_onboarding 
             FROM users u
             LEFT JOIN health_profiles h ON u.id = h.user_id
             WHERE u.id = ?;
@@ -43,7 +44,9 @@ const getCurrentProfile = async (req, res) => {
                 medical_history: profileData.medical_history,
                 dietary_preferences: profileData.dietary_preferences,
                 sleep_quality_rating: profileData.sleep_quality_rating,
-                goal: profileData.goal 
+                goal: profileData.goal,
+                // 2. TRẢ VỀ FIELD has_onboarding
+                has_onboarding: profileData.has_onboarding 
             } : null 
         };
         
@@ -54,6 +57,8 @@ const getCurrentProfile = async (req, res) => {
         res.status(500).send('Lỗi máy chủ');
     }
 };
+
+
 
 /*
  * @controller  createOrUpdateHealthProfile
@@ -178,9 +183,10 @@ const updateTrainingPreferences = async (req, res) => {
             return res.status(404).json({ msg: "Vui lòng hoàn thành hồ sơ cơ bản (Onboarding) trước!" });
         }
 
+        // 3. CẬP NHẬT has_onboarding = 1 KHI LƯU THÀNH CÔNG
         const sql = `
             UPDATE health_profiles 
-            SET training_preferences = ?, updated_at = NOW() 
+            SET training_preferences = ?, has_onboarding = 1, updated_at = NOW() 
             WHERE user_id = ?
         `;
         
@@ -193,7 +199,6 @@ const updateTrainingPreferences = async (req, res) => {
         res.status(500).json({ msg: "Lỗi server, không lưu được dữ liệu." });
     }
 };
-
 
 
 module.exports = {
