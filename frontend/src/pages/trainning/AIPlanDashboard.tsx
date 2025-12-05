@@ -80,7 +80,7 @@ const AIPlanDashboard = () => {
 
             if (response.status === 400 && data.action === 'REDIRECT_TO_WIZARD') {
                 alert("Bạn cần cập nhật hồ sơ sức khỏe trước khi xem lộ trình.");
-                navigate('/wizard');
+                navigate('/plan');
                 return;
             }
 
