@@ -84,7 +84,7 @@ UserRouter.post("/login", async (req, res) => {
     }
 
     const payload = { userId: user.id, email: user.email };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
 
     res.status(200).send({
       msg: "Đăng nhập thành công",

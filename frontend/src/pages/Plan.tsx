@@ -91,7 +91,7 @@ const Plan: React.FC = () => {
         // LOGIC MỚI:
         // 1. Nếu đã làm onboarding VÀ KHÔNG PHẢI đang edit -> Chuyển hướng (Logic cũ)
         if (profile?.has_onboarding === 1 && !isEditing) {
-          toast.info("Bạn đã có lộ trình, đang chuyển hướng...");
+          toast.info("Bạn đã có lộ trình");
           navigate('/training/ai-plan'); 
           return;
         }
