@@ -41,12 +41,14 @@ import WilksCalculator from '../pages/trainning/tools/WilksScore';
 import PlateCalculator from '../pages/trainning/tools/PlateCalculator';
 import WorkoutHistory from '../components/Profile/WorkoutHistory';
 import AIPlanDashboard from '../pages/trainning/AIPlanDashboard';
+import ForgotPassword from '../pages/ForgotPassword';
 function Allroutes() {
   return (
     <Routes>
       <Route path="/onboarding" element={<OnboardingQuiz />} />
       <Route path="/signin" element={<Signin />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/" element={<Home />} />
       <Route path="/yoga" element={<Yoga />} />
       <Route path="/blogs" element={<Blogs />} />

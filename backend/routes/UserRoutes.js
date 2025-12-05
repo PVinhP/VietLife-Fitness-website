@@ -3,7 +3,7 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { pool } = require("../config/db");
-
+const UserController = require("../controllers/UserController");
 // Giả sử bạn có một middleware để xác thực token
 // Nếu chưa có, bạn cần tạo file này. Nó sẽ giải mã token và lấy user ID.
 // const authMiddleware = require('../middleware/authMiddleware'); 
@@ -143,5 +143,14 @@ UserRouter.post("/complete-onboarding", /* authMiddleware, */ async (req, res) =
     }
 });
 
+// ==========================================
+// CÁC ROUTE MỚI (QUÊN MẬT KHẨU - MVC)
+// ==========================================
+
+// 1. Gửi OTP qua Email
+UserRouter.post("/forgot-password", UserController.forgotPassword);
+
+// 2. Xác nhận OTP và đặt mật khẩu mới
+UserRouter.post("/verify-forgot-password", UserController.verifyForgotPassword);
 
 module.exports = { UserRouter };
