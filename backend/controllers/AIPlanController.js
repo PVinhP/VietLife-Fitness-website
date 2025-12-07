@@ -74,7 +74,7 @@ exports.generatePlan = async (req, res) => {
 
         // B. Xây dựng Prompt & Gọi AI
         const userContext = buildUserContext(preferences, profile);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+        const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL });
         
         const prompt = `
         Bạn là PT Gym chuyên nghiệp (VietLife AI). Hãy tạo lộ trình tập luyện và dinh dưỡng cá nhân hóa.
