@@ -78,6 +78,7 @@ const Signin: React.FC = () => {
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("auth", JSON.stringify(true));
       localStorage.setItem("VietLifeuser", user.full_name);
+      localStorage.setItem("role", user.role || "user");
       showToastMessage(msg || "Đăng nhập thành công!");
       
       // **CORE LOGIC CHANGE IS HERE**
