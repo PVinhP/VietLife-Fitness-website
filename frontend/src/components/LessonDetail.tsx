@@ -189,7 +189,7 @@ function LessonDetail() {
   };
 
   const handleBackToList = () => {
-    navigate('/nutrition', { state: { scrollToLessons: true } });
+    navigate('/nutrition/lessons', { state: { scrollToLessons: true } });
   };
 
   const formatDate = (dateString: string) => {
@@ -354,6 +354,7 @@ function LessonDetail() {
                       h1: ({ children }) => <h1 className="text-3xl font-bold text-gray-900 mb-6 mt-8">{children}</h1>,
                       h2: ({ children }) => <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8 pb-2 border-b-2 border-teal-500">{children}</h2>,
                       h3: ({ children }) => <h3 className="text-xl font-bold text-gray-900 mb-3 mt-6">{children}</h3>,
+                      h4: ({ children }) => <h4 className="text-xl font-bold text-gray-900 mb-3 mt-6">{children}</h4>,
                       p: ({ children }) => <p className="text-gray-700 mb-4 leading-7">{children}</p>,
                       ul: ({ children }) => <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2 ml-4">{children}</ul>,
                       ol: ({ children }) => <ol className="list-decimal list-inside text-gray-700 mb-4 space-y-2 ml-4">{children}</ol>,
