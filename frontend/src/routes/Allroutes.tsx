@@ -43,6 +43,7 @@ import WorkoutHistory from '../components/Profile/WorkoutHistory';
 import AIPlanDashboard from '../pages/trainning/AIPlanDashboard';
 import ForgotPassword from '../pages/ForgotPassword';
 
+
 function Allroutes() {
   return (
     <Routes>
@@ -58,7 +59,6 @@ function Allroutes() {
       <Route path="/nutrition/tools" element={<NutritionTools />} />
       <Route path="/nutrition/recipes" element={<RecipeSection />} />
       <Route path="/lessons" element={<LessonSection />} />
-
       <Route path="/nutrition/explore" element={<ExploreSection />} />
       <Route path="/nutrition/meal-planner" element={<NutritionMealPlanner />} />
       <Route path="/nutrition/library-food" element={<LibraryFood />} />
@@ -78,6 +78,7 @@ function Allroutes() {
       <Route path="/training/tools/plate-calculator" element={<PlateCalculator />} />
       <Route path="/training/tools/wilks" element={<WilksCalculator />} />
       <Route path="/training/history" element={<WorkoutHistory />} />
+      
       <Route path="/training/ai-plan" element={<AIPlanDashboard />} />
       <Route path="/goals" element={<PrivateRoute><UserPage /></PrivateRoute>} />
       <Route path="/addworkout" element={<PrivateRoute><Addworkout /></PrivateRoute>} />

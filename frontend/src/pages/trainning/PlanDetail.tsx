@@ -1,3 +1,5 @@
+// src/pages/training/PlanDetail.tsx
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
@@ -6,10 +8,10 @@ import 'react-toastify/dist/ReactToastify.css';
 import confetti from 'canvas-confetti';
 import ExerciseNoteModal from '../../components/ExerciseNoteModal';
 
-// --- INTERFACES ---
+// --- INTERFACES CẬP NHẬT ---
 interface ExerciseItem {
-    id: number;
-    exercise_id: number;
+    id: number;             // ID duy nhất trong kế hoạch (item_id từ bảng plan_exercises)
+    exercise_id: number;    // ID bài tập gốc (từ bảng exercises)
     exercise_name: string;
     thumbnail_url: string;
     sets: number;
@@ -44,43 +46,45 @@ const PlanDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
-    // State cũ
+    
+    // State
     const [plan, setPlan] = useState<PlanDetailType | null>(null);
     const [loading, setLoading] = useState(true);
     const [completedExercises, setCompletedExercises] = useState<number[]>([]);
     const [expandedDays, setExpandedDays] = useState<{[key: number]: boolean}>({});
     const [showTips, setShowTips] = useState(false);
 
-    // STATE MỚI CHO GHI CHÚ
+    // State cho Ghi chú
     const [noteModalOpen, setNoteModalOpen] = useState(false);
     const [selectedExercise, setSelectedExercise] = useState<{id: number, name: string} | null>(null);
     const [exerciseNotes, setExerciseNotes] = useState<{[key: number]: string}>({});
     const [noteHistory, setNoteHistory] = useState<NoteHistory[]>([]);
 
     const token = localStorage.getItem("token");
-
-    // [SỬA 1] Dùng toLocaleDateString('en-CA') để lấy đúng ngày YYYY-MM-DD theo giờ máy tính người dùng
-    // Thay vì toISOString() (Giờ UTC) sẽ bị lệch ngày nếu tập vào sáng sớm tại VN.
     const today = new Date().toLocaleDateString('en-CA'); 
+
     const handleBack = () => {
-        // Kiểm tra xem người dùng đến từ đâu
         if (location.state?.from === 'history') {
-            navigate('/training/history'); // Quay về Lịch sử nếu đến từ Lịch sử
+            navigate('/training/history');
         } else {
-            navigate('/training/plans');   // Mặc định quay về Danh sách chung
+            navigate('/training/plans');
         }
     };
+
     // --- FETCH DATA ---
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // Gọi API lấy chi tiết giáo án (Cấu trúc mới từ 3 bảng)
                 const planRes = await axios.get(`http://localhost:8080/api/plans/${id}`);
                 setPlan(planRes.data);
 
+                // Mặc định mở ngày đầu tiên
                 if (planRes.data.schedule.length > 0) {
                     setExpandedDays({ [planRes.data.schedule[0].day_number]: true });
                 }
 
+                // Lấy tiến độ tập luyện của User
                 if (token) {
                     try {
                         const progressRes = await axios.get(`http://localhost:8080/api/workout-progress/check-status`, {
@@ -88,12 +92,10 @@ const PlanDetail = () => {
                             headers: { Authorization: `Bearer ${token}` }
                         });
                         
-                        // XỬ LÝ CẢ exerciseIds VÀ notes
                         if (progressRes.data.exerciseIds) {
                             setCompletedExercises(progressRes.data.exerciseIds);
                             setExerciseNotes(progressRes.data.notes || {});
                         } else if (Array.isArray(progressRes.data)) {
-                            // Fallback nếu backend chưa update
                             setCompletedExercises(progressRes.data);
                         }
                     } catch (err) {
@@ -101,21 +103,25 @@ const PlanDetail = () => {
                     }
                 }
             } catch (error) {
+                console.error(error);
                 toast.error("Không thể tải dữ liệu giáo án.");
             } finally {
                 setLoading(false);
             }
         };
         fetchData();
-    }, [id, token, today]); // today thay đổi sẽ fetch lại đúng ngày
+    }, [id, token, today]);
 
-    // --- HANDLERS CŨ ---
+    // --- HANDLERS ---
+    
+    // Xem chi tiết bài tập
     const handleViewExercise = (exerciseId: number) => {
         navigate('/exercise', { 
             state: { selectedExerciseId: exerciseId, fromPlan: true } 
         });
     };
     
+    // Check-in hoàn thành bài tập
     const handleCheckIn = async (exerciseId: number, e: React.MouseEvent) => {
         e.stopPropagation(); 
         if (!token) {
@@ -125,11 +131,12 @@ const PlanDetail = () => {
 
         const isCurrentlyChecked = completedExercises.includes(exerciseId);
         
-        // Optimistic update
+        // Optimistic UI Update (Cập nhật giao diện trước khi gọi API)
         if (isCurrentlyChecked) {
             setCompletedExercises(prev => prev.filter(id => id !== exerciseId));
         } else {
             setCompletedExercises(prev => [...prev, exerciseId]);
+            // Hiệu ứng pháo hoa
             confetti({
                 particleCount: 30,
                 spread: 50,
@@ -146,13 +153,13 @@ const PlanDetail = () => {
             }, { headers: { Authorization: `Bearer ${token}` } });
         } catch (error) {
             toast.error("Lỗi kết nối!");
-            // Revert nếu lỗi
+            // Hoàn tác nếu lỗi
             if (isCurrentlyChecked) setCompletedExercises(prev => [...prev, exerciseId]);
             else setCompletedExercises(prev => prev.filter(id => id !== exerciseId));
         }
     };
 
-    // --- HANDLERS MỚI CHO GHI CHÚ ---
+    // Mở Modal ghi chú
     const handleOpenNoteModal = async (exerciseId: number, exerciseName: string, e: React.MouseEvent) => {
         e.stopPropagation();
         if (!token) {
@@ -162,7 +169,6 @@ const PlanDetail = () => {
 
         setSelectedExercise({ id: exerciseId, name: exerciseName });
         
-        // Lấy lịch sử ghi chú
         try {
             const historyRes = await axios.get(`http://localhost:8080/api/workout-progress/note-history`, {
                 params: { planId: id, exerciseId },
@@ -176,7 +182,7 @@ const PlanDetail = () => {
         setNoteModalOpen(true);
     };
 
-    // [SỬA 2] Cập nhật Logic Lưu Ghi Chú để đồng bộ Checkbox và History
+    // Lưu ghi chú
     const handleSaveNote = async (note: string) => {
         if (!selectedExercise) return;
         
@@ -188,16 +194,15 @@ const PlanDetail = () => {
                 note: note
             }, { headers: { Authorization: `Bearer ${token}` } });
             
-            // 1. Cập nhật note hiện tại UI
+            // Cập nhật UI
             setExerciseNotes(prev => ({ ...prev, [selectedExercise.id]: note }));
             
-            // 2. [QUAN TRỌNG]: Tự động Check-in (Màu xanh) nếu chưa check
-            // Để tránh lỗi người dùng bấm vào check -> Backend hiểu là uncheck (delete)
+            // Tự động check hoàn thành nếu chưa check
             if (!completedExercises.includes(selectedExercise.id)) {
                 setCompletedExercises(prev => [...prev, selectedExercise.id]);
             }
 
-            // 3. [QUAN TRỌNG]: Cập nhật ngay vào Note History (để hiển thị trong Modal ngay lập tức)
+            // Cập nhật lịch sử ghi chú cục bộ
             const newHistoryItem: NoteHistory = {
                 date: today,
                 note: note
@@ -217,20 +222,21 @@ const PlanDetail = () => {
 
     // --- RENDER ---
     if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div></div>;
-    if (!plan) return <div className="p-10 text-center">Giáo án không tồn tại!</div>;
+    if (!plan) return <div className="p-10 text-center text-gray-500">Giáo án không tồn tại!</div>;
 
     const completedTodayCount = completedExercises.length;
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans">
-            <ToastContainer autoClose={2000} />
+            <ToastContainer autoClose={2000} style={{ zIndex: 99999 }} />
 
             {/* 1. HERO SECTION */}
             <div className="relative h-[350px] lg:h-[450px] overflow-hidden group">
                 <img 
                     src={plan.image_url} 
                     alt={plan.name} 
-                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" 
+                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                    onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=1000"; }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent"></div>
                 
@@ -378,13 +384,14 @@ const PlanDetail = () => {
                                 {/* Body Ngày (Bài tập) */}
                                 <div className={`transition-all duration-500 ease-in-out overflow-hidden bg-white rounded-b-3xl ${isExpanded ? 'max-h-[3000px] opacity-100' : 'max-h-0 opacity-0'}`}>
                                     <div className="divide-y divide-gray-50">
-                                        {day.exercises.map((ex, index) => {
+                                        {/* Render danh sách bài tập */}
+                                        {day.exercises.map((ex) => {
                                             const isDone = completedExercises.includes(ex.exercise_id);
                                             const hasNote = exerciseNotes[ex.exercise_id];
                                             
                                             return (
                                                 <div 
-                                                    key={index} 
+                                                    key={ex.id} // SỬA: Dùng ex.id (ID duy nhất trong bảng plan_exercises)
                                                     onClick={() => handleViewExercise(ex.exercise_id)}
                                                     className={`p-4 md:p-6 flex items-center gap-4 md:gap-6 group transition-all cursor-pointer ${isDone ? 'bg-teal-50/40' : 'hover:bg-gray-50'}`}
                                                 >
@@ -419,7 +426,7 @@ const PlanDetail = () => {
                                                             {ex.exercise_name}
                                                         </h4>
                                                         
-                                                        {/* HIỂN THỊ GHI CHÚ NẾU CÓ */}
+                                                        {/* Hiển thị note */}
                                                         {hasNote && (
                                                             <p className="text-xs text-orange-600 mt-1 flex items-center gap-1 font-medium">
                                                                 <span>📝</span>
@@ -430,7 +437,7 @@ const PlanDetail = () => {
                                                         <p className="text-xs text-gray-400 mt-1 hidden md:block">Bấm để xem video hướng dẫn</p>
                                                     </div>
 
-                                                    {/* NÚT GHI CHÚ */}
+                                                    {/* Nút Note */}
                                                     <button 
                                                         onClick={(e) => handleOpenNoteModal(ex.exercise_id, ex.exercise_name, e)}
                                                         className={`p-2 rounded-full transition-colors flex-shrink-0 ${

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import PlanBuilder from '../../components/pt/PlanBuilder';
 
 interface Plan {
     id: number;
@@ -15,7 +16,8 @@ interface Plan {
 const PlanList = () => {
     const [plans, setPlans] = useState<Plan[]>([]);
     const [loading, setLoading] = useState(true);
-
+    const [isBuilderOpen, setIsBuilderOpen] = useState(false); // State mở modal
+    const userRole = localStorage.getItem("role"); // Lấy role
     useEffect(() => {
         const fetchPlans = async () => {
             try {
@@ -49,6 +51,14 @@ const PlanList = () => {
                     <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
                         Giáo Án Tập Luyện
                     </h1>
+                    {(userRole === 'admin' || userRole === 'pt') && (
+                        <button
+                            onClick={() => setIsBuilderOpen(true)}
+                            className="fixed top-25 left-6 bg-teal-600 text-black p-4 rounded-full shadow-lg hover:bg-teal-700 z-40 flex items-center gap-2 font-bold animate-bounce-slow"
+                        >
+                            <span className="text-2xl">+</span> Tạo Giáo Án
+                        </button>
+                    )}
                     <p className="text-teal-100 text-lg md:text-xl max-w-2xl mx-auto">
                         Lộ trình được thiết kế khoa học giúp bạn đạt mục tiêu nhanh nhất. Không cần suy nghĩ hôm nay tập gì.
                     </p>
@@ -115,6 +125,18 @@ const PlanList = () => {
                     </div>
                 )}
             </div>
+            {/* --- MODAL PLAN BUILDER --- */}
+            {isBuilderOpen && (
+                <PlanBuilder 
+                    onClose={() => setIsBuilderOpen(false)}
+                    onSuccess={() => {
+                        // Load lại danh sách giáo án mới tạo
+                        const fetchPlans = async () => { /* ...gọi lại hàm fetch... */ };
+                        fetchPlans(); 
+                        // Hoặc đơn giản là: window.location.reload();
+                    }}
+                />
+            )}
         </div>
     );
 };

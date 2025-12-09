@@ -1,9 +1,11 @@
+// controllers/PlanController.js
 const { pool } = require('../config/db');
 
 // 1. Lấy danh sách tất cả Giáo án
 exports.getAllPlans = async (req, res) => {
     try {
-        const sql = "SELECT * FROM workout_plans";
+        // [SỬA]: Đổi tên bảng thành 'plans'
+        const sql = "SELECT * FROM plans"; 
         const [rows] = await pool.query(sql);
         res.json(rows);
     } catch (error) {
@@ -12,65 +14,140 @@ exports.getAllPlans = async (req, res) => {
     }
 };
 
-// 2. Lấy chi tiết Giáo án + Danh sách bài tập (Đã nhóm theo ngày)
+// 2. Lấy chi tiết Giáo án + Lịch tập (Logic mới cho 3 bảng)
 exports.getPlanDetail = async (req, res) => {
     const { id } = req.params;
 
     try {
-        // A. Lấy thông tin chung của giáo án
-        const [planRows] = await pool.query("SELECT * FROM workout_plans WHERE id = ?", [id]);
+        // A. Lấy thông tin chung (Bảng plans)
+        const [planRows] = await pool.query("SELECT * FROM plans WHERE id = ?", [id]);
         if (planRows.length === 0) {
             return res.status(404).json({ message: "Giáo án không tồn tại" });
         }
         const plan = planRows[0];
 
-        // B. Lấy danh sách bài tập (JOIN với bảng exercises để lấy tên, ảnh...)
+        // B. Lấy danh sách bài tập
+        // Logic: JOIN từ plan_days -> plan_exercises -> exercises
         const sqlExercises = `
             SELECT 
-                wpe.*, 
+                pd.day_number,
+                pd.day_name,
+                pe.id as item_id,
+                pe.sets,
+                pe.reps,
+                e.id as exercise_id,
                 e.exercise_name, 
                 e.thumbnail_url, 
                 e.difficulty,
                 e.muscle_group
-            FROM workout_plan_exercises wpe
-            JOIN exercises e ON wpe.exercise_id = e.id
-            WHERE wpe.plan_id = ?
-            ORDER BY wpe.day_number ASC, wpe.id ASC
+            FROM plan_days pd
+            LEFT JOIN plan_exercises pe ON pd.id = pe.plan_day_id
+            LEFT JOIN exercises e ON pe.exercise_id = e.id
+            WHERE pd.plan_id = ?
+            ORDER BY pd.day_number ASC, pe.id ASC
         `;
         
-        const [exerciseRows] = await pool.query(sqlExercises, [id]);
+        const [rows] = await pool.query(sqlExercises, [id]);
 
-        // C. Xử lý dữ liệu: Nhóm bài tập theo từng ngày (Logic quan trọng!)
-        // Kết quả sẽ dạng: { 1: [Bài A, Bài B], 2: [Bài C]... }
-        const schedule = {};
-        
-        exerciseRows.forEach(row => {
-            const day = row.day_number;
-            if (!schedule[day]) {
-                schedule[day] = {
+        // C. Group dữ liệu (Biến đổi từ danh sách phẳng sang cấu trúc lồng nhau)
+        const scheduleMap = new Map();
+
+        rows.forEach(row => {
+            // Nếu ngày này chưa có trong Map thì tạo mới
+            if (!scheduleMap.has(row.day_number)) {
+                scheduleMap.set(row.day_number, {
+                    day_number: row.day_number,
                     day_name: row.day_name,
                     exercises: []
-                };
+                });
             }
-            schedule[day].exercises.push(row);
+
+            // Nếu dòng này có bài tập (vì dùng LEFT JOIN nên có thể null nếu ngày nghỉ)
+            if (row.exercise_id) {
+                scheduleMap.get(row.day_number).exercises.push({
+                    id: row.item_id,
+                    exercise_id: row.exercise_id,
+                    exercise_name: row.exercise_name,
+                    thumbnail_url: row.thumbnail_url,
+                    sets: row.sets,
+                    reps: row.reps,
+                    difficulty: row.difficulty,
+                    muscle_group: row.muscle_group
+                });
+            }
         });
 
-        // Chuyển đổi object schedule thành array để Frontend dễ map
-        // Dạng: [{day: 1, info: ...}, {day: 2, info: ...}]
-        const scheduleArray = Object.keys(schedule).map(dayNum => ({
-            day_number: parseInt(dayNum),
-            day_name: schedule[dayNum].day_name,
-            exercises: schedule[dayNum].exercises
-        }));
+        // Chuyển Map thành Array
+        const schedule = Array.from(scheduleMap.values());
 
-        // D. Trả về kết quả cuối cùng
+        // D. Trả về
         res.json({
             ...plan,
-            schedule: scheduleArray
+            schedule: schedule
         });
 
     } catch (error) {
         console.error("Lỗi lấy chi tiết giáo án:", error);
         res.status(500).json({ error: error.message });
+    }
+};
+
+// 3. Tạo mới giáo án (Logic transaction cho 3 bảng)
+exports.createPlan = async (req, res) => {
+    const connection = await pool.getConnection();
+    
+    try {
+        const { 
+            name, description, level, duration_weeks, days_per_week, image_url, 
+            schedule // schedule là mảng: [{dayNumber: 1, dayName: '...', exercises: [...]}, ...]
+        } = req.body;
+
+        await connection.beginTransaction();
+
+        // BƯỚC 1: Lưu vào bảng PLANS
+        const [planRes] = await connection.query(
+            `INSERT INTO plans (name, description, level, duration_weeks, days_per_week, image_url) 
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [name, description, level, duration_weeks, days_per_week, image_url]
+        );
+        const newPlanId = planRes.insertId;
+
+        // BƯỚC 2: Duyệt qua từng ngày trong lịch
+        if (schedule && schedule.length > 0) {
+            for (const day of schedule) {
+                
+                // 2.1. Lưu ngày vào bảng PLAN_DAYS
+                const [dayRes] = await connection.query(
+                    `INSERT INTO plan_days (plan_id, day_number, day_name) VALUES (?, ?, ?)`,
+                    [newPlanId, day.dayNumber, day.dayName]
+                );
+                const newDayId = dayRes.insertId;
+
+                // 2.2. Nếu ngày đó có bài tập, Lưu vào bảng PLAN_EXERCISES
+                if (day.exercises && day.exercises.length > 0) {
+                    const exerciseValues = day.exercises.map(ex => [
+                        newDayId,   // plan_day_id (Khóa ngoại trỏ về ngày)
+                        ex.id,      // exercise_id (Lấy từ thư viện)
+                        ex.sets,
+                        ex.reps
+                    ]);
+
+                    await connection.query(
+                        `INSERT INTO plan_exercises (plan_day_id, exercise_id, sets, reps) VALUES ?`,
+                        [exerciseValues]
+                    );
+                }
+            }
+        }
+
+        await connection.commit();
+        res.status(201).json({ message: "Tạo giáo án thành công!", planId: newPlanId });
+
+    } catch (error) {
+        await connection.rollback();
+        console.error("Lỗi tạo giáo án:", error);
+        res.status(500).json({ error: error.message });
+    } finally {
+        connection.release();
     }
 };
