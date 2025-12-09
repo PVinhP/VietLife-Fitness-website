@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CreateLesson from '../../components/pt/CreateLesson';
+import EditLesson from '../../components/pt/EditLesson';
 
 interface Lesson {
   id: number;
@@ -38,6 +39,8 @@ const LessonSection = React.forwardRef<HTMLDivElement>((props, ref) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   // Filters
   const [activeLessonCategory, setActiveLessonCategory] = useState<'coban' | 'tapluyen' | ''>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -168,6 +171,13 @@ const LessonSection = React.forwardRef<HTMLDivElement>((props, ref) => {
     setSortBy('newest');
   };
 
+
+  const handleEditClick = (e: React.MouseEvent, lesson: Lesson) => {
+    e.stopPropagation(); // Chặn không cho mở chi tiết bài học
+    setEditingLesson(lesson); // Lưu bài cần sửa -> Modal sẽ tự hiện ra
+  };
+
+
   const handleLessonClick = (lessonId: number) => {
     navigate(`/lesson/${lessonId}`);
   };
@@ -180,7 +190,6 @@ const LessonSection = React.forwardRef<HTMLDivElement>((props, ref) => {
     );
   };
 
-  // Render lesson card
   const renderLessonCard = (lesson: Lesson) => {
     const difficultyInfo = getDifficultyInfo(lesson.do_kho);
     const lessonTags = lesson.tags ? lesson.tags.split(',') : [];
@@ -188,20 +197,38 @@ const LessonSection = React.forwardRef<HTMLDivElement>((props, ref) => {
     return (
       <div
         key={lesson.id}
-        className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer border border-gray-100"
+        // Thêm class 'group' vào đây để kích hoạt hiệu ứng hover
+        className="group bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer border border-gray-100" 
         onClick={() => handleLessonClick(lesson.id)}
       >
-        {/* Image */}
-        <div className="aspect-video overflow-hidden bg-gray-100">
+        {/* Image Container */}
+        {/* Thêm class 'relative' vào đây để nút Sửa nằm gọn trong ảnh */}
+        <div className="aspect-video overflow-hidden bg-gray-100 relative"> 
           <img
             src={getImageUrl(lesson.hinh_anh)}
             alt={lesson.tieu_de}
-            className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
             onError={(e) => {
               e.currentTarget.src = "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600";
             }}
           />
+
+          {/* Nút Sửa (Chỉ hiện cho PT/Admin) */}
+          {(userRole === 'admin' || userRole === 'pt') && (
+            <div className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <button
+                onClick={(e) => handleEditClick(e, lesson)}
+                className="bg-white hover:bg-yellow-100 text-yellow-600 p-2 rounded-full shadow-lg transition-all transform hover:scale-110"
+                title="Sửa bài học này"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
+
 
         {/* Content */}
         <div className="p-5">
@@ -350,6 +377,18 @@ const LessonSection = React.forwardRef<HTMLDivElement>((props, ref) => {
             }}
           />
         )}
+       
+        {editingLesson && (
+          <EditLesson 
+            lessonData={editingLesson} // Truyền dữ liệu bài cần sửa vào
+            onClose={() => setEditingLesson(null)} // Đóng thì set về null
+            onSuccess={() => {
+               setEditingLesson(null);
+               window.location.reload(); // Reload để thấy thay đổi
+            }}
+          />
+        )}
+
           {/* Category Tabs */}
           <div className="flex justify-center mb-4">
             <div className="bg-gray-100 rounded-lg p-1 inline-flex">
