@@ -7,6 +7,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import confetti from 'canvas-confetti';
 import ExerciseNoteModal from '../../components/ExerciseNoteModal';
+ 
 
 // --- INTERFACES CẬP NHẬT ---
 interface ExerciseItem {
