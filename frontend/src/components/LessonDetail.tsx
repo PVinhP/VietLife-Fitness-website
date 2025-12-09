@@ -189,7 +189,7 @@ function LessonDetail() {
   };
 
   const handleBackToList = () => {
-    navigate('/nutrition/lessons', { state: { scrollToLessons: true } });
+    navigate('/lessons', { state: { scrollToLessons: true } });
   };
 
   const formatDate = (dateString: string) => {

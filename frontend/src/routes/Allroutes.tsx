@@ -42,6 +42,7 @@ import PlateCalculator from '../pages/trainning/tools/PlateCalculator';
 import WorkoutHistory from '../components/Profile/WorkoutHistory';
 import AIPlanDashboard from '../pages/trainning/AIPlanDashboard';
 import ForgotPassword from '../pages/ForgotPassword';
+
 function Allroutes() {
   return (
     <Routes>
@@ -56,7 +57,8 @@ function Allroutes() {
       <Route path="/nutrition" element={<Nutriton />} />
       <Route path="/nutrition/tools" element={<NutritionTools />} />
       <Route path="/nutrition/recipes" element={<RecipeSection />} />
-      <Route path="/nutrition/lessons" element={<LessonSection />} />
+      <Route path="/lessons" element={<LessonSection />} />
+
       <Route path="/nutrition/explore" element={<ExploreSection />} />
       <Route path="/nutrition/meal-planner" element={<NutritionMealPlanner />} />
       <Route path="/nutrition/library-food" element={<LibraryFood />} />

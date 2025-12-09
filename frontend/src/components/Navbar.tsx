@@ -106,7 +106,7 @@ function Navbar() {
             {/* KIẾN THỨC */}
             <li className="w-full md:w-auto">
               <NavDropdown title="Kiến thức">
-                <DropdownItem to="/nutrition/lessons">Bài học Dinh dưỡng</DropdownItem>
+                <DropdownItem to="/lessons">Bài học Dinh dưỡng</DropdownItem>
                 <DropdownItem to="/blogs">Khám phá Chuyên sâu</DropdownItem>
               </NavDropdown>
             </li>

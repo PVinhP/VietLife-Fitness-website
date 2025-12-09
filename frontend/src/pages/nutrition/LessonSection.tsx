@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import CreateLesson from '../../components/pt/CreateLesson';
 
 interface Lesson {
   id: number;
@@ -29,13 +30,14 @@ type SortOption = 'newest' | 'popular' | 'liked';
 
 const LessonSection = React.forwardRef<HTMLDivElement>((props, ref) => {
   const navigate = useNavigate();
-  
+  const userRole = localStorage.getItem("role");
+  console.log("User role in LessonSection:", userRole);
   // States
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [filteredLessons, setFilteredLessons] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>('');
-  
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   // Filters
   const [activeLessonCategory, setActiveLessonCategory] = useState<'coban' | 'tapluyen' | ''>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -284,6 +286,8 @@ const LessonSection = React.forwardRef<HTMLDivElement>((props, ref) => {
         {/* Filters Section */}
         <div className="mb-8 p-6 bg-white rounded-lg shadow-md border border-gray-200">
           
+          
+
           {/* Search & Sort */}
           <div className="flex flex-col md:flex-row gap-4 mb-4">
             <input
@@ -323,8 +327,29 @@ const LessonSection = React.forwardRef<HTMLDivElement>((props, ref) => {
                 ✕ Xóa
               </button>
             )}
-          </div>
+          {/* NÚT MỞ MODAL */}
+          {(userRole === 'admin' || userRole === 'pt') && (
+            <button
+              onClick={() => setIsCreateModalOpen(true)} // <-- SỬA DÒNG NÀY (Không navigate nữa)
+              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg transition-colors shadow-md flex items-center justify-center gap-2 whitespace-nowrap"
+            >
+              ➕ Thêm bài
+            </button>
+          )}
 
+        </div> {/* Kết thúc thẻ div flex-row */}
+
+        {/* --- CHÈN MODAL VÀO ĐÂY --- */}
+        {isCreateModalOpen && (
+          <CreateLesson 
+            onClose={() => setIsCreateModalOpen(false)} 
+            onSuccess={() => {
+               // Khi thêm xong thì load lại danh sách bài học ngay lập tức
+               // Bạn copy logic của hàm fetchLessons() vào đây hoặc tách fetchLessons ra ngoài để gọi lại
+               window.location.reload(); // Cách lười nhất: Reload trang để thấy bài mới
+            }}
+          />
+        )}
           {/* Category Tabs */}
           <div className="flex justify-center mb-4">
             <div className="bg-gray-100 rounded-lg p-1 inline-flex">

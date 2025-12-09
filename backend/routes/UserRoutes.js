@@ -93,7 +93,8 @@ UserRouter.post("/login", async (req, res) => {
         id: user.id,
         email: user.email,
         full_name: user.full_name,
-        is_onboarded: user.is_onboarded, // <-- ĐÃ THÊM: Trả về true hoặc false
+        is_onboarded: user.is_onboarded,
+        role: user.role, // <-- ĐÃ THÊM: Trả về true hoặc false
       },
     });
   } catch (error) {
