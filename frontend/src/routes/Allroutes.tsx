@@ -42,7 +42,9 @@ import PlateCalculator from '../pages/trainning/tools/PlateCalculator';
 import WorkoutHistory from '../components/Profile/WorkoutHistory';
 import AIPlanDashboard from '../pages/trainning/AIPlanDashboard';
 import ForgotPassword from '../pages/ForgotPassword';
-
+import AdminLayout from '../pages/admin/AdminLayout';
+import AdminDashboard from '../pages/admin/Dashboard';
+import UserManager from '../pages/admin/UserManager';
 
 function Allroutes() {
   return (
@@ -88,7 +90,30 @@ function Allroutes() {
       <Route path="/profile/learning" element={<PrivateRoute><UserProgressPage /></PrivateRoute>} />
       <Route path="/profile/settings" element={<PrivateRoute><Setting /></PrivateRoute>} />
       <Route path="/profile/nutrition" element={<PrivateRoute><NutritionDiary /></PrivateRoute>} />
+      <Route element={<AdminLayout />}>
+        
+        {/* AdminLayout sẽ bao bọc các trang con bên trong */}
+        <Route path="/admin" element={<AdminLayout />}>
+          
+          {/* Mặc định vào /admin sẽ hiện Dashboard */}
+          <Route index element={<AdminDashboard />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+
+          {/* Các trang quản lý chi tiết */}
+          <Route path="users" element={<UserManager />} />
+          {/*
+          <Route path="foods" element={<FoodManager />} />      
+          <Route path="recipes" element={<RecipeManager />} />  
+          <Route path="lessons" element={<LessonManager />} />  
+          <Route path="exercises" element={<ExerciseManager />} />
+          <Route path="sports" element={<SportManager />} />    
+          <Route path="plans" element={<PlanManager />} />      */}
+          
+        </Route>
+      </Route>
+
     </Routes>
+    
   );
 }
 

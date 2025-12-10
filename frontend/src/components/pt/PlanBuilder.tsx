@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import ExerciseSelectorModal from '../../components/pt/ExerciseSelectorModal'; 
@@ -7,7 +6,7 @@ import ExerciseSelectorModal from '../../components/pt/ExerciseSelectorModal';
 interface PlanBuilderProps {
   onClose: () => void;
   onSuccess: () => void;
-  editingPlanId?: number | null;
+  editingPlanId?: number | null; // ID của giáo án đang sửa (nếu có)
 }
 
 // --- INTERFACES ---
@@ -26,16 +25,25 @@ interface BuilderDay {
     exercises: BuilderExercise[];
 }
 
-const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
-    // const navigate = useNavigate(); // Không cần navigate nữa vì dùng Modal
+// Định nghĩa kiểu dữ liệu cho PlanInfo để tránh lỗi TypeScript
+interface PlanInfo {
+    name: string;
+    description: string;
+    level: string;
+    duration_weeks: number;
+    days_per_week: number; // Sử dụng snake_case khớp với DB
+    image_url: string;
+}
+
+const PlanBuilder = ({ onClose, onSuccess, editingPlanId }: PlanBuilderProps) => {
     
     // 1. STATE: THÔNG TIN CHUNG
-    const [planInfo, setPlanInfo] = useState({
+    const [planInfo, setPlanInfo] = useState<PlanInfo>({
         name: '',
         description: '',
         level: 'Beginner',
         duration_weeks: 4,
-        days_per_week: 3, 
+        days_per_week: 3, // Mặc định 3 buổi
         image_url: ''
     });
 
@@ -46,16 +54,59 @@ const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
         { dayNumber: 3, dayName: 'Buổi 3', exercises: [] },
     ]);
 
-    // 3. STATE: MODAL
+    // 3. STATE: MODAL & UI
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentDayIndex, setCurrentDayIndex] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // --- EFFECT: LOAD DỮ LIỆU CŨ KHI SỬA ---
+    useEffect(() => {
+        if (editingPlanId) {
+            const fetchPlanData = async () => {
+                try {
+                    const res = await axios.get(`http://localhost:8080/api/plans/${editingPlanId}`);
+                    const data = res.data;
+
+                    // 1. Điền thông tin chung (Map từ DB sang State)
+                    setPlanInfo({
+                        name: data.name,
+                        description: data.description,
+                        level: data.level,
+                        duration_weeks: data.duration_weeks,
+                        days_per_week: data.days_per_week, // Đảm bảo DB trả về đúng trường này
+                        image_url: data.image_url || ''
+                    });
+
+                    // 2. Map lịch tập
+                    if (data.schedule && Array.isArray(data.schedule)) {
+                        const mappedSchedule = data.schedule.map((day: any) => ({
+                            dayNumber: day.day_number,
+                            dayName: day.day_name,
+                            exercises: day.exercises.map((ex: any) => ({
+                                tempId: Date.now() + Math.random(), 
+                                id: ex.exercise_id, // ID gốc của bài tập
+                                name: ex.exercise_name,
+                                image: ex.thumbnail_url,
+                                sets: ex.sets,
+                                reps: ex.reps
+                            }))
+                        }));
+                        setSchedule(mappedSchedule);
+                    }
+                } catch (error) {
+                    toast.error("Lỗi tải dữ liệu giáo án cũ");
+                    console.error(error);
+                }
+            };
+            fetchPlanData();
+        }
+    }, [editingPlanId]);
 
     // --- HANDLERS ---
 
     // Thay đổi số buổi/tuần -> Tự động sinh lại danh sách ngày
     const handleDaysChange = (num: number) => {
-        setPlanInfo({ ...planInfo, days_per_week: num });
+        setPlanInfo(prev => ({ ...prev, days_per_week: num }));
         
         const newSchedule = Array.from({ length: num }, (_, i) => {
             const existingDay = schedule[i];
@@ -68,28 +119,25 @@ const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
         setSchedule(newSchedule);
     };
 
-    // PT đổi tên buổi tập
     const handleDayNameChange = (dayIndex: number, newName: string) => {
         const newSchedule = [...schedule];
         newSchedule[dayIndex].dayName = newName;
         setSchedule(newSchedule);
     };
 
-    // Mở Modal chọn bài
     const openAddExercise = (dayIndex: number) => {
         setCurrentDayIndex(dayIndex);
         setIsModalOpen(true);
     };
 
-    // Nhận bài tập từ Modal -> Thêm vào ngày
     const handleAddExerciseToDay = (exercise: any, sets: number, reps: string) => {
         if (currentDayIndex === null) return;
 
         const newExercise: BuilderExercise = {
             tempId: Date.now(), 
             id: exercise.id,
-            name: exercise.name,
-            image: exercise.thumbnail_url || exercise.image_url, 
+            name: exercise.name || exercise.exercise_name,
+            image: exercise.thumbnail_url || exercise.image_url || "https://via.placeholder.com/150", 
             sets,
             reps
         };
@@ -99,22 +147,24 @@ const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
         setSchedule(newSchedule);
     };
 
-    // Xóa bài tập khỏi ngày
     const removeExercise = (dayIndex: number, exTempId: number) => {
         const newSchedule = [...schedule];
         newSchedule[dayIndex].exercises = newSchedule[dayIndex].exercises.filter(e => e.tempId !== exTempId);
         setSchedule(newSchedule);
     };
 
-    // --- LƯU GIÁO ÁN (GỌI API) ---
+    // --- LƯU GIÁO ÁN (QUAN TRỌNG) ---
     const handleSavePlan = async () => {
+        // Validate
         if (!planInfo.name.trim()) return toast.error("Vui lòng nhập tên giáo án!");
-        if (schedule.every(d => d.exercises.length === 0)) return toast.error("Giáo án chưa có bài tập nào!");
+        const hasExercises = schedule.some(d => d.exercises.length > 0);
+        if (!hasExercises) return toast.error("Giáo án chưa có bài tập nào!");
 
         setIsSubmitting(true);
         try {
             const token = localStorage.getItem("token");
             
+            // Payload gửi đi
             const payload = {
                 ...planInfo, 
                 schedule: schedule.map(day => ({
@@ -128,19 +178,31 @@ const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
                 }))
             };
 
-            await axios.post('http://localhost:8080/api/plans', payload, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            // 🔥 LOGIC PHÂN BIỆT TẠO MỚI / CẬP NHẬT 🔥
+            if (editingPlanId) {
+                // Nếu đang sửa -> Gọi PUT
+                await axios.put(`http://localhost:8080/api/plans/${editingPlanId}`, payload, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                toast.success("✅ Cập nhật giáo án thành công!");
+            } else {
+                // Nếu tạo mới -> Gọi POST
+                await axios.post('http://localhost:8080/api/plans', payload, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                toast.success("🎉 Tạo giáo án mới thành công!");
+            }
 
-            toast.success("🎉 Tạo giáo án thành công!");
-            onSuccess(); // Gọi callback success để component cha xử lý (VD: reload list)
+            onSuccess(); // Báo cho component cha reload list
+            onClose();   // Đóng modal
             
         } catch (error: any) {
             console.error(error);
+            const msg = error.response?.data?.message || "Lỗi khi lưu giáo án";
             if (error.response?.status === 403) {
-                toast.error("Bạn không có quyền tạo giáo án (Chỉ Admin/PT)!");
+                toast.error("Bạn không có quyền thực hiện (Chỉ Admin/PT)!");
             } else {
-                toast.error("Lỗi khi lưu giáo án. Vui lòng thử lại.");
+                toast.error(msg);
             }
         } finally {
             setIsSubmitting(false);
@@ -148,23 +210,31 @@ const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
     };
 
     return (
-        // 1. LỚP NỀN MỜ (Overlay)
+        // 1. LỚP NỀN MỜ
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 animate-fadeIn">
             
-            {/* 2. KHUNG CHỨA (Container) */}
+            {/* 2. KHUNG CHỨA */}
             <div className="bg-white w-full max-w-7xl max-h-[95vh] overflow-y-auto rounded-2xl shadow-2xl relative">
                 
+                {/* Nút đóng nhanh */}
+                <button 
+                    onClick={onClose} 
+                    className="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-3xl font-bold z-10"
+                >
+                    &times;
+                </button>
 
-                {/* 4. NỘI DUNG CHÍNH */}
+                {/* 3. NỘI DUNG CHÍNH */}
                 <div className="p-6 bg-gray-50 min-h-full">
                     
                     <div className="flex justify-between items-center mb-8">
                         <h1 className="text-3xl font-black text-gray-800 flex items-center gap-3">
-                            <span className="text-4xl">🛠️</span> Xây Dựng Giáo Án
+                            <span className="text-4xl">🛠️</span> 
+                            {editingPlanId ? "Chỉnh Sửa Giáo Án" : "Xây Dựng Giáo Án"}
                         </h1>
                         <button 
-                            onClick={onClose} // Sửa thành onClose
-                            className="text-red-500 hover:text-gray-700 font-medium"
+                            onClick={onClose}
+                            className="text-red-500 hover:text-gray-700 font-medium px-4 py-2 border border-transparent hover:border-red-200 rounded"
                         >
                             Hủy bỏ
                         </button>
@@ -172,7 +242,7 @@ const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         
-                        {/* --- CỘT TRÁI: THÔNG TIN CHUNG --- */}
+                        {/* --- CỘT TRÁI: THÔNG TIN --- */}
                         <div className="lg:col-span-1 space-y-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
                             <h2 className="font-bold text-xl mb-4 text-teal-800 border-b pb-2">Thông tin cơ bản</h2>
                             
@@ -182,7 +252,7 @@ const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
                                     className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none text-black" 
                                     value={planInfo.name} 
                                     onChange={e => setPlanInfo({...planInfo, name: e.target.value})} 
-                                    placeholder="VD: Tăng cơ 4 tuần cho nam..." 
+                                    placeholder="VD: Tăng cơ 4 tuần..." 
                                 />
                             </div>
                             
@@ -192,7 +262,6 @@ const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
                                     className="w-full border border-gray-300 p-3 rounded-lg h-24 focus:ring-2 focus:ring-teal-500 outline-none resize-none text-black" 
                                     value={planInfo.description} 
                                     onChange={e => setPlanInfo({...planInfo, description: e.target.value})} 
-                                    placeholder="Giới thiệu về mục tiêu, đối tượng phù hợp..."
                                 />
                             </div>
 
@@ -200,7 +269,7 @@ const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
                                 <div>
                                     <label className="block font-bold text-sm mb-1 text-gray-700">Cấp độ</label>
                                     <select 
-                                        className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none t text-black" 
+                                        className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none text-black" 
                                         value={planInfo.level} 
                                         onChange={e => setPlanInfo({...planInfo, level: e.target.value})}
                                     >
@@ -222,7 +291,7 @@ const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
                             </div>
 
                             <div>
-                                <label className="block font-bold text-sm mb-1 text-gray-700">Link Ảnh bìa (URL)</label>
+                                <label className="block font-bold text-sm mb-1 text-gray-700">Link Ảnh bìa</label>
                                 <input 
                                     type="text" 
                                     className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none text-black" 
@@ -239,15 +308,11 @@ const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
                                     value={planInfo.days_per_week} 
                                     onChange={e => handleDaysChange(Number(e.target.value))}
                                 >
-                                    <option value={1}>1 buổi</option>
-                                    <option value={2}>2 buổi</option>
-                                    <option value={3}>3 buổi</option>
-                                    <option value={4}>4 buổi</option>
-                                    <option value={5}>5 buổi</option>
-                                    <option value={6}>6 buổi</option>
-                                    <option value={7}>7 buổi</option>
+                                    {[1,2,3,4,5,6,7].map(num => (
+                                        <option key={num} value={num}>{num} buổi</option>
+                                    ))}
                                 </select>
-                                <p className="text-xs text-gray-500 mt-2 italic">*Thay đổi số buổi sẽ đặt lại cấu trúc bên phải.</p>
+                                <p className="text-xs text-gray-500 mt-2 italic">*Lưu ý: Thay đổi số buổi sẽ reset lịch tập bên phải.</p>
                             </div>
 
                             <button 
@@ -255,16 +320,15 @@ const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
                                 disabled={isSubmitting}
                                 className={`w-full text-white py-4 rounded-xl font-bold mt-6 shadow-lg flex items-center justify-center gap-2 transition-all ${isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 transform active:scale-95'}`}
                             >
-                                {isSubmitting ? 'ĐANG LƯU...' : '💾 LƯU GIÁO ÁN'}
+                                {isSubmitting ? 'ĐANG LƯU...' : (editingPlanId ? '💾 CẬP NHẬT GIÁO ÁN' : '💾 TẠO GIÁO ÁN MỚI')}
                             </button>
                         </div>
 
-                        {/* --- CỘT PHẢI: LỊCH TRÌNH CHI TIẾT --- */}
+                        {/* --- CỘT PHẢI: LỊCH TRÌNH --- */}
                         <div className="lg:col-span-2 space-y-6 pb-20">
                             {schedule.map((day, dayIndex) => (
                                 <div key={day.dayNumber} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden transition-all hover:shadow-md">
                                     
-                                    {/* Header của Ngày */}
                                     <div className="bg-gray-50 p-4 border-b border-gray-100 flex flex-wrap justify-between items-center gap-4">
                                         <div className="flex items-center gap-3 flex-1">
                                             <div className="w-10 h-10 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm flex-shrink-0">
@@ -290,7 +354,7 @@ const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
                                         </button>
                                     </div>
 
-                                    {/* Danh sách bài tập trong ngày */}
+                                    {/* Danh sách bài tập */}
                                     <div className="p-4 space-y-3 min-h-[100px]">
                                         {day.exercises.length === 0 ? (
                                             <div className="flex flex-col items-center justify-center h-full text-gray-400 py-6 border-2 border-dashed border-gray-100 rounded-xl">
@@ -337,7 +401,6 @@ const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
                 </div>
             </div>
 
-            {/* Modal Chọn Bài Tập (Cần nằm ngoài relative div để hiển thị đè lên trên nếu z-index được xử lý đúng trong component con) */}
             <ExerciseSelectorModal 
                 isOpen={isModalOpen} 
                 onClose={() => setIsModalOpen(false)}

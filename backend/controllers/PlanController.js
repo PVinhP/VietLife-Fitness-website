@@ -151,3 +151,60 @@ exports.createPlan = async (req, res) => {
         connection.release();
     }
 };
+
+// 4. Cập nhật giáo án (Update Plan Info + Reset Schedule)
+exports.updatePlan = async (req, res) => {
+    const connection = await pool.getConnection();
+    try {
+        const { id } = req.params;
+        const { 
+            name, description, level, duration_weeks, days_per_week, image_url, 
+            schedule 
+        } = req.body;
+
+        await connection.beginTransaction();
+
+        // A. Cập nhật thông tin chung (Bảng plans)
+        await connection.query(
+            `UPDATE plans SET name=?, description=?, level=?, duration_weeks=?, days_per_week=?, image_url=? WHERE id=?`,
+            [name, description, level, duration_weeks, days_per_week, image_url, id]
+        );
+
+        // B. Cập nhật Lịch tập (Chiến thuật: Xóa cũ -> Thêm mới)
+        // Do thiết lập ON DELETE CASCADE, chỉ cần xóa dòng trong plan_days là plan_exercises tự bay màu.
+        
+        // 1. Xóa tất cả ngày tập cũ của plan này
+        await connection.query(`DELETE FROM plan_days WHERE plan_id = ?`, [id]);
+
+        // 2. Thêm lại lịch tập mới (Logic y hệt createPlan)
+        if (schedule && schedule.length > 0) {
+            for (const day of schedule) {
+                const [dayRes] = await connection.query(
+                    `INSERT INTO plan_days (plan_id, day_number, day_name) VALUES (?, ?, ?)`,
+                    [id, day.dayNumber, day.dayName]
+                );
+                const newDayId = dayRes.insertId;
+
+                if (day.exercises && day.exercises.length > 0) {
+                    const exerciseValues = day.exercises.map(ex => [
+                        newDayId, ex.id, ex.sets, ex.reps
+                    ]);
+                    await connection.query(
+                        `INSERT INTO plan_exercises (plan_day_id, exercise_id, sets, reps) VALUES ?`,
+                        [exerciseValues]
+                    );
+                }
+            }
+        }
+
+        await connection.commit();
+        res.json({ message: "Cập nhật giáo án thành công!" });
+
+    } catch (error) {
+        await connection.rollback();
+        console.error("Lỗi update giáo án:", error);
+        res.status(500).json({ error: error.message });
+    } finally {
+        connection.release();
+    }
+};
