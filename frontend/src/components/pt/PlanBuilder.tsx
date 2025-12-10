@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -7,6 +7,7 @@ import ExerciseSelectorModal from '../../components/pt/ExerciseSelectorModal';
 interface PlanBuilderProps {
   onClose: () => void;
   onSuccess: () => void;
+  editingPlanId?: number | null;
 }
 
 // --- INTERFACES ---
@@ -153,13 +154,6 @@ const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
             {/* 2. KHUNG CHỨA (Container) */}
             <div className="bg-white w-full max-w-7xl max-h-[95vh] overflow-y-auto rounded-2xl shadow-2xl relative">
                 
-                {/* 3. NÚT ĐÓNG (X) */}
-                <button 
-                    onClick={onClose} 
-                    className="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl z-10 font-bold transition-colors"
-                >
-                    &times;
-                </button>
 
                 {/* 4. NỘI DUNG CHÍNH */}
                 <div className="p-6 bg-gray-50 min-h-full">
@@ -170,7 +164,7 @@ const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
                         </h1>
                         <button 
                             onClick={onClose} // Sửa thành onClose
-                            className="text-gray-500 hover:text-gray-700 font-medium"
+                            className="text-red-500 hover:text-gray-700 font-medium"
                         >
                             Hủy bỏ
                         </button>
@@ -206,7 +200,7 @@ const PlanBuilder = ({ onClose, onSuccess }: PlanBuilderProps) => {
                                 <div>
                                     <label className="block font-bold text-sm mb-1 text-gray-700">Cấp độ</label>
                                     <select 
-                                        className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none text-black" 
+                                        className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none t text-black" 
                                         value={planInfo.level} 
                                         onChange={e => setPlanInfo({...planInfo, level: e.target.value})}
                                     >
