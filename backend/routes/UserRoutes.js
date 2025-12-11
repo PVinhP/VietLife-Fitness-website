@@ -6,8 +6,8 @@ const { pool } = require("../config/db");
 const UserController = require("../controllers/UserController");
 // Giả sử bạn có một middleware để xác thực token
 // Nếu chưa có, bạn cần tạo file này. Nó sẽ giải mã token và lấy user ID.
-// const authMiddleware = require('../middleware/authMiddleware'); 
-
+const authMiddleware = require('../middlewares/AuthMiddleware'); 
+const { checkRole } = require('../middlewares/checkRole');
 const UserRouter = express.Router();
 
 // --- ROUTE ĐĂNG KÝ ---
@@ -66,7 +66,7 @@ UserRouter.post("/register", async (req, res) => {
 UserRouter.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-
+    
     if (!email || !password) {
       return res.status(400).send({ msg: "Email và mật khẩu là bắt buộc" });
     }
@@ -153,5 +153,27 @@ UserRouter.post("/forgot-password", UserController.forgotPassword);
 
 // 2. Xác nhận OTP và đặt mật khẩu mới
 UserRouter.post("/verify-forgot-password", UserController.verifyForgotPassword);
+
+// --- KHU VỰC ADMIN (Cần đăng nhập & Quyền Admin) ---
+// GET /api/users
+UserRouter.get(
+    '/', 
+    authMiddleware,          // 1. Phải đăng nhập
+    checkRole(['admin']),    // 2. Phải là Admin
+    UserController.getAllUsers
+);
+
+// DELETE /api/users/:id
+UserRouter.delete(
+    '/:id', 
+    authMiddleware, 
+    checkRole(['admin']), 
+    UserController.deleteUser
+);
+// POST /api/users/create (Tạo mới User - MỚI)
+UserRouter.post('/create', authMiddleware, checkRole(['admin']), UserController.createUser);
+
+// PUT /api/users/:id (Cập nhật User - MỚI)
+UserRouter.put('/:id', authMiddleware, checkRole(['admin']), UserController.updateUser);
 
 module.exports = { UserRouter };

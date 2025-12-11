@@ -93,7 +93,7 @@ function Allroutes() {
       <Route element={<AdminLayout />}>
         
         {/* AdminLayout sẽ bao bọc các trang con bên trong */}
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route path="/admin" >
           
           {/* Mặc định vào /admin sẽ hiện Dashboard */}
           <Route index element={<AdminDashboard />} />
