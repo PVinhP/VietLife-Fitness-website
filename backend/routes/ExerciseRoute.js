@@ -1,31 +1,21 @@
-//file mới
+// File: routes/ExerciseRoute.js
 const express = require("express");
 const router = express.Router();
-const { pool } = require("../config/db");
- 
-//API lấy toàn bộ dữ liệu từ bảng nutrition_data
-router.get("/", async (req, res) => {
-  try {
-    const [rows] = await pool.query("SELECT * FROM exercises");
-    res.json(rows); // Trả dữ liệu về dưới dạng JSON
-  } catch (error) {
-    console.error("Lỗi truy vấn:", error);
-    res.status(500).json({ message: "Lỗi server" });
-  }
-});
+const exerciseController = require("../controllers/ExerciseController");
+const authMiddleware = require("../middlewares/AuthMiddleware");
+const { checkRole } = require("../middlewares/checkRole");
 
-// API tìm kiếm thực phẩm theo tên
-router.get("/search", async (req, res) => {
-  const { name } = req.query;
-  try {
-    const [rows] = await pool.query(
-      "SELECT * FROM exercises WHERE exercise_name LIKE ?",[`%${name}%`]
-    );
-    res.json(rows);
-  } catch (error) {
-    console.error("Lỗi truy vấn:", error);
-    res.status(500).json({ message: "Lỗi server" });
-  }
-});
+// --- PUBLIC ROUTES (Ai cũng xem được) ---
+router.get("/", exerciseController.getAllExercises);
+router.get("/:id", exerciseController.getExerciseById); 
 
-module.exports={exerciseRouter : router};
+// --- ADMIN ROUTES (Cần đăng nhập & Quyền Admin/PT) ---
+router.post("/", authMiddleware, checkRole(['admin', 'pt']), exerciseController.createExercise);
+router.put("/:id", authMiddleware, checkRole(['admin', 'pt']), exerciseController.updateExercise);
+router.delete("/:id", authMiddleware, checkRole(['admin', 'pt']), exerciseController.deleteExercise);
+
+// Route tìm kiếm cũ (đã được tích hợp vào getAllExercises với query param ?search=...)
+// Nhưng nếu frontend cũ đang gọi /search riêng biệt thì có thể giữ lại hoặc redirect về getAllExercises
+router.get("/search", exerciseController.getAllExercises); 
+
+module.exports = { exerciseRouter: router };
