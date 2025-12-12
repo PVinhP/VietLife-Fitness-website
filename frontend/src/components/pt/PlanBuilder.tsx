@@ -215,14 +215,7 @@ const PlanBuilder = ({ onClose, onSuccess, editingPlanId }: PlanBuilderProps) =>
             
             {/* 2. KHUNG CHỨA */}
             <div className="bg-white w-full max-w-7xl max-h-[95vh] overflow-y-auto rounded-2xl shadow-2xl relative">
-                
-                {/* Nút đóng nhanh */}
-                <button 
-                    onClick={onClose} 
-                    className="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-3xl font-bold z-10"
-                >
-                    &times;
-                </button>
+        
 
                 {/* 3. NỘI DUNG CHÍNH */}
                 <div className="p-6 bg-gray-50 min-h-full">
@@ -320,7 +313,7 @@ const PlanBuilder = ({ onClose, onSuccess, editingPlanId }: PlanBuilderProps) =>
                                 disabled={isSubmitting}
                                 className={`w-full text-white py-4 rounded-xl font-bold mt-6 shadow-lg flex items-center justify-center gap-2 transition-all ${isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 transform active:scale-95'}`}
                             >
-                                {isSubmitting ? 'ĐANG LƯU...' : (editingPlanId ? '💾 CẬP NHẬT GIÁO ÁN' : '💾 TẠO GIÁO ÁN MỚI')}
+                                {isSubmitting ? 'ĐANG LƯU...' : (editingPlanId ? '💾 CẬP NHẬT GIÁO ÁN' : '💾 Hoàn tất & Lưu')}
                             </button>
                         </div>
 
