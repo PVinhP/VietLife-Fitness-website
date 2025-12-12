@@ -50,6 +50,7 @@ import RecipeManager from '../pages/admin/RecipeManager';
 import LessonManager from '../pages/admin/LessonManager';
 import ExerciseManager from '../pages/admin/ExerciseManager';
 import SportManager from '../pages/admin/SportManager';
+import PlanManager from '../pages/admin/PlanManager';
 
 function Allroutes() {
   return (
@@ -116,8 +117,8 @@ function Allroutes() {
           <Route path="exercises" element={<ExerciseManager />} />
           
           <Route path="sports" element={<SportManager />} />   
-          {/* 
-          <Route path="plans" element={<PlanManager />} />      */}
+           
+          <Route path="plans" element={<PlanManager />} />     
           
         </Route>
       </Route>

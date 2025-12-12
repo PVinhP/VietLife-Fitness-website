@@ -4,8 +4,7 @@ const { pool } = require('../config/db');
 // 1. Lấy danh sách tất cả Giáo án
 exports.getAllPlans = async (req, res) => {
     try {
-        // [SỬA]: Đổi tên bảng thành 'plans'
-        const sql = "SELECT * FROM plans"; 
+        const sql = "SELECT * FROM plans ORDER BY id DESC";
         const [rows] = await pool.query(sql);
         res.json(rows);
     } catch (error) {
@@ -125,9 +124,10 @@ exports.createPlan = async (req, res) => {
 
                 // 2.2. Nếu ngày đó có bài tập, Lưu vào bảng PLAN_EXERCISES
                 if (day.exercises && day.exercises.length > 0) {
+                    // Chuẩn bị mảng giá trị để insert nhiều dòng 1 lúc (Bulk Insert)
                     const exerciseValues = day.exercises.map(ex => [
                         newDayId,   // plan_day_id (Khóa ngoại trỏ về ngày)
-                        ex.id,      // exercise_id (Lấy từ thư viện)
+                        ex.id,      // exercise_id (Lấy từ thư viện, chú ý frontend gửi lên là id bài tập)
                         ex.sets,
                         ex.reps
                     ]);
@@ -206,5 +206,17 @@ exports.updatePlan = async (req, res) => {
         res.status(500).json({ error: error.message });
     } finally {
         connection.release();
+    }
+};
+
+// 5. Xóa giáo án
+exports.deletePlan = async (req, res) => {
+    const { id } = req.params;
+    try {
+        // Chỉ cần xóa bảng cha plans, MySQL tự Cascade xóa con
+        await pool.query("DELETE FROM plans WHERE id = ?", [id]);
+        res.json({ message: "Đã xóa giáo án" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 };
