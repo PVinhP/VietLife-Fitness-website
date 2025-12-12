@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/db'); // Sử dụng pool từ config/db
-
+const authMiddleware = require("../middlewares/AuthMiddleware");
+const { checkRole } = require("../middlewares/checkRole");
 /**
  * API LẤY LESSONS MỚI (THAY THẾ API CŨ)
  * Hỗ trợ filter, search, và sort
@@ -172,6 +173,51 @@ router.get('/types/all', async (req, res) => {
     res.json(types);
   } catch (error) {
     console.error('Lỗi truy vấn:', error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+// ============================================
+// KHU VỰC CẦN BẢO VỆ (ADMIN / PT MỚI ĐƯỢC DÙNG)
+// ============================================
+
+// 1. Thêm bài học mới (Thêm authMiddleware, checkRole)
+router.post('/', authMiddleware, checkRole(['admin', 'pt']), async (req, res) => {
+  const { tieu_de, hinh_anh, tom_tat, noi_dung, loai, thoi_gian_doc, do_kho } = req.body;
+  try {
+    const [result] = await pool.query(
+      'INSERT INTO lesson (tieu_de, hinh_anh, tom_tat, noi_dung, loai, thoi_gian_doc, do_kho, trang_thai) VALUES (?, ?, ?, ?, ?, ?, ?, "active")',
+      [tieu_de, hinh_anh, tom_tat, noi_dung, loai, thoi_gian_doc || 5, do_kho || 'trung-binh']
+    );
+    res.status(201).json({ message: 'Tạo bài học thành công' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+// 2. Cập nhật bài học (Thêm authMiddleware, checkRole)
+router.put('/:id', authMiddleware, checkRole(['admin', 'pt']), async (req, res) => {
+  const { id } = req.params;
+  const { tieu_de, hinh_anh, tom_tat, noi_dung, loai, thoi_gian_doc, do_kho } = req.body;
+  try {
+    await pool.query(
+      'UPDATE lesson SET tieu_de = ?, hinh_anh = ?, tom_tat = ?, noi_dung = ?, loai = ?, thoi_gian_doc = ?, do_kho = ? WHERE id = ?',
+      [tieu_de, hinh_anh, tom_tat, noi_dung, loai, thoi_gian_doc, do_kho, id]
+    );
+    res.json({ message: 'Cập nhật thành công' });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+// 3. Xóa bài học (Thêm authMiddleware, checkRole)
+router.delete('/:id', authMiddleware, checkRole(['admin', 'pt']), async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query('DELETE FROM lesson WHERE id = ?', [id]);
+    res.json({ message: 'Xóa thành công' });
+  } catch (error) {
     res.status(500).json({ message: 'Lỗi server' });
   }
 });
