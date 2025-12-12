@@ -170,7 +170,7 @@ const UserManager = () => {
                     onChange={e => setSearchTerm(e.target.value)}
                 />
                 <select 
-                    className="border rounded-lg px-4 py-2 outline-none bg-white"
+                    className="border rounded-lg px-4 py-2 outline-none bg-white text-gray-700"
                     value={roleFilter}
                     onChange={e => setRoleFilter(e.target.value)}
                 >
@@ -337,13 +337,13 @@ const UserManager = () => {
                                     <h2 className="text-xl font-bold text-gray-800">{selectedUser.full_name}</h2>
                                     <p className="text-gray-500">{selectedUser.email}</p>
                                     <div className="flex gap-2 mt-2">
-                                        <span className="text-xs bg-gray-100 px-2 py-1 rounded font-bold uppercase">{selectedUser.role}</span>
+                                        <span className="text-xs bg-gray-100 px-2 py-1 rounded font-bold uppercase text-blue-600">{selectedUser.role}</span>
                                         {selectedUser.status === 'locked' && <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded font-bold">LOCKED</span>}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 border-t pt-4">
+                            <div className="grid grid-cols-2 gap-4 border-t pt-4 text-gray-700">
                                 <div>
                                     <p className="text-sm text-gray-500">Giới tính</p>
                                     <p className="font-semibold">{selectedUser.gender || '---'}</p>

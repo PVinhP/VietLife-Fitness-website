@@ -78,6 +78,14 @@ UserRouter.post("/login", async (req, res) => {
 
     const user = users[0];
 
+    // --- [THÊM MỚI] KIỂM TRA TRẠNG THÁI KHÓA ---
+    if (user.status === 'locked') {
+        return res.status(403).json({ 
+            msg: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin để biết thêm chi tiết." 
+        });
+    }
+    // -------------------------------------------
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).send({ msg: "Email hoặc mật khẩu không đúng" });

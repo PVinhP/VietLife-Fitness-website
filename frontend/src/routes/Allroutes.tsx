@@ -45,6 +45,7 @@ import ForgotPassword from '../pages/ForgotPassword';
 import AdminLayout from '../pages/admin/AdminLayout';
 import AdminDashboard from '../pages/admin/Dashboard';
 import UserManager from '../pages/admin/UserManager';
+import FoodManager from '../pages/admin/FoodManager';
 
 function Allroutes() {
   return (
@@ -101,8 +102,9 @@ function Allroutes() {
 
           {/* Các trang quản lý chi tiết */}
           <Route path="users" element={<UserManager />} />
-          {/*
-          <Route path="foods" element={<FoodManager />} />      
+          
+          <Route path="foods" element={<FoodManager />} /> 
+          {/*     
           <Route path="recipes" element={<RecipeManager />} />  
           <Route path="lessons" element={<LessonManager />} />  
           <Route path="exercises" element={<ExerciseManager />} />

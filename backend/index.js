@@ -22,8 +22,8 @@ const { progressRouter } = require("./routes/ProgressRoutes");
 const { trackingRouter} = require("./routes/trackingRoutes"); 
 const { aiPlanRouter } = require("./routes/AIPlanRoutes");
 const consultantRoutes = require('./routes/consultantRoutes');
-
 const chatRoutes = require('./routes/chatRoutes');
+const { FoodRouter } = require('./routes/FoodRoutes');
 
 
 const app = express();
@@ -55,6 +55,7 @@ app.use("/api/tracking", trackingRouter); // Gắn API vào endpoint /api/tracki
 app.use("/api/ai-plan", aiPlanRouter);
 app.use('/api/chat', chatRoutes);
 app.use('/api/consultant', consultantRoutes);
+app.use('/food', FoodRouter);
 
 app.listen(8080, async()=>{
   
