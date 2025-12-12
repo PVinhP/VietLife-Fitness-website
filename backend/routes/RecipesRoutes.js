@@ -1,14 +1,22 @@
-// FILE: backend/routes/NutritionRoutes.js
-
+// File: routes/RecipesRoutes.js
 const express = require('express');
-const router = express.Router();
-const nutritionController = require('../controllers/NutritionController');
+const recipesController = require('../controllers/RecipeController'); // Nhớ file này tên RecipeController (không s)
+const authMiddleware = require("../middlewares/AuthMiddleware");
+const { checkRole } = require("../middlewares/checkRole");
 
-// Route lấy danh sách công thức đã lọc
-// Ví dụ request: GET /api/nutrition/recipes?goal=Giảm%20mỡ&calorie=300-500%20Calo&search=gà
-router.get('/', nutritionController.getRecipes);
+const recipesRouter = express.Router();
 
-// Route lấy chi tiết 1 công thức
-// router.get('/recipes/:id', nutritionController.getRecipeById); 
+// 1. ROUTE PUBLIC (Dành cho RecipeSection - User xem)
+// URL: http://localhost:8080/recipes
+recipesRouter.get("/", recipesController.getRecipesPublic);
 
-module.exports = router;
+// 2. ROUTE ADMIN (Dành cho RecipeManager - Admin quản lý)
+// URL: http://localhost:8080/recipes/admin-list
+recipesRouter.get("/admin-list", authMiddleware, checkRole(['admin', 'pt']), recipesController.getRecipesAdmin);
+
+// 3. CÁC ROUTE CRUD KHÁC (Admin)
+recipesRouter.post("/create", authMiddleware, checkRole(['admin', 'pt']), recipesController.createRecipe);
+recipesRouter.put("/:id", authMiddleware, checkRole(['admin', 'pt']), recipesController.updateRecipe);
+recipesRouter.delete("/:id", authMiddleware, checkRole(['admin', 'pt']), recipesController.deleteRecipe);
+
+module.exports = { recipesRouter };

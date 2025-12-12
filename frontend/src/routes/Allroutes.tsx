@@ -46,6 +46,7 @@ import AdminLayout from '../pages/admin/AdminLayout';
 import AdminDashboard from '../pages/admin/Dashboard';
 import UserManager from '../pages/admin/UserManager';
 import FoodManager from '../pages/admin/FoodManager';
+import RecipeManager from '../pages/admin/RecipeManager';
 
 function Allroutes() {
   return (
@@ -104,8 +105,9 @@ function Allroutes() {
           <Route path="users" element={<UserManager />} />
           
           <Route path="foods" element={<FoodManager />} /> 
-          {/*     
-          <Route path="recipes" element={<RecipeManager />} />  
+              
+          <Route path="recipes" element={<RecipeManager />} /> 
+          {/*  
           <Route path="lessons" element={<LessonManager />} />  
           <Route path="exercises" element={<ExerciseManager />} />
           <Route path="sports" element={<SportManager />} />    

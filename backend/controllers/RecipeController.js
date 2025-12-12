@@ -1,11 +1,81 @@
 // File: controllers/RecipeController.js
 const { pool } = require("../config/db");
 
-// 1. Lấy danh sách Recipe (Kèm thông tin dinh dưỡng)
-const getAllRecipes = async (req, res) => {
+// ==========================================
+// A. KHU VỰC PUBLIC (Dành cho User xem/lọc)
+// ==========================================
+
+const getRecipesPublic = async (req, res) => {
+    const { search, meal, goal, time, calorie } = req.query;
+
     try {
-        const { search, difficulty } = req.query;
-        // Join bảng để lấy tên gốc và calo từ nutrition_data
+        let sql = `
+            SELECT 
+                r.recipe_id, r.name, r.description, r.image_url, 
+                r.prep_time, r.cook_time, r.difficulty,
+                n.calories, 
+                GROUP_CONCAT(DISTINCT CASE WHEN t.tag_type = 'MEAL' THEN t.tag_name END) AS mealTypes,
+                GROUP_CONCAT(DISTINCT CASE WHEN t.tag_type = 'GOAL' THEN t.tag_name END) AS goals
+            FROM recipes r
+            LEFT JOIN nutrition_data n ON r.nutrition_data_id = n.id
+            LEFT JOIN recipe_tags rt ON r.recipe_id = rt.recipe_id
+            LEFT JOIN tags t ON rt.tag_id = t.tag_id
+            GROUP BY r.recipe_id, r.name, r.description, r.image_url, n.calories, r.prep_time, r.cook_time, r.difficulty 
+            HAVING 1=1 
+        `;
+        
+        let conditions = [];
+
+        if (search) conditions.push(`(r.name LIKE '%${search}%' OR r.description LIKE '%${search}%')`);
+        if (meal && meal !== 'Tất cả') conditions.push(`FIND_IN_SET('${meal}', mealTypes)`);
+        if (goal && goal !== 'Tất cả') conditions.push(`FIND_IN_SET('${goal}', goals)`);
+        
+        if (calorie && calorie !== 'Tất cả') {
+            switch (calorie) {
+                case 'Dưới 300 Calo': conditions.push('n.calories < 300'); break;
+                case '300-500 Calo': conditions.push('n.calories >= 300 AND n.calories <= 500'); break;
+                case 'Trên 500 Calo': conditions.push('n.calories > 500'); break;
+            }
+        }
+        
+        if (time && time !== 'Tất cả') {
+            switch (time) {
+                case 'Dưới 15 phút': conditions.push('(r.prep_time + r.cook_time) < 15'); break;
+                case '15-30 phút': conditions.push('(r.prep_time + r.cook_time) >= 15 AND (r.prep_time + r.cook_time) <= 30'); break;
+                case 'Trên 30 phút': conditions.push('(r.prep_time + r.cook_time) > 30'); break;
+            }
+        }
+
+        if (conditions.length > 0) sql += ' AND ' + conditions.join(' AND ');
+        
+        // [ĐÃ SỬA] Sắp xếp theo ID giảm dần (thay vì created_at)
+        sql += ' ORDER BY r.recipe_id DESC;';
+
+        const [recipes] = await pool.query(sql);
+
+        const formattedRecipes = recipes.map(recipe => ({
+            ...recipe,
+            mealType: recipe.mealTypes ? recipe.mealTypes.split(',')[0] : null, 
+            goal: recipe.goals ? recipe.goals.split(',')[0] : null,
+            mealTypes: undefined, 
+            goals: undefined, 
+        }));
+
+        res.json({ success: true, recipes: formattedRecipes });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// ==========================================
+// B. KHU VỰC ADMIN (Quản lý CRUD)
+// ==========================================
+
+const getRecipesAdmin = async (req, res) => {
+    try {
+        const { search } = req.query;
         let sql = `
             SELECT r.*, n.calories, n.protein_g, n.food_name as original_food_name
             FROM recipes r
@@ -13,49 +83,43 @@ const getAllRecipes = async (req, res) => {
             WHERE 1=1
         `;
         const params = [];
-
         if (search) {
             sql += ` AND r.name LIKE ?`;
             params.push(`%${search}%`);
         }
-        if (difficulty) {
-            sql += ` AND r.difficulty = ?`;
-            params.push(difficulty);
-        }
-
-        sql += ` ORDER BY r.created_at DESC`;
+        
+        // [ĐÃ SỬA] Sắp xếp theo ID giảm dần
+        sql += ` ORDER BY r.recipe_id DESC`;
 
         const [rows] = await pool.query(sql, params);
-        res.json(rows);
+        
+        res.json({ recipes: rows }); 
+
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-// 2. Tạo Recipe mới
+// ... (Các hàm create, update, delete giữ nguyên như cũ)
 const createRecipe = async (req, res) => {
     try {
         const { nutrition_data_id, name, description, image_url, video_url, serving_size, prep_time, cook_time, difficulty, instructions } = req.body;
-
         await pool.query(
             `INSERT INTO recipes 
             (nutrition_data_id, name, description, image_url, video_url, serving_size, prep_time, cook_time, difficulty, instructions) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [nutrition_data_id || null, name, description, image_url, video_url, serving_size, prep_time, cook_time, difficulty, instructions]
         );
-
         res.status(201).json({ msg: "Tạo công thức thành công!" });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-// 3. Cập nhật Recipe
 const updateRecipe = async (req, res) => {
     try {
         const { id } = req.params;
         const { nutrition_data_id, name, description, image_url, video_url, serving_size, prep_time, cook_time, difficulty, instructions } = req.body;
-
         await pool.query(
             `UPDATE recipes SET 
             nutrition_data_id=?, name=?, description=?, image_url=?, video_url=?, 
@@ -63,14 +127,12 @@ const updateRecipe = async (req, res) => {
             WHERE recipe_id=?`,
             [nutrition_data_id, name, description, image_url, video_url, serving_size, prep_time, cook_time, difficulty, instructions, id]
         );
-
         res.json({ msg: "Cập nhật thành công!" });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-// 4. Xóa Recipe
 const deleteRecipe = async (req, res) => {
     try {
         const { id } = req.params;
@@ -81,4 +143,4 @@ const deleteRecipe = async (req, res) => {
     }
 };
 
-module.exports = { getAllRecipes, createRecipe, updateRecipe, deleteRecipe };
+module.exports = { getRecipesPublic, getRecipesAdmin, createRecipe, updateRecipe, deleteRecipe };
