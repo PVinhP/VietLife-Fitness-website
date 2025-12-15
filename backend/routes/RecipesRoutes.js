@@ -9,6 +9,7 @@ const recipesRouter = express.Router();
 // 1. ROUTE PUBLIC (Dành cho RecipeSection - User xem)
 // URL: http://localhost:8080/recipes
 recipesRouter.get("/", recipesController.getRecipesPublic);
+recipesRouter.get("/:id", recipesController.getRecipeByIdPublic);
 
 // 2. ROUTE ADMIN (Dành cho RecipeManager - Admin quản lý)
 // URL: http://localhost:8080/recipes/admin-list

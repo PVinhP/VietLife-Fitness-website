@@ -1,7 +1,8 @@
 // FILE: frontend/src/pages/nutrition/RecipeSection.tsx
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+//import { Link } from 'react-router-dom';
+import RecipeDetailModal from './../../components/RecipeDetailModal';
 
 // --- I. INTERFACES VÀ HẰNG SỐ ---
 
@@ -183,7 +184,8 @@ function RecipeSection() {
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeFilters, setActiveFilters] = useState<Filters>(DEFAULT_FILTERS);
-
+    const [selectedRecipeId, setSelectedRecipeId] = useState<number | null>(null);
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
     // (THÊM) State cho loading và error
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -259,7 +261,10 @@ function RecipeSection() {
 
     }, [searchTerm, activeFilters]); // Phụ thuộc: Chạy lại khi 2 giá trị này thay đổi
 
-
+    const handleOpenDetail = (id: number) => {
+        setSelectedRecipeId(id);
+        setIsDetailOpen(true);
+    };
     // Đếm số lượng bộ lọc đang được áp dụng
     const activeFilterCount = useMemo(() => {
         return Object.values(activeFilters).filter(f => f !== 'Tất cả').length;
@@ -267,24 +272,36 @@ function RecipeSection() {
 
     // Hàm render card công thức (Không đổi)
     const renderRecipeCard = (recipe: Recipe) => (
-        <Link 
+        <div 
             key={recipe.recipeId} 
-            to={`/dinh-duong/cong-thuc/${recipe.recipeId}`}
-            className="bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer transform transition-all hover:-translate-y-2 hover:shadow-xl border border-gray-100 block"
+            // Thay Link to="..." bằng onClick
+            onClick={() => handleOpenDetail(recipe.recipeId)}
+            className="bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer transform transition-all hover:-translate-y-2 hover:shadow-xl border border-gray-100 block group"
         >
-            {/* (SỬA) Đảm bảo dùng đúng tên trường 'imageUrl' */}
-            <img src={recipe.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'} alt={recipe.name} className="w-full h-48 object-cover" />
+            <div className="relative overflow-hidden">
+                <img 
+                    src={recipe.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'} 
+                    alt={recipe.name} 
+                    className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110" 
+                />
+                <div className="absolute top-2 right-2 bg-black/60 text-white text-xs font-bold px-2 py-1 rounded backdrop-blur-sm">
+                    {recipe.prep_time + recipe.cook_time} phút
+                </div>
+            </div>
+            
             <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{recipe.name}</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-teal-600 transition-colors">{recipe.name}</h3>
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">{recipe.description}</p>
                 <div className="flex justify-between items-center">
-                    <span className="text-sm font-bold text-red-500">{recipe.calories} Calo</span>
-                    <span className="text-teal-500 font-semibold text-sm">
-                        Xem chi tiết →
+                    <span className="text-sm font-bold text-red-500 flex items-center gap-1">
+                        🔥 {recipe.calories} Calo
+                    </span>
+                    <span className="text-teal-500 font-semibold text-sm bg-teal-50 px-3 py-1 rounded-full group-hover:bg-teal-100">
+                        Xem chi tiết
                     </span>
                 </div>
             </div>
-        </Link>
+        </div>
     );
 
     // Hàm render nội dung chính (Loading, Error, Results)
@@ -375,6 +392,11 @@ function RecipeSection() {
                 onClose={() => setIsModalOpen(false)} 
                 activeFilters={activeFilters}
                 onApply={handleApplyFilters}
+            />
+            <RecipeDetailModal 
+                isOpen={isDetailOpen}
+                onClose={() => setIsDetailOpen(false)}
+                recipeId={selectedRecipeId}
             />
         </div>
     );

@@ -143,4 +143,48 @@ const deleteRecipe = async (req, res) => {
     }
 };
 
-module.exports = { getRecipesPublic, getRecipesAdmin, createRecipe, updateRecipe, deleteRecipe };
+const getRecipeByIdPublic = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Query lấy chi tiết đầy đủ của 1 recipe
+        const sql = `
+            SELECT 
+                r.*,
+                n.calories, n.protein_g, n.fats_g, n.carbs_g,
+                GROUP_CONCAT(DISTINCT CASE WHEN t.tag_type = 'MEAL' THEN t.tag_name END) AS mealTypes,
+                GROUP_CONCAT(DISTINCT CASE WHEN t.tag_type = 'GOAL' THEN t.tag_name END) AS goals
+            FROM recipes r
+            LEFT JOIN nutrition_data n ON r.nutrition_data_id = n.id
+            LEFT JOIN recipe_tags rt ON r.recipe_id = rt.recipe_id
+            LEFT JOIN tags t ON rt.tag_id = t.tag_id
+            WHERE r.recipe_id = ?
+            GROUP BY r.recipe_id
+        `;
+
+        const [rows] = await pool.query(sql, [id]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy công thức" });
+        }
+
+        const recipe = rows[0];
+        
+        // Format lại dữ liệu cho đẹp
+        const formattedRecipe = {
+            ...recipe,
+            mealType: recipe.mealTypes ? recipe.mealTypes.split(',')[0] : null,
+            goal: recipe.goals ? recipe.goals.split(',')[0] : null,
+            // Xử lý hướng dẫn: Tách dòng nếu lưu dạng text
+            instructionsList: recipe.instructions ? recipe.instructions.split('\n') : []
+        };
+
+        res.json({ success: true, recipe: formattedRecipe });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+module.exports = { getRecipesPublic, getRecipesAdmin, createRecipe, updateRecipe, deleteRecipe, getRecipeByIdPublic };
