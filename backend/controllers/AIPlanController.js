@@ -147,7 +147,7 @@ exports.generatePlan = async (req, res) => {
         const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL });
         
         const prompt = `
-    Bạn là PT Gym chuyên nghiệp (VietLife AI). Hãy thiết kế một LỘ TRÌNH 4 TUẦN dành riêng cho người dùng.
+    Bạn là PT Gym chuyên nghiệp với 10 năm kinh nghiệm (VietLife AI). Hãy thiết kế một LỘ TRÌNH 4 TUẦN dành riêng cho người dùng.
 
     Dữ liệu người dùng: ${userContext}
 
@@ -160,7 +160,8 @@ exports.generatePlan = async (req, res) => {
     1. ƯU TIÊN TUYỆT ĐỐI chọn bài tập từ danh sách trên để người dùng có video hướng dẫn.
     2. Khi chọn bài từ danh sách, BẮT BUỘC phải trả về đúng "exercise_id".
     3. Nếu bài tập rất cần thiết mà không có trong danh sách, bạn được phép tự thêm nhưng để "exercise_id": null.
-    4. Chỉ trả về JSON thuần, không Markdown, không lời dẫn.
+    4. Các món ăn mục nutrition phải quen thuộc với người Việt Nam, dễ tìm nguyên liệu và nấu nướng.
+    5. Chỉ trả về JSON thuần, không Markdown, không lời dẫn.
 
     CẤU TRÚC JSON OUTPUT (Tuyệt đối tuân thủ):
     {
@@ -199,13 +200,47 @@ exports.generatePlan = async (req, res) => {
             }
             // ... (Tiếp tục các ngày còn lại)
         ],
-        "nutrition": {
-            "calories": 2500,
-            "macro_split": "40% Carb - 30% Protein - 30% Fat",
-            "menu": [
-                { "meal": "Sáng", "suggestion": "..." },
-                { "meal": "Trưa", "suggestion": "..." },
-                { "meal": "Tối", "suggestion": "..." }
+       "nutrition": {
+            "summary": {
+                "total_calories": 2500,
+                "macro_ratio": { 
+                    "protein": "30%", 
+                    "carbs": "45%", 
+                    "fat": "25%" 
+                },
+                "advice": "Lời khuyên dinh dưỡng ngắn gọn..."
+            },
+            "weekly_menu": [
+                {
+                    "day": "Thứ 2",
+                    "meals": [
+                        { 
+                            "type": "Sáng", 
+                            "name": "Phở bò tái chín", 
+                            "calories": "500kcal", 
+                            "info": "Nhiều đạm, ít béo" 
+                        },
+                        { 
+                            "type": "Trưa", 
+                            "name": "Cơm gạo lứt ức gà", 
+                            "calories": "600kcal", 
+                            "info": "Giàu xơ" 
+                        },
+                        { 
+                            "type": "Tối", 
+                            "name": "Salad cá ngừ", 
+                            "calories": "400kcal", 
+                            "info": "Nhẹ bụng, dễ tiêu" 
+                        },
+                        { 
+                            "type": "Phụ (trước tập 45 phút)", 
+                            "name": "Sữa chua hy lạp", 
+                            "calories": "150kcal", 
+                            "info": "Probiotic" 
+                        }
+                    ]
+                }
+                // ... YÊU CẦU: Tạo đủ 7 ngày (Thứ 2 đến Chủ Nhật)
             ]
         }
     }
@@ -365,5 +400,54 @@ exports.generateNextWeek = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ msg: "Lỗi tạo tuần mới" });
+    }
+};
+
+// --- 4. HÀM ĐỔI MÓN ĂN (Regenerate Meal) ---
+exports.regenerateMeal = async (req, res) => {
+    try {
+        const { oldMealName, mealType, calories } = req.body;
+
+        // Validation cơ bản
+        if (!oldMealName || !mealType) {
+            return res.status(400).json({ msg: "Thiếu thông tin món ăn cần đổi." });
+        }
+
+        const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL });
+
+        const prompt = `
+        Tôi đang theo chế độ ăn kiêng tập gym.
+        Món hiện tại: "${oldMealName}" (${mealType}, khoảng ${calories}).
+        Tôi không thích món này hoặc muốn đổi vị.
+        
+        Hãy gợi ý 1 món ăn khác thay thế (cùng lượng calo và dinh dưỡng tương đương).
+        
+        OUTPUT JSON ONLY:
+        {
+            "meal": {
+                "name": "Tên món mới",
+                "info": "Lý do tốt (VD: Giàu đạm hơn, dễ nấu hơn...)"
+            }
+        }
+        `;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+
+        // Xử lý JSON
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) return res.status(500).json({ msg: "AI lỗi định dạng." });
+        
+        const data = JSON.parse(jsonMatch[0]);
+
+        return res.json({ 
+            msg: "Đổi món thành công", 
+            meal: data.meal 
+        });
+
+    } catch (error) {
+        console.error("Lỗi đổi món:", error);
+        return res.status(500).json({ msg: "Lỗi server khi đổi món." });
     }
 };

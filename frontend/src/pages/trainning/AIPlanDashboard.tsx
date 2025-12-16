@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import NutritionTab from './../../components/NutritionTab';
 import { 
     FaDumbbell, 
     FaUtensils, 
@@ -61,9 +62,21 @@ interface AIPlanData {
     week_3_detail?: DayPlan[];
     week_4_detail?: DayPlan[];
     nutrition: {
-        calories: number;
+        // Hỗ trợ cả cấu trúc cũ (để tránh lỗi) và cấu trúc mới
+        calories?: number;
         macro_split?: string; 
-        menu: Menu[];
+        menu?: Menu[];
+        
+        // Cấu trúc mới cho NutritionTab
+        summary?: {
+            total_calories: number;
+            macro_ratio: { protein: string; carbs: string; fat: string };
+            advice: string;
+        };
+        weekly_menu?: {
+            day: string;
+            meals: any[];
+        }[];
     };
     [key: string]: any; // Cho phép truy cập dynamic keys
 }
@@ -247,6 +260,24 @@ const AIPlanDashboard = () => {
         ? plan.week_1_detail 
         : plan[`week_${currentWeekIndex}_detail`];
 
+    // --- HÀM CẬP NHẬT MÓN ĂN (Đã sửa lỗi TypeScript) ---
+    const handleUpdateMeal = (dayIdx: number, mealIdx: number, newMeal: any) => {
+        // 1. Kiểm tra an toàn: Nếu không có plan hoặc chưa có menu thì dừng luôn
+        if (!plan || !plan.nutrition.weekly_menu) return;
+
+        // 2. Clone deep plan
+        const newPlan = { ...plan };
+        
+        // 3. Cập nhật món ăn
+        // SỬA LỖI Ở ĐÂY: Thêm dấu ? trước .[dayIdx] để kiểm tra tồn tại
+        if (newPlan.nutrition.weekly_menu?.[dayIdx]) {
+            
+            // Thêm dấu ! sau weekly_menu để khẳng định với TypeScript là nó chắc chắn có dữ liệu
+            newPlan.nutrition.weekly_menu![dayIdx].meals[mealIdx] = newMeal;
+            
+            setPlan(newPlan);
+        }
+    };
     // --- MAIN RENDER ---
     return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans">
@@ -564,40 +595,16 @@ const AIPlanDashboard = () => {
                 )}
 
                 {/* 4. NUTRITION CONTENT */}
+                {/* 4. NUTRITION CONTENT */}
                 {activeTab === 'nutrition' && (
-                    <div className="animate-fade-in-up space-y-6">
-                        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl p-6 shadow-lg shadow-orange-200 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-10 -mt-10"></div>
-                            <div className="relative z-10 text-center">
-                                <h3 className="text-sm font-bold uppercase opacity-90 mb-2">Tổng năng lượng mục tiêu</h3>
-                                <div className="text-4xl font-black mb-4">{plan.nutrition?.calories} <span className="text-lg font-medium">kcal/ngày</span></div>
-                                
-                                {plan.nutrition?.macro_split && (
-                                    <div className="inline-block bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20">
-                                        <p className="text-sm font-bold">{plan.nutrition.macro_split}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {plan.nutrition?.menu?.map((meal, idx) => (
-                                <div key={idx} className="bg-white p-5 rounded-2xl shadow-sm border border-orange-50 flex gap-4 items-start hover:shadow-md transition-all hover:-translate-y-1">
-                                    <div className="w-14 flex-shrink-0 text-center">
-                                        <div className="w-10 h-10 bg-orange-100 rounded-full mx-auto flex items-center justify-center text-orange-600 shadow-sm mb-2">
-                                            <FaUtensils size={14}/>
-                                        </div>
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{meal.meal}</span>
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-bold text-slate-800 text-sm md:text-base border-b border-gray-100 pb-1 mb-2">Gợi ý món ăn</h4>
-                                        <p className="text-sm text-gray-600 leading-relaxed">
-                                            {meal.suggestion}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                    <div className="w-full">
+                         {/* Truyền dữ liệu nutrition và hàm update vào NutritionTab */}
+                         {/* Ép kiểu 'any' cho data nếu cấu trúc backend chưa đồng bộ hoàn toàn, 
+                             giúp tránh lỗi TS trong quá trình chuyển đổi */}
+                        <NutritionTab 
+                            data={plan.nutrition as any} 
+                            onUpdateMeal={handleUpdateMeal} 
+                        />
                     </div>
                 )}
             </div>
