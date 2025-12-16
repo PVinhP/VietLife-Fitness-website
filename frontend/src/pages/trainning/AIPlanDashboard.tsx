@@ -10,16 +10,24 @@ import {
     FaLock,
     FaCheckCircle,
     FaClock,
-    FaFire
+    FaFire,
+    FaPlayCircle // Icon mới cho nút Play
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 // --- 1. DEFINITIONS & INTERFACES ---
+
+// Cập nhật Interface Exercise để hứng dữ liệu "Hydration" từ Backend
 interface Exercise {
+    exercise_id?: number; // ID thật trong DB (nếu có)
     name: string;
     sets: string;
     reps: string;
     note: string;
+    thumbnail_url?: string; // Link ảnh (nếu có)
+    video_url?: string;     // Link video (nếu có)
+    is_real?: boolean;      // Cờ đánh dấu: true = có trong DB, false = AI tự bịa
+    difficulty?: string;
 }
 
 interface DayPlan {
@@ -45,13 +53,13 @@ interface AIPlanData {
         bmi: string;
         tdee: string;
         advice: string;
-        goal_summary?: string; // Mới: Tóm tắt mục tiêu (VD: Tăng cơ, Giảm mỡ)
+        goal_summary?: string; 
     };
-    roadmap: RoadmapPhase[]; // Mới: Lộ trình 4 tuần
-    week_1_detail: DayPlan[]; // Đổi tên từ schedule -> week_1_detail
+    roadmap: RoadmapPhase[]; 
+    week_1_detail: DayPlan[]; 
     nutrition: {
         calories: number;
-        macro_split?: string; // Mới: Tỉ lệ dinh dưỡng
+        macro_split?: string; 
         menu: Menu[];
     };
 }
@@ -111,7 +119,7 @@ const AIPlanDashboard = () => {
             // Handle Case: Chưa có profile sức khỏe
             if (response.status === 400 && data.action === 'REDIRECT_TO_WIZARD') {
                 alert("Bạn cần cập nhật hồ sơ sức khỏe trước khi xem lộ trình.");
-                navigate('/plan'); // Chuyển hướng về trang nhập liệu
+                navigate('/plan'); 
                 return;
             }
 
@@ -135,6 +143,24 @@ const AIPlanDashboard = () => {
         fetchAIPlan(false);
     }, []);
 
+    // --- HÀM XỬ LÝ CLICK BÀI TẬP (MỚI) ---
+    const handleExerciseClick = (ex: Exercise) => {
+        if (ex.is_real && ex.exercise_id) {
+            // Chuyển hướng sang trang Thư viện (Exercise.tsx)
+            // 'state' giúp Exercise.tsx biết cần mở bài nào ngay lập tức
+            navigate('/exercise', { 
+                state: { 
+                    selectedExerciseId: ex.exercise_id,
+                    fromPlan: true // Cờ để hiện nút "Quay lại lộ trình"
+                } 
+            });
+        } else {
+            // Nếu bài tập do AI tự tạo (không có video)
+            // Có thể mở Modal text hoặc alert đơn giản
+            // alert(`Bài tập bổ sung từ AI: ${ex.note}`);
+        }
+    };
+
     const handleEditPreferences = () => {
         navigate('/plan', { state: { isEditing: true } });
     };
@@ -149,7 +175,7 @@ const AIPlanDashboard = () => {
                     <FaRobot className="absolute inset-0 m-auto text-4xl text-teal-400" />
                 </div>
                 <h2 className="text-2xl font-bold mb-2 animate-pulse text-center">VietLife AI đang phân tích...</h2>
-                <div className="text-teal-300/70 text-sm">Đang thiết kế lộ trình 4 tuần tối ưu nhất</div>
+                <div className="text-teal-300/70 text-sm">Đang tìm video hướng dẫn và thiết kế lộ trình...</div>
             </div>
         );
     }
@@ -236,7 +262,7 @@ const AIPlanDashboard = () => {
             {/* B. BODY CONTENT */}
             <div className="max-w-5xl mx-auto px-4 -mt-10 relative z-20 space-y-8">
                 
-                {/* 1. ROADMAP 4 TUẦN (MỚI) */}
+                {/* 1. ROADMAP 4 TUẦN */}
                 <div className="bg-white rounded-2xl p-6 shadow-xl border border-teal-50">
                     <h3 className="text-lg font-bold text-slate-800 mb-5 flex items-center gap-2">
                         <FaCalendarAlt className="text-teal-600"/> Lộ trình 4 Tuần của bạn
@@ -301,7 +327,7 @@ const AIPlanDashboard = () => {
                     </div>
                 </div>
 
-                {/* 3. WORKOUT CONTENT */}
+                {/* 3. WORKOUT CONTENT (ĐÃ NÂNG CẤP HYDRATION) */}
                 {activeTab === 'workout' && (
                     <div className="space-y-6 animate-fade-in-up">
                         <div className="text-center">
@@ -340,25 +366,78 @@ const AIPlanDashboard = () => {
                                     <div className="divide-y divide-gray-50">
                                         {day.exercises.length > 0 ? (
                                             day.exercises.map((ex, exIdx) => (
-                                                <div key={exIdx} className="p-4 sm:p-5 flex items-center justify-between hover:bg-slate-50 transition-colors group cursor-pointer">
-                                                    <div className="flex items-center gap-4">
-                                                        {/* Thumbnail Placeholder */}
-                                                        <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-teal-50 group-hover:text-teal-500 transition-colors">
-                                                            <FaDumbbell size={20} />
+                                                <div 
+                                                    key={exIdx} 
+                                                    onClick={() => handleExerciseClick(ex)}
+                                                    className={`p-4 sm:p-5 flex items-center justify-between transition-colors group ${
+                                                        ex.is_real ? 'cursor-pointer hover:bg-teal-50/40' : 'cursor-default hover:bg-gray-50'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-4 flex-1">
+                                                        {/* THUMBNAIL AREA (MỚI) */}
+                                                        <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
+                                                            {ex.thumbnail_url ? (
+                                                                <img 
+                                                                    src={ex.thumbnail_url} 
+                                                                    alt={ex.name} 
+                                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100">
+                                                                    <FaDumbbell size={20} />
+                                                                </div>
+                                                            )}
+                                                            
+                                                            {/* Overlay Play Icon nếu là bài thật */}
+                                                            {ex.is_real && (
+                                                                <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[1px]">
+                                                                    <FaPlayCircle className="text-white text-xl drop-shadow-lg" />
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                        <div>
-                                                            <h4 className="font-bold text-slate-700 text-sm sm:text-base group-hover:text-teal-700 transition-colors">{ex.name}</h4>
-                                                            <div className="flex items-center gap-2 mt-1">
-                                                                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded border border-gray-200">{ex.sets} sets</span>
-                                                                <span className="text-xs text-gray-500">{ex.reps} reps</span>
+
+                                                        {/* INFO AREA */}
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                <h4 className={`font-bold text-sm sm:text-base line-clamp-1 ${ex.is_real ? 'text-slate-800 group-hover:text-teal-700' : 'text-gray-600'}`}>
+                                                                    {ex.name}
+                                                                </h4>
+                                                                
+                                                                {/* Badges */}
+                                                                {ex.is_real ? (
+                                                                    <span className="text-[10px] bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded border border-teal-200 font-bold">
+                                                                        VIDEO
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded border border-gray-200">
+                                                                        AI GỢI Ý
+                                                                    </span>
+                                                                )}
                                                             </div>
+
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <span className="text-xs bg-white text-slate-700 px-2 py-0.5 rounded border border-gray-200 font-mono font-bold shadow-sm">
+                                                                    {ex.sets} sets
+                                                                </span>
+                                                                <span className="text-xs text-gray-500">
+                                                                    x {ex.reps} reps
+                                                                </span>
+                                                            </div>
+                                                            
                                                             {ex.note && (
-                                                                <p className="text-xs text-orange-500 mt-1 flex items-center gap-1">
+                                                                <p className="text-xs text-orange-500 mt-1 flex items-center gap-1 line-clamp-1">
                                                                     <FaExclamationTriangle size={10}/> {ex.note}
                                                                 </p>
                                                             )}
                                                         </div>
                                                     </div>
+
+                                                    {/* Action Arrow (Chỉ hiện nếu click được) */}
+                                                    {ex.is_real && (
+                                                        <div className="text-gray-300 ml-2 group-hover:translate-x-1 transition-transform group-hover:text-teal-500">
+                                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ))
                                         ) : (
