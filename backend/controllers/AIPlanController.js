@@ -100,8 +100,8 @@ exports.generatePlan = async (req, res) => {
                 "day": "Thứ 2", 
                 "focus": "Ngực & Tay sau", 
                 "exercises": [ 
-                    { "name": "Đẩy ngực tạ đòn", "sets": "3", "reps": "10-12", "note": "Gồng ngực khi đẩy lên" },
-                    { "name": "Hít đất", "sets": "3", "reps": "Failure", "note": "Xuống chậm" }
+                    { "name": "Đẩy ngực tạ đòn", "sets": "3", "reps": "10-12", "note": "lưu ý" },
+                    { "name": "Hít đất", "sets": "3", "reps": "Failure", "note": "lưu ý" }
                 ] 
             },
             {
