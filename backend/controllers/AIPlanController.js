@@ -77,50 +77,82 @@ exports.generatePlan = async (req, res) => {
         const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL });
         
         const prompt = `
-        Bạn là PT Gym chuyên nghiệp (VietLife AI). Hãy tạo lộ trình tập luyện và dinh dưỡng cá nhân hóa.
-        
-        ${userContext}
+    Bạn là PT Gym chuyên nghiệp (VietLife AI). Hãy thiết kế một LỘ TRÌNH 4 TUẦN dành riêng cho người dùng này.
 
-        YÊU CẦU ĐẦU RA (JSON THUẦN):
-        {
-            "analysis": {
-                "bmi": "Số liệu BMI",
-                "tdee": "Số liệu TDEE",
-                "advice": "Lời khuyên ngắn gọn"
+    Dữ liệu người dùng: ${userContext}
+
+    YÊU CẦU CẤU TRÚC JSON (Tuyệt đối tuân thủ):
+    {
+        "analysis": {
+            "bmi": "Số liệu (VD: 22.5)",
+            "tdee": "Số liệu (VD: 2200 kcal)",
+            "advice": "Lời khuyên chiến lược cho 4 tuần",
+            "goal_summary": "Ví dụ: Tăng cơ nạc, giảm mỡ bụng"
+        },
+        "roadmap": [
+            { "week": 1, "phase": "Giai đoạn 1", "focus": "Làm quen & Kích hoạt cơ", "desc": "Tập trung vào form chuẩn, cường độ vừa phải." },
+            { "week": 2, "phase": "Giai đoạn 2", "focus": "Tăng cường độ (Progressive Overload)", "desc": "Tăng tạ hoặc số reps." },
+            { "week": 3, "phase": "Giai đoạn 3", "focus": "Tối đa hóa Hypertrophy", "desc": "Kỹ thuật Drop-set hoặc Super-set." },
+            { "week": 4, "phase": "Giai đoạn 4", "focus": "Deload & Phục hồi", "desc": "Giảm khối lượng để cơ thể hồi phục." }
+        ],
+        "week_1_detail": [
+            { 
+                "day": "Thứ 2", 
+                "focus": "Ngực & Tay sau", 
+                "exercises": [ 
+                    { "name": "Đẩy ngực tạ đòn", "sets": "3", "reps": "10-12", "note": "Gồng ngực khi đẩy lên" },
+                    { "name": "Hít đất", "sets": "3", "reps": "Failure", "note": "Xuống chậm" }
+                ] 
             },
-            "schedule": [
-                { 
-                    "day": "Thứ 2", 
-                    "focus": "Nhóm cơ", 
-                    "exercises": [ 
-                        { "name": "Tên bài", "sets": "3", "reps": "12", "note": "Lưu ý" } 
-                    ] 
-                }
-            ],
-            "nutrition": {
-                "calories": 2500,
-                "menu": [
-                    { "meal": "Sáng", "suggestion": "Món ăn" }
-                ]
+            {
+                "day": "Thứ 3",
+                "focus": "Nghỉ ngơi / Cardio nhẹ",
+                "exercises": []
             }
+            // ... Tiếp tục cho đủ 7 ngày
+        ],
+        "nutrition": {
+            "calories": 2500,
+            "macro_split": "40% Carb - 30% Protein - 30% Fat",
+            "menu": [
+                { "meal": "Sáng", "suggestion": "Yến mạch + 2 trứng luộc" },
+                { "meal": "Trưa", "suggestion": "Cơm gạo lứt + Ức gà áp chảo + Bông cải xanh" },
+                { "meal": "Trước tập", "suggestion": "1 quả chuối" },
+                { "meal": "Tối", "suggestion": "Salad cá ngừ" }
+            ]
         }
-        `;
+    }
+    `;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
         let text = response.text();
 
-        text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+        // --- ĐOẠN CODE MỚI: DÙNG REGEX ĐỂ TRÍCH XUẤT JSON ---
+        console.log("Raw AI response:", text); // Log ra để debug nếu cần
+
+        // Tìm vị trí bắt đầu '{' và kết thúc '}'
+        const jsonMatch = text.match(/\{[\s\S]*\}/); 
+        
+        if (!jsonMatch) {
+            console.error("AI không trả về JSON hợp lệ:", text);
+            return res.status(500).json({ msg: "AI trả về dữ liệu lỗi. Vui lòng thử lại." });
+        }
+
+        // Lấy đúng phần chuỗi JSON sạch
+        const jsonString = jsonMatch[0];
         
         let aiPlanJson;
         try {
-            aiPlanJson = JSON.parse(text);
+            aiPlanJson = JSON.parse(jsonString);
         } catch (jsonError) {
-            console.error("AI JSON Parse Error:", text);
-            return res.status(500).json({ msg: "AI trả về lỗi định dạng. Vui lòng thử lại." });
+            console.error("JSON Parse Error:", jsonError);
+            // Fallback: Đôi khi AI thêm dấu phẩy thừa ở cuối danh sách, có thể dùng thư viện json5 để parse nếu cần
+            return res.status(500).json({ msg: "Lỗi định dạng dữ liệu từ AI." });
         }
+        // --- KẾT THÚC ĐOẠN CODE MỚI ---
 
-        // C. Database Transaction
+        // C. Database Transaction (Giữ nguyên phần dưới)
         const connection = await pool.getConnection();
         try {
             await connection.beginTransaction();

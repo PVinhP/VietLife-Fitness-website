@@ -1,13 +1,14 @@
 // src/pages/profile/components/Dashboard/QuickActions.tsx
 import React from 'react';
-
+import { useNavigate } from 'react-router-dom';
 export const QuickActions = () => {
+  const navigate = useNavigate();
   const handleAddMeal = () => {
-    alert('Mở modal thêm bữa ăn');
+    navigate('/nutrition/meal-planner');
   };
 
   const handleAddWorkout = () => {
-    alert('Mở modal thêm bài tập');
+    navigate('/training/plans');
   };
 
   const handleAddWeight = () => {

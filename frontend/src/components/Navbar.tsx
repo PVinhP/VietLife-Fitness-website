@@ -111,14 +111,33 @@ function Navbar() {
               </NavDropdown>
             </li>
 
-            {/* DINH DƯỠNG */}
+           {/* DINH DƯỠNG */}
             <li className="w-full md:w-auto">
               <NavDropdown title="Dinh dưỡng">
-                <DropdownItem to="/nutrition/tools">Công cụ (Tra cứu &amp; TDEE)</DropdownItem>
-                <DropdownItem to="/nutrition/recipes">Thư viện công thức ăn uống</DropdownItem>
-                <DropdownItem to="/nutrition/meal-planner">Nhật ký thực đơn</DropdownItem>
-                <DropdownItem to="/nutrition/library-food">Thư viện Thực phẩm</DropdownItem>
-                <DropdownItem to="/nutrition">Xem tất cả</DropdownItem>
+                {/* Thêm icon 🧮 hoặc ⚖️ cho công cụ tính toán */}
+                <DropdownItem to="/nutrition/tools">
+                    🧮 Công cụ (Tra cứu &amp; TDEE)
+                </DropdownItem>
+
+                {/* Thêm icon 🍲 hoặc 🥗 cho công thức nấu ăn */}
+                <DropdownItem to="/nutrition/recipes">
+                    🍲 Thư viện công thức
+                </DropdownItem>
+
+                {/* Thêm icon 📅 hoặc 🍽️ cho kế hoạch ăn uống */}
+                <DropdownItem to="/nutrition/meal-planner">
+                    📅 Nhật ký thực đơn
+                </DropdownItem>
+
+                {/* Thêm icon 🍎 hoặc 🥦 cho thực phẩm */}
+                <DropdownItem to="/nutrition/library-food">
+                    🍎 Thư viện Thực phẩm
+                </DropdownItem>
+                
+                {/* Thêm icon 🔍 hoặc 👀 cho xem tất cả */}
+                <DropdownItem to="/nutrition">
+                    🔍 Xem tất cả
+                </DropdownItem>
               </NavDropdown>
             </li>
 
