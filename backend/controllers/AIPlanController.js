@@ -266,3 +266,104 @@ exports.generatePlan = async (req, res) => {
         res.status(500).json({ msg: "Hệ thống đang bận.", error: error.message });
     }
 };
+
+// --- 3. HÀM TẠO TUẦN TIẾP THEO (Adaptive) ---
+exports.generateNextWeek = async (req, res) => {
+    const userId = req.user.id;
+    const { currentWeek, feedback } = req.body; // feedback: "easy", "medium", "hard"
+
+    try {
+        // 1. Lấy lộ trình hiện tại từ DB
+        const [rows] = await pool.query(
+            "SELECT id, ai_data FROM user_ai_plans WHERE user_id = ? AND status = 'active' ORDER BY id DESC LIMIT 1",
+            [userId]
+        );
+
+        if (rows.length === 0) return res.status(404).json({ msg: "Không tìm thấy lộ trình." });
+        
+        const planId = rows[0].id;
+        let aiData = rows[0].ai_data;
+        if (typeof aiData === 'string') aiData = JSON.parse(aiData);
+
+        // 2. Kiểm tra xem tuần tiếp theo đã có chưa (tránh spam)
+        const nextWeekIndex = currentWeek + 1;
+        const nextWeekKey = `week_${nextWeekIndex}_detail`; // Ví dụ: week_2_detail
+
+        if (aiData[nextWeekKey]) {
+            return res.json({ msg: "Tuần này đã được tạo rồi.", plan: aiData });
+        }
+
+        if (nextWeekIndex > 4) {
+            return res.json({ msg: "Chúc mừng! Bạn đã hoàn thành toàn bộ lộ trình." });
+        }
+
+        // 3. Chuẩn bị Menu bài tập (như cũ)
+        const exerciseMenu = await getExerciseMenu();
+
+        // 4. Prompt "Thừa kế và Thích ứng"
+        const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL });
+        const prompt = `
+        Bạn là PT Gym VietLife AI. 
+        Người dùng vừa hoàn thành TUẦN ${currentWeek} và đánh giá: "${feedback}".
+        
+        Nhiệm vụ: Tạo lịch tập chi tiết cho TUẦN ${nextWeekIndex}.
+
+        CONTEXT CŨ (Tóm tắt):
+        - Mục tiêu: ${aiData.analysis.goal_summary}
+        - Lộ trình gốc: ${JSON.stringify(aiData.roadmap.find(r => r.week === nextWeekIndex))}
+
+        YÊU CẦU ADAPTIVE:
+        - Nếu user kêu "hard" (Khó) -> Giảm nhẹ volume (số sets/reps) hoặc đổi bài dễ hơn.
+        - Nếu user kêu "easy" (Dễ) -> Tăng Progressive Overload (thêm sets hoặc note tăng tạ).
+        - Nếu "medium" -> Giữ nguyên tiến độ tăng tiến tiêu chuẩn.
+
+        INPUT DATABASE (Ưu tiên dùng ID này):
+        ${exerciseMenu}
+
+        OUTPUT JSON (Chỉ trả về chi tiết tuần mới):
+        {
+            "week_detail": [
+                { 
+                    "day": "Thứ 2", 
+                    "focus": "...", 
+                    "exercises": [ 
+                        { "exercise_id": 123, "name": "...", "sets": "...", "reps": "...", "note": "..." } 
+                    ] 
+                }
+                // ... đủ 7 ngày
+            ]
+        }
+        `;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+        
+        // Parse JSON
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) return res.status(500).json({ msg: "AI lỗi định dạng." });
+        let newWeekData = JSON.parse(jsonMatch[0]);
+
+        // Hydrate (Lấy video thật)
+        // Lưu ý: Hàm hydrate cũ của bạn đang hardcode 'week_1_detail', cần sửa nhẹ hàm hydrate để nhận mảng generic
+        // Nhưng để nhanh, ta làm thủ công ở đây hoặc tái sử dụng logic hydrate:
+        const tempObj = { week_1_detail: newWeekData.week_detail }; // Hack nhẹ để dùng lại hàm hydrate cũ
+        const hydratedTemp = await hydratePlanWithRealData(tempObj);
+        newWeekData.week_detail = hydratedTemp.week_1_detail;
+
+        // 5. Cập nhật vào JSON gốc và Lưu DB
+        aiData[nextWeekKey] = newWeekData.week_detail;
+        
+        // Update DB
+        await pool.query(
+            "UPDATE user_ai_plans SET ai_data = ? WHERE id = ?",
+            [JSON.stringify(aiData), planId]
+        );
+
+        res.json({ msg: `Đã mở khóa Tuần ${nextWeekIndex}`, plan: aiData });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: "Lỗi tạo tuần mới" });
+    }
+};

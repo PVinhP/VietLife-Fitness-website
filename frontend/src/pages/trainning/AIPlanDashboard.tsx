@@ -11,22 +11,21 @@ import {
     FaCheckCircle,
     FaClock,
     FaFire,
-    FaPlayCircle // Icon mới cho nút Play
+    FaPlayCircle
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 // --- 1. DEFINITIONS & INTERFACES ---
 
-// Cập nhật Interface Exercise để hứng dữ liệu "Hydration" từ Backend
 interface Exercise {
-    exercise_id?: number; // ID thật trong DB (nếu có)
+    exercise_id?: number;
     name: string;
     sets: string;
     reps: string;
     note: string;
-    thumbnail_url?: string; // Link ảnh (nếu có)
-    video_url?: string;     // Link video (nếu có)
-    is_real?: boolean;      // Cờ đánh dấu: true = có trong DB, false = AI tự bịa
+    thumbnail_url?: string;
+    video_url?: string;
+    is_real?: boolean;
     difficulty?: string;
 }
 
@@ -48,6 +47,7 @@ interface Menu {
     suggestion: string;
 }
 
+// Cập nhật Interface để hỗ trợ dynamic keys (week_2, week_3...)
 interface AIPlanData {
     analysis: {
         bmi: string;
@@ -56,12 +56,16 @@ interface AIPlanData {
         goal_summary?: string; 
     };
     roadmap: RoadmapPhase[]; 
-    week_1_detail: DayPlan[]; 
+    week_1_detail: DayPlan[];
+    week_2_detail?: DayPlan[];
+    week_3_detail?: DayPlan[];
+    week_4_detail?: DayPlan[];
     nutrition: {
         calories: number;
         macro_split?: string; 
         menu: Menu[];
     };
+    [key: string]: any; // Cho phép truy cập dynamic keys
 }
 
 const AIPlanDashboard = () => {
@@ -73,6 +77,10 @@ const AIPlanDashboard = () => {
     const [isRegenerating, setIsRegenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'workout' | 'nutrition'>('workout');
+
+    // MỚI: Quản lý tuần đang xem và trạng thái hoàn thành
+    const [currentWeekIndex, setCurrentWeekIndex] = useState(1);
+    const [completingWeek, setCompletingWeek] = useState(false);
 
     // --- 3. API FETCHING LOGIC ---
     const fetchAIPlan = async (forceRegenerate: boolean = false): Promise<void> => {
@@ -90,7 +98,6 @@ const AIPlanDashboard = () => {
                 return;
             }
 
-            // Endpoint logic
             let url = 'http://localhost:8080/api/ai-plan/current';
             let method = 'GET';
 
@@ -109,14 +116,11 @@ const AIPlanDashboard = () => {
 
             const data = await response.json();
 
-            // Handle Case: Chưa có lộ trình (404) -> Tự động tạo mới
             if (response.status === 404 && !forceRegenerate) {
-                console.log("Chưa có lộ trình, hệ thống đang tự tạo mới...");
                 await fetchAIPlan(true); 
                 return;
             }
 
-            // Handle Case: Chưa có profile sức khỏe
             if (response.status === 400 && data.action === 'REDIRECT_TO_WIZARD') {
                 alert("Bạn cần cập nhật hồ sơ sức khỏe trước khi xem lộ trình.");
                 navigate('/plan'); 
@@ -127,8 +131,15 @@ const AIPlanDashboard = () => {
                 throw new Error(data.msg || "Không thể tải lộ trình.");
             }
 
-            // Success
             setPlan(data.plan);
+            
+            // Logic tự động chuyển sang tuần mới nhất có dữ liệu
+            if (data.plan) {
+                if (data.plan.week_4_detail) setCurrentWeekIndex(4);
+                else if (data.plan.week_3_detail) setCurrentWeekIndex(3);
+                else if (data.plan.week_2_detail) setCurrentWeekIndex(2);
+                else setCurrentWeekIndex(1);
+            }
 
         } catch (err: any) {
             console.error("Lỗi:", err);
@@ -143,21 +154,54 @@ const AIPlanDashboard = () => {
         fetchAIPlan(false);
     }, []);
 
-    // --- HÀM XỬ LÝ CLICK BÀI TẬP (MỚI) ---
+    // --- MỚI: HÀM HOÀN THÀNH TUẦN (ADAPTIVE LEARNING) ---
+    const handleCompleteWeek = async (feedback: string) => {
+        if (!plan) return;
+        setCompletingWeek(true);
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:8080/api/ai-plan/next-week', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ 
+                    currentWeek: currentWeekIndex, 
+                    feedback: feedback // 'easy', 'medium', 'hard'
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Cập nhật plan mới (đã có tuần tiếp theo)
+                setPlan(data.plan); 
+                // Chuyển view sang tuần mới
+                setCurrentWeekIndex(prev => prev + 1); 
+                // Cuộn lên đầu trang
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                alert(`🎉 Tuyệt vời! AI đã điều chỉnh và mở khóa Tuần ${currentWeekIndex + 1} cho bạn.`);
+            } else {
+                alert(data.msg || "Có lỗi xảy ra khi tạo tuần mới.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Lỗi kết nối server.");
+        } finally {
+            setCompletingWeek(false);
+        }
+    };
+
     const handleExerciseClick = (ex: Exercise) => {
         if (ex.is_real && ex.exercise_id) {
-            // Chuyển hướng sang trang Thư viện (Exercise.tsx)
-            // 'state' giúp Exercise.tsx biết cần mở bài nào ngay lập tức
-            navigate('/exercise', { 
+            navigate('/exercises', { 
                 state: { 
                     selectedExerciseId: ex.exercise_id,
-                    fromPlan: true // Cờ để hiện nút "Quay lại lộ trình"
+                    fromPlan: true 
                 } 
             });
-        } else {
-            // Nếu bài tập do AI tự tạo (không có video)
-            // Có thể mở Modal text hoặc alert đơn giản
-            // alert(`Bài tập bổ sung từ AI: ${ex.note}`);
         }
     };
 
@@ -165,7 +209,7 @@ const AIPlanDashboard = () => {
         navigate('/plan', { state: { isEditing: true } });
     };
 
-    // --- 4. RENDER: LOADING SCREEN ---
+    // --- RENDER HELPERS ---
     if (isLoading) {
         return (
             <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white px-4">
@@ -175,12 +219,11 @@ const AIPlanDashboard = () => {
                     <FaRobot className="absolute inset-0 m-auto text-4xl text-teal-400" />
                 </div>
                 <h2 className="text-2xl font-bold mb-2 animate-pulse text-center">VietLife AI đang phân tích...</h2>
-                <div className="text-teal-300/70 text-sm">Đang tìm video hướng dẫn và thiết kế lộ trình...</div>
+                <div className="text-teal-300/70 text-sm">Đang thiết kế lộ trình tối ưu nhất...</div>
             </div>
         );
     }
 
-    // --- 5. RENDER: ERROR SCREEN ---
     if (error) {
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
@@ -199,13 +242,17 @@ const AIPlanDashboard = () => {
 
     if (!plan) return null;
 
-    // --- 6. RENDER: MAIN DASHBOARD ---
+    // Lấy dữ liệu của tuần đang chọn
+    const currentWeekData = currentWeekIndex === 1 
+        ? plan.week_1_detail 
+        : plan[`week_${currentWeekIndex}_detail`];
+
+    // --- MAIN RENDER ---
     return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans">
             
             {/* A. HEADER AREA */}
             <div className="bg-gradient-to-br from-slate-900 via-teal-900 to-slate-900 text-white p-6 md:p-10 rounded-b-[40px] shadow-2xl relative overflow-hidden">
-                {/* Decorative Elements */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
                 
                 <div className="max-w-5xl mx-auto relative z-10">
@@ -220,7 +267,6 @@ const AIPlanDashboard = () => {
                             </div>
                         </div>
                         
-                        {/* Action Buttons */}
                         <div className="flex gap-3">
                             <button 
                                 onClick={handleEditPreferences}
@@ -240,7 +286,6 @@ const AIPlanDashboard = () => {
                         </div>
                     </div>
 
-                    {/* AI Analysis Box */}
                     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10 relative overflow-hidden group hover:bg-white/15 transition-all">
                         <div className="absolute top-0 left-0 w-1 h-full bg-teal-400"></div>
                         <div className="flex flex-wrap gap-x-6 gap-y-2 mb-3 text-sm font-bold text-teal-300">
@@ -262,40 +307,56 @@ const AIPlanDashboard = () => {
             {/* B. BODY CONTENT */}
             <div className="max-w-5xl mx-auto px-4 -mt-10 relative z-20 space-y-8">
                 
-                {/* 1. ROADMAP 4 TUẦN */}
+                {/* 1. ROADMAP 4 TUẦN (INTERACTIVE) */}
                 <div className="bg-white rounded-2xl p-6 shadow-xl border border-teal-50">
                     <h3 className="text-lg font-bold text-slate-800 mb-5 flex items-center gap-2">
-                        <FaCalendarAlt className="text-teal-600"/> Lộ trình 4 Tuần của bạn
+                        <FaCalendarAlt className="text-teal-600"/> Lộ trình 4 Tuần
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {plan.roadmap?.map((week, idx) => (
-                            <div 
-                                key={idx} 
-                                className={`relative p-5 rounded-xl border transition-all duration-300 ${
-                                    week.week === 1 
-                                    ? 'bg-gradient-to-br from-teal-50 to-white border-teal-200 ring-2 ring-teal-500/20 shadow-md transform -translate-y-1' 
-                                    : 'bg-gray-50 border-gray-100 opacity-80 hover:opacity-100 hover:shadow-sm'
-                                }`}
-                            >
-                                {week.week === 1 && (
-                                    <div className="absolute -top-3 -right-2 bg-teal-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm flex items-center gap-1">
-                                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
-                                        ĐANG TẬP
+                        {plan.roadmap?.map((week, idx) => {
+                            // Logic kiểm tra xem tuần này đã mở khóa chưa
+                            const isUnlocked = idx === 0 || plan[`week_${week.week}_detail`];
+                            const isSelected = week.week === currentWeekIndex;
+
+                            return (
+                                <div 
+                                    key={idx} 
+                                    onClick={() => isUnlocked && setCurrentWeekIndex(week.week)}
+                                    className={`relative p-5 rounded-xl border transition-all duration-300 cursor-pointer ${
+                                        isSelected 
+                                        ? 'bg-gradient-to-br from-teal-50 to-white border-teal-500 ring-2 ring-teal-500 shadow-md transform -translate-y-1' 
+                                        : isUnlocked
+                                            ? 'bg-white border-gray-200 hover:border-teal-300 hover:bg-teal-50/30'
+                                            : 'bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed'
+                                    }`}
+                                >
+                                    {/* Badge trạng thái */}
+                                    {isSelected && (
+                                        <div className="absolute -top-3 -right-2 bg-teal-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
+                                            ĐANG XEM
+                                        </div>
+                                    )}
+                                    
+                                    <div className="flex justify-between items-center mb-3">
+                                        <span className={`text-xs font-bold uppercase tracking-wider ${isSelected ? 'text-teal-700' : 'text-gray-500'}`}>
+                                            Tuần {week.week}
+                                        </span>
+                                        {!isUnlocked ? (
+                                            <FaLock className="text-gray-400 text-xs" />
+                                        ) : (
+                                            // Nếu là tuần cũ (nhỏ hơn tuần hiện tại đang có) thì hiện check
+                                            week.week < 4 && plan[`week_${week.week + 1}_detail`] && (
+                                                <FaCheckCircle className="text-green-500 text-xs" />
+                                            )
+                                        )}
                                     </div>
-                                )}
-                                
-                                <div className="flex justify-between items-center mb-3">
-                                    <span className={`text-xs font-bold uppercase tracking-wider ${week.week === 1 ? 'text-teal-700' : 'text-gray-500'}`}>
-                                        Tuần {week.week}
-                                    </span>
-                                    {week.week > 1 && <FaLock className="text-gray-300 text-xs" />}
+                                    
+                                    <h4 className="font-bold text-slate-800 text-sm mb-1 leading-tight">{week.phase}</h4>
+                                    <p className="text-xs text-teal-600 font-bold mb-2">{week.focus}</p>
+                                    <p className="text-[11px] text-gray-500 leading-normal line-clamp-2">{week.desc}</p>
                                 </div>
-                                
-                                <h4 className="font-bold text-slate-800 text-sm mb-1 leading-tight">{week.phase}</h4>
-                                <p className="text-xs text-teal-600 font-bold mb-2">{week.focus}</p>
-                                <p className="text-[11px] text-gray-500 leading-normal line-clamp-3">{week.desc}</p>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -311,7 +372,7 @@ const AIPlanDashboard = () => {
                             }`}
                         >
                             <FaDumbbell className={activeTab === 'workout' ? 'text-teal-400' : ''} /> 
-                            Chi tiết Tuần 1
+                            Lịch tập Tuần {currentWeekIndex}
                         </button>
                         <button 
                             onClick={() => setActiveTab('nutrition')}
@@ -327,142 +388,184 @@ const AIPlanDashboard = () => {
                     </div>
                 </div>
 
-                {/* 3. WORKOUT CONTENT (ĐÃ NÂNG CẤP HYDRATION) */}
+                {/* 3. WORKOUT CONTENT */}
                 {activeTab === 'workout' && (
                     <div className="space-y-6 animate-fade-in-up">
                         <div className="text-center">
-                            <h3 className="text-xl font-bold text-slate-800">Lịch tập Tuần 1</h3>
-                            <p className="text-sm text-gray-500 mt-1">Hoàn thành tuần này để mở khóa lộ trình tiếp theo</p>
+                            <h3 className="text-xl font-bold text-slate-800">Chi tiết Tuần {currentWeekIndex}</h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                                {currentWeekIndex < 4 ? "Hoàn thành tuần này để mở khóa lộ trình tiếp theo" : "Chúc mừng bạn đã đến chặng cuối!"}
+                            </p>
                         </div>
 
-                        <div className="grid gap-6">
-                            {plan.week_1_detail?.map((day, idx) => (
-                                <div key={idx} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
-                                    {/* Card Header */}
-                                    <div className="bg-gradient-to-r from-slate-50 to-white px-6 py-4 border-b border-gray-100 flex flex-wrap justify-between items-center gap-2">
-                                        <div className="flex items-center gap-3">
-                                            <div className="bg-slate-800 text-white w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm">
-                                                {idx + 1}
+                        {/* DANH SÁCH BÀI TẬP CỦA TUẦN ĐANG CHỌN */}
+                        {currentWeekData ? (
+                            <div className="grid gap-6">
+                                {currentWeekData.map((day: DayPlan, idx: number) => (
+                                    <div key={idx} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                                        {/* Card Header */}
+                                        <div className="bg-gradient-to-r from-slate-50 to-white px-6 py-4 border-b border-gray-100 flex flex-wrap justify-between items-center gap-2">
+                                            <div className="flex items-center gap-3">
+                                                <div className="bg-slate-800 text-white w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm">
+                                                    {idx + 1}
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-slate-800">{day.day}</h3>
+                                                    <p className="text-xs text-teal-600 font-bold uppercase tracking-wide">{day.focus}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h3 className="font-bold text-slate-800">{day.day}</h3>
-                                                <p className="text-xs text-teal-600 font-bold uppercase tracking-wide">{day.focus}</p>
-                                            </div>
+                                            
+                                            {day.exercises.length > 0 ? (
+                                                <span className="text-xs bg-teal-50 text-teal-700 px-3 py-1 rounded-full font-bold border border-teal-100">
+                                                    {day.exercises.length} bài tập
+                                                </span>
+                                            ) : (
+                                                <span className="text-xs bg-gray-100 text-gray-500 px-3 py-1 rounded-full font-bold flex items-center gap-1">
+                                                    <FaCheckCircle className="text-gray-400"/> Ngày nghỉ
+                                                </span>
+                                            )}
                                         </div>
-                                        
-                                        {/* Badge số bài tập */}
-                                        {day.exercises.length > 0 ? (
-                                            <span className="text-xs bg-teal-50 text-teal-700 px-3 py-1 rounded-full font-bold border border-teal-100">
-                                                {day.exercises.length} bài tập
-                                            </span>
-                                        ) : (
-                                            <span className="text-xs bg-gray-100 text-gray-500 px-3 py-1 rounded-full font-bold flex items-center gap-1">
-                                                <FaCheckCircle className="text-gray-400"/> Ngày nghỉ
-                                            </span>
-                                        )}
-                                    </div>
 
-                                    {/* Exercise List */}
-                                    <div className="divide-y divide-gray-50">
-                                        {day.exercises.length > 0 ? (
-                                            day.exercises.map((ex, exIdx) => (
-                                                <div 
-                                                    key={exIdx} 
-                                                    onClick={() => handleExerciseClick(ex)}
-                                                    className={`p-4 sm:p-5 flex items-center justify-between transition-colors group ${
-                                                        ex.is_real ? 'cursor-pointer hover:bg-teal-50/40' : 'cursor-default hover:bg-gray-50'
-                                                    }`}
-                                                >
-                                                    <div className="flex items-center gap-4 flex-1">
-                                                        {/* THUMBNAIL AREA (MỚI) */}
-                                                        <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
-                                                            {ex.thumbnail_url ? (
-                                                                <img 
-                                                                    src={ex.thumbnail_url} 
-                                                                    alt={ex.name} 
-                                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                                                />
-                                                            ) : (
-                                                                <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100">
-                                                                    <FaDumbbell size={20} />
-                                                                </div>
-                                                            )}
-                                                            
-                                                            {/* Overlay Play Icon nếu là bài thật */}
-                                                            {ex.is_real && (
-                                                                <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[1px]">
-                                                                    <FaPlayCircle className="text-white text-xl drop-shadow-lg" />
-                                                                </div>
-                                                            )}
-                                                        </div>
-
-                                                        {/* INFO AREA */}
-                                                        <div className="flex-1">
-                                                            <div className="flex items-center gap-2 flex-wrap">
-                                                                <h4 className={`font-bold text-sm sm:text-base line-clamp-1 ${ex.is_real ? 'text-slate-800 group-hover:text-teal-700' : 'text-gray-600'}`}>
-                                                                    {ex.name}
-                                                                </h4>
-                                                                
-                                                                {/* Badges */}
-                                                                {ex.is_real ? (
-                                                                    <span className="text-[10px] bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded border border-teal-200 font-bold">
-                                                                        VIDEO
-                                                                    </span>
+                                        {/* Exercise List */}
+                                        <div className="divide-y divide-gray-50">
+                                            {day.exercises.length > 0 ? (
+                                                day.exercises.map((ex, exIdx) => (
+                                                    <div 
+                                                        key={exIdx} 
+                                                        onClick={() => handleExerciseClick(ex)}
+                                                        className={`p-4 sm:p-5 flex items-center justify-between transition-colors group ${
+                                                            ex.is_real ? 'cursor-pointer hover:bg-teal-50/40' : 'cursor-default hover:bg-gray-50'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-4 flex-1">
+                                                            {/* THUMBNAIL */}
+                                                            <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
+                                                                {ex.thumbnail_url ? (
+                                                                    <img 
+                                                                        src={ex.thumbnail_url} 
+                                                                        alt={ex.name} 
+                                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                                    />
                                                                 ) : (
-                                                                    <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded border border-gray-200">
-                                                                        AI GỢI Ý
-                                                                    </span>
+                                                                    <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100">
+                                                                        <FaDumbbell size={20} />
+                                                                    </div>
+                                                                )}
+                                                                {ex.is_real && (
+                                                                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[1px]">
+                                                                        <FaPlayCircle className="text-white text-xl drop-shadow-lg" />
+                                                                    </div>
                                                                 )}
                                                             </div>
 
-                                                            <div className="flex items-center gap-2 mt-1">
-                                                                <span className="text-xs bg-white text-slate-700 px-2 py-0.5 rounded border border-gray-200 font-mono font-bold shadow-sm">
-                                                                    {ex.sets} sets
-                                                                </span>
-                                                                <span className="text-xs text-gray-500">
-                                                                    x {ex.reps} reps
-                                                                </span>
-                                                            </div>
-                                                            
-                                                            {ex.note && (
-                                                                <p className="text-xs text-orange-500 mt-1 flex items-center gap-1 line-clamp-1">
-                                                                    <FaExclamationTriangle size={10}/> {ex.note}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
+                                                            {/* INFO */}
+                                                            <div className="flex-1">
+                                                                <div className="flex items-center gap-2 flex-wrap">
+                                                                    <h4 className={`font-bold text-sm sm:text-base line-clamp-1 ${ex.is_real ? 'text-slate-800 group-hover:text-teal-700' : 'text-gray-600'}`}>
+                                                                        {ex.name}
+                                                                    </h4>
+                                                                    {ex.is_real ? (
+                                                                        <span className="text-[10px] bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded border border-teal-200 font-bold">VIDEO</span>
+                                                                    ) : (
+                                                                        <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded border border-gray-200">AI GỢI Ý</span>
+                                                                    )}
+                                                                </div>
 
-                                                    {/* Action Arrow (Chỉ hiện nếu click được) */}
-                                                    {ex.is_real && (
-                                                        <div className="text-gray-300 ml-2 group-hover:translate-x-1 transition-transform group-hover:text-teal-500">
-                                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                                                                <div className="flex items-center gap-2 mt-1">
+                                                                    <span className="text-xs bg-white text-slate-700 px-2 py-0.5 rounded border border-gray-200 font-mono font-bold shadow-sm">
+                                                                        {ex.sets} sets
+                                                                    </span>
+                                                                    <span className="text-xs text-gray-500">
+                                                                        x {ex.reps} reps
+                                                                    </span>
+                                                                </div>
+                                                                
+                                                                {ex.note && (
+                                                                    <p className="text-xs text-orange-500 mt-1 flex items-center gap-1 line-clamp-1">
+                                                                        <FaExclamationTriangle size={10}/> {ex.note}
+                                                                    </p>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                    )}
+
+                                                        {ex.is_real && (
+                                                            <div className="text-gray-300 ml-2 group-hover:translate-x-1 transition-transform group-hover:text-teal-500">
+                                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="p-8 text-center bg-gray-50/50">
+                                                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 mx-auto mb-3">
+                                                        <FaClock />
+                                                    </div>
+                                                    <p className="text-gray-500 text-sm italic">
+                                                        "Cơ bắp phát triển khi bạn nghỉ ngơi. Hãy ngủ đủ giấc nhé!"
+                                                    </p>
                                                 </div>
-                                            ))
-                                        ) : (
-                                            /* Empty State for Rest Day */
-                                            <div className="p-8 text-center bg-gray-50/50">
-                                                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 mx-auto mb-3">
-                                                    <FaClock />
-                                                </div>
-                                                <p className="text-gray-500 text-sm italic">
-                                                    "Cơ bắp phát triển khi bạn nghỉ ngơi. Hãy ngủ đủ giấc và ăn uống đầy đủ nhé!"
-                                                </p>
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+
+                                {/* --- KHU VỰC HOÀN THÀNH TUẦN (ADAPTIVE FEEDBACK) --- */}
+                                {/* Chỉ hiện nếu đang xem tuần mới nhất được mở khóa và chưa phải tuần cuối cùng */}
+                                {currentWeekIndex < 4 && !plan[`week_${currentWeekIndex + 1}_detail`] && (
+                                    <div className="mt-8 bg-gradient-to-br from-white to-teal-50 p-6 rounded-2xl border border-teal-200 text-center shadow-lg relative overflow-hidden">
+                                        <div className="relative z-10">
+                                            <h3 className="text-xl font-bold text-slate-800 mb-2">🎉 Bạn đã hoàn thành Tuần {currentWeekIndex}?</h3>
+                                            <p className="text-sm text-gray-600 mb-6 max-w-md mx-auto">
+                                                Hãy đánh giá mức độ của tuần này để AI điều chỉnh lộ trình 
+                                                <span className="font-bold text-teal-700"> Tuần {currentWeekIndex + 1}</span> phù hợp nhất với sức khỏe của bạn.
+                                            </p>
+                                            
+                                            <div className="flex flex-wrap justify-center gap-4">
+                                                <button 
+                                                    onClick={() => handleCompleteWeek('easy')}
+                                                    disabled={completingWeek}
+                                                    className="px-5 py-3 bg-white border border-green-200 text-green-700 rounded-xl hover:bg-green-50 hover:scale-105 font-bold transition shadow-sm flex items-center gap-2 disabled:opacity-50"
+                                                >
+                                                    😄 Nhẹ quá
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleCompleteWeek('medium')}
+                                                    disabled={completingWeek}
+                                                    className="px-5 py-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 hover:scale-105 font-bold transition shadow-lg shadow-teal-200 flex items-center gap-2 disabled:opacity-50"
+                                                >
+                                                    🔥 Vừa sức
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleCompleteWeek('hard')}
+                                                    disabled={completingWeek}
+                                                    className="px-5 py-3 bg-white border border-red-200 text-red-700 rounded-xl hover:bg-red-50 hover:scale-105 font-bold transition shadow-sm flex items-center gap-2 disabled:opacity-50"
+                                                >
+                                                    🥵 Mệt xỉu
+                                                </button>
+                                            </div>
+                                            
+                                            {completingWeek && (
+                                                <div className="mt-4 flex items-center justify-center text-teal-600 text-sm font-semibold animate-pulse">
+                                                    <FaRobot className="mr-2"/> AI đang phân tích và thiết kế tuần tiếp theo...
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
+                                <FaLock className="mx-auto text-4xl text-gray-300 mb-4"/>
+                                <h3 className="text-lg font-bold text-gray-500">Tuần này chưa được mở khóa</h3>
+                                <p className="text-gray-400 text-sm">Hãy hoàn thành các tuần trước đó trước nhé!</p>
+                            </div>
+                        )}
                     </div>
                 )}
 
                 {/* 4. NUTRITION CONTENT */}
                 {activeTab === 'nutrition' && (
                     <div className="animate-fade-in-up space-y-6">
-                        
-                        {/* Nutrition Summary Card */}
                         <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl p-6 shadow-lg shadow-orange-200 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-10 -mt-10"></div>
                             <div className="relative z-10 text-center">
@@ -477,7 +580,6 @@ const AIPlanDashboard = () => {
                             </div>
                         </div>
 
-                        {/* Menu Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {plan.nutrition?.menu?.map((meal, idx) => (
                                 <div key={idx} className="bg-white p-5 rounded-2xl shadow-sm border border-orange-50 flex gap-4 items-start hover:shadow-md transition-all hover:-translate-y-1">
@@ -498,10 +600,8 @@ const AIPlanDashboard = () => {
                         </div>
                     </div>
                 )}
-
             </div>
 
-            {/* Inline CSS for Custom Animations */}
             <style>{`
                 @keyframes fade-in-up {
                     from { opacity: 0; transform: translateY(15px); }
