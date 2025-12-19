@@ -25,7 +25,7 @@ const consultantRoutes = require('./routes/consultantRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const { FoodRouter } = require('./routes/FoodRoutes');
 const { dashboardRouter } = require("./routes/DashboardRoutes");
-
+const waterRoutes = require("./routes/WaterRoutes");
 
 const app = express();
 app.use(cors()) // Chỉnh sửa cor
@@ -58,6 +58,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/consultant', consultantRoutes);
 app.use('/food', FoodRouter);
 app.use('/api/dashboard', dashboardRouter)
+app.use("/api/water", waterRoutes); // Gắn API vào endpoint /api/water
 
 app.listen(8080, async()=>{
   

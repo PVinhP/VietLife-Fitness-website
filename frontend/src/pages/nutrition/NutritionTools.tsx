@@ -1,10 +1,9 @@
-// frontend/src/pages/nutrition/NutritionTools.tsx (Sửa lỗi hiển thị BMI)
+// frontend/src/pages/nutrition/NutritionTools.tsx
 
 import React, { useState, useEffect } from 'react'
 import useDebounce from "../../hook/useDebounce" 
 import { FaSearch, FaCalculator, FaBalanceScale, FaChartPie, FaInfoCircle } from 'react-icons/fa'
 
-// --- (GIỮ NGUYÊN INTERFACE) ---
 interface searchList {
     id: number;
     food_name: string;
@@ -18,14 +17,16 @@ interface searchList {
 }
 
 function NutritionTools() {
-    // --- (GIỮ NGUYÊN STATE) ---
+    // --- STATE ---
     const [Query, setQuery] = useState("");
     const [list, setList] = useState<searchList[]>([]);
     const searchResults = useDebounce(Query, 1000)
     const [activeToolTab, setActiveToolTab] = useState<'search' | 'tdee' | 'bmi' | 'macros'>('search');
+    
+    // State cho TDEE Calculator
     const [calculatorInput, setCalculatorInput] = useState({
         age: 25,
-        gender: 1,
+        gender: 1, // 1: Nam, 0: Nữ
         weight: 70,
         height: 170,
         activity: 1.375, 
@@ -34,6 +35,8 @@ function NutritionTools() {
         bmr: 0,
         tdee: 0,
     });
+
+    // State cho BMI Calculator
     const [bmiInput, setBmiInput] = useState({
         weight: 70,
         height: 170,
@@ -43,8 +46,10 @@ function NutritionTools() {
         category: "",
         advice: "", 
     });
+
+    // State cho Macros
     const [macroInput, setMacroInput] = useState({
-        calories: calculatorResult.tdee > 0 ? calculatorResult.tdee : 2000,
+        calories: 2000,
         goal: 'maintain', 
         ratio: 'balanced', 
     });
@@ -55,8 +60,67 @@ function NutritionTools() {
         targetCalories: 0,
     });
 
-    // --- (GIỮ NGUYÊN TOÀN BỘ LOGIC TÍNH TOÁN) ---
-    // Search
+    // --- 1. NEW: EFFECT LẤY DỮ LIỆU USER PROFILE ---
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) return; // Nếu chưa đăng nhập thì giữ mặc định
+
+            try {
+                const response = await fetch('http://localhost:8080/api/profile/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.health_profile) {
+                        const hp = data.health_profile;
+
+                        // 1. Chuyển đổi Activity Level từ String sang Number
+                        let activityRate = 1.2;
+                        switch (hp.activity_level) {
+                            case 'sedentary': activityRate = 1.2; break;
+                            case 'lightly_active': activityRate = 1.375; break;
+                            case 'moderately_active': activityRate = 1.55; break;
+                            case 'very_active': activityRate = 1.725; break;
+                            case 'extra_active': activityRate = 1.9; break;
+                            default: activityRate = 1.2;
+                        }
+
+                        // 2. Chuyển đổi Gender từ String sang Number (1: Male, 0: Female)
+                        const genderVal = hp.gender === 'female' ? 0 : 1;
+
+                        // 3. Cập nhật State cho TDEE Calculator
+                        setCalculatorInput(prev => ({
+                            ...prev,
+                            age: hp.age || 25,
+                            gender: genderVal,
+                            weight: hp.weight_kg || 70,
+                            height: hp.height_cm || 170,
+                            activity: activityRate
+                        }));
+
+                        // 4. Cập nhật State cho BMI Calculator
+                        setBmiInput(prev => ({
+                            ...prev,
+                            weight: hp.weight_kg || 70,
+                            height: hp.height_cm || 170
+                        }));
+                    }
+                }
+            } catch (error) {
+                console.error("Không thể tải thông tin profile để tính toán:", error);
+            }
+        };
+
+        fetchUserProfile();
+    }, []); 
+    // -----------------------------------------------------------
+
+    // --- LOGIC SEARCH (GIỮ NGUYÊN) ---
     useEffect(() => {
         if (!searchResults.trim()) {
             setList([]);
@@ -77,7 +141,7 @@ function NutritionTools() {
         });
     }, [searchResults]);
 
-    // TDEE Calculator
+    // --- LOGIC TÍNH TOÁN (GIỮ NGUYÊN) ---
     const handleCalculatorChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setCalculatorInput({
             ...calculatorInput,
@@ -100,6 +164,7 @@ function NutritionTools() {
             bmr: Math.round(bmr),
             tdee: roundedTDEE,
         });
+        // Tự động đẩy kết quả TDEE sang tab Macros để tiện cho người dùng
         setMacroInput(prev => ({ ...prev, calories: roundedTDEE }));
     };
 
@@ -174,19 +239,12 @@ function NutritionTools() {
         setMacroResult({ protein, carbs, fat, targetCalories });
     };
 
-    // --- RENDER PHỤ ---
-
-    // InfoCard (Đã sửa lỗi hiển thị màu)
-    // InfoCard (Đã sửa lỗi VẪN GIỮ GRADIENT + Thêm hiệu ứng hover)
-    // InfoCard (Đã sửa - Dùng gradient "MỜ NHẸ" sang tông nhạt hơn)
+    // --- RENDER COMPONENTS (GIỮ NGUYÊN STYLE) ---
+    
+    // InfoCard Gradient
     const InfoCard = ({ title, value, unit, color }: { title: string, value: number, unit: string, color: string }) => {
-        
-        // Hàm này trả về các class ĐẦY ĐỦ cho gradient
         const getGradientClasses = (colorName: string): string => {
             switch (colorName) {
-                // [SỬA]
-                // Thay vì "to-color-600" (đậm), ta dùng "to-color-400" (nhạt hơn)
-                // để tạo hiệu ứng "mờ nhẹ" mà vẫn thấy chữ.
                 case 'orange': return 'from-orange-500 to-orange-200';
                 case 'blue': return 'from-blue-500 to-blue-200';
                 case 'green': return 'from-green-500 to-green-200';
@@ -200,30 +258,16 @@ function NutritionTools() {
         };
 
         return (
-            <div 
-                className={`
-                    bg-gradient-to-r ${getGradientClasses(color)} 
-                    p-3 rounded-lg text-center text-gray-800 shadow
-                    transition-all duration-300 ease-in-out
-                    hover:shadow-lg hover:scale-105
-                `}
-            >
+            <div className={`bg-gradient-to-r ${getGradientClasses(color)} p-3 rounded-lg text-center text-gray-800 shadow transition-all duration-300 ease-in-out hover:shadow-lg hover:scale-105`}>
                 <div className="font-semibold text-sm opacity-90">{title}</div>
                 <div className="text-2xl font-bold">
                     {value}
-                    {/* Chỉ hiển thị đơn vị nếu nó tồn tại */}
-                    {unit && (
-                        // Dùng text-xl (nhỏ hơn 2xl) và ml-1 (thêm khoảng trắng)
-                        <span className="text-xl font-medium ml-1">{unit}</span>
-                    )}
+                    {unit && (<span className="text-xl font-medium ml-1">{unit}</span>)}
                 </div>
             </div>
         );
     };
 
- 
-
-    // renderFoodSearch (Cập nhật)
     const renderFoodSearch = () => (
         <div>
             <input 
@@ -237,19 +281,11 @@ function NutritionTools() {
                 <div className="mt-6">
                     {list.length > 0 ? (
                         <>
-                            {/* [SỬA] Bỏ "(tính cho 100g)" khỏi tiêu đề chung */}
-                            <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                                📊 Giá trị dinh dưỡng
-                            </h3>
+                            <h3 className="text-xl font-semibold text-gray-900 mb-4">📊 Giá trị dinh dưỡng</h3>
                             {list.map((item, i) => (
                                 <div key={i} className="mb-6 p-4 bg-gray-50 rounded-lg">
-                                    
-                                    {/* [SỬA] Căn chỉnh lại tiêu đề món ăn */}
                                     <h4 className="text-2xl font-bold text-gray-800 mb-2 text-center">{item.food_name}</h4>
-                                    
-                                    {/* [THÊM] Hiển thị đơn vị (unit) lấy từ database */}
                                     <p className="text-center text-gray-600 font-medium text-lg mb-4">(Tính cho {item.unit})</p>
-
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 ">
                                         <InfoCard title="Calo" value={item.calories} unit="kcal" color="orange" />
                                         <InfoCard title="Protein" value={item.protein_g} unit="g" color="blue" />
@@ -265,7 +301,6 @@ function NutritionTools() {
                         <div className="text-center py-8">
                             <h3 className="text-xl font-bold text-gray-900 mb-2">Không tìm thấy kết quả</h3>
                             <p className="text-gray-600">Không tìm thấy thông tin cho "{Query}"</p>
-                            
                         </div>
                     )}
                 </div>
@@ -273,9 +308,14 @@ function NutritionTools() {
         </div>
     );
     
-    // renderTDEECalculator (Giữ nguyên)
     const renderTDEECalculator = () => (
         <form onSubmit={handleCalculateTDEE} className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-4">
+                 <p className="text-sm text-blue-800 flex items-center">
+                    <FaInfoCircle className="mr-2" />
+                    Dữ liệu đã được điền tự động từ Hồ sơ sức khỏe của bạn. Bạn có thể chỉnh sửa nếu muốn.
+                 </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Tuổi</label>
@@ -322,9 +362,14 @@ function NutritionTools() {
         </form>
     );
 
-    // [CẬP NHẬT] Hàm render cho BMI (Đã sửa)
     const renderBmiCalculator = () => (
         <form onSubmit={handleCalculateBmi} className="space-y-4">
+             <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-4">
+                 <p className="text-sm text-blue-800 flex items-center">
+                    <FaInfoCircle className="mr-2" />
+                    Chiều cao và cân nặng đã được đồng bộ từ Hồ sơ sức khỏe của bạn.
+                 </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Cân nặng (kg)</label>
@@ -349,47 +394,32 @@ function NutritionTools() {
                         Phân loại: <strong className="text-xl text-blue-600">{bmiResult.category}</strong>
                     </p>
 
-                    {/* --- SỬA THANH BMI VÀ SỐ --- */}
                     <div className="mt-6 mb-4">
                         <h4 className="text-sm font-semibold text-gray-700 mb-3">Thanh chỉ số BMI</h4>
-                        {/* 1. Sửa tỷ lệ flexBasis cho đúng (14%, 26%, 20%, 40%) */}
                         <div className="relative w-full h-8 rounded-full overflow-hidden flex text-xs text-white font-bold shadow-md">
-                            {/* Thang đo từ 15 -> 40 (tổng là 25 đơn vị) */}
-                            {/* Thiếu cân (15 -> 18.5) = 3.5 đơn vị = 14% */}
                             <div className="flex-1 bg-blue-400 flex items-center justify-center" style={{flexBasis: '14%'}}>Thiếu cân</div>
-                            {/* Bình thường (18.5 -> 25) = 6.5 đơn vị = 26% */}
                             <div className="flex-1 bg-green-500 flex items-center justify-center" style={{flexBasis: '26%'}}>Bình thường</div>
-                            {/* Thừa cân (25 -> 30) = 5 đơn vị = 20% */}
                             <div className="flex-1 bg-yellow-400 flex items-center justify-center" style={{flexBasis: '20%'}}>Thừa cân</div>
-                            {/* Béo phì (30 -> 40) = 10 đơn vị = 40% */}
                             <div className="flex-1 bg-red-500 flex items-center justify-center" style={{flexBasis: '40%'}}>Béo phì</div>
 
-                            {/* Con trỏ */}
                             <div 
                                 className="absolute top-0 h-full w-1.5 bg-gray-800 border-2 border-white rounded-full transition-all duration-500"
                                 style={{ 
-                                    // Tính vị trí % (Thang đo từ 15 đến 40, tổng là 25)
                                     left: `calc(${Math.min(Math.max((bmiResult.bmi - 15) / 25, 0), 1) * 100}%)`, 
                                     transform: 'translateX(-50%)'
                                 }}
                             >
                             </div>
                         </div>
-                        {/* 2. Sửa cách hiển thị số cho chính xác */}
                         <div className="relative w-full h-4 text-xs text-gray-600 mt-1">
                             <span className="absolute left-0">15</span>
-                            {/* 18.5 = 14% */}
                             <span className="absolute" style={{ left: '14%', transform: 'translateX(-50%)' }}>18.5</span>
-                            {/* 25 = 14% + 26% = 40% */}
                             <span className="absolute" style={{ left: '40%', transform: 'translateX(-50%)' }}>25</span>
-                            {/* 30 = 40% + 20% = 60% */}
                             <span className="absolute" style={{ left: '60%', transform: 'translateX(-50%)' }}>30</span>
                             <span className="absolute right-0">40</span>
                         </div>
                     </div>
-                    {/* --- KẾT THÚC SỬA LỖI --- */}
 
-                    {/* Lời khuyên (Giữ nguyên) */}
                     <div className="mt-6 p-4 bg-white rounded-lg shadow text-left">
                         <h4 className="text-lg font-semibold text-gray-800 mb-2">Lời khuyên từ VietLife:</h4>
                         <p className="text-gray-700">{bmiResult.advice}</p>
@@ -400,7 +430,6 @@ function NutritionTools() {
         </form>
     );
 
-    // renderMacroCalculator (Giữ nguyên)
     const renderMacroCalculator = () => (
         <form onSubmit={handleCalculateMacros} className="space-y-4">
             <div>
@@ -452,7 +481,6 @@ function NutritionTools() {
         </form>
     );
 
-    // Biến giải thích (Giữ nguyên)
     let toolDescription;
     switch (activeToolTab) {
         case 'search':
@@ -499,7 +527,6 @@ function NutritionTools() {
         }
     }
 
-    // --- RENDER CHÍNH CỦA COMPONENT (Giữ nguyên) ---
     return (
         <div className="bg-white min-h-screen text-gray-900 py-10 md:py-16">
             <div className="py-16 bg-gray-50">
