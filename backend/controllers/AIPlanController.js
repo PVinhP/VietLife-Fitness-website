@@ -451,3 +451,117 @@ exports.regenerateMeal = async (req, res) => {
         return res.status(500).json({ msg: "Lỗi server khi đổi món." });
     }
 };
+
+// --- 5. HÀM KÍCH HOẠT LỘ TRÌNH (Bắt đầu tập từ hôm nay) ---
+exports.activatePlan = async (req, res) => {
+    const userId = req.user.id;
+    // Lấy ngày hiện tại (YYYY-MM-DD)
+    const today = new Date();
+    // Reset giờ về 0 để tránh lỗi múi giờ khi lưu DATE
+    const formattedDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000))
+        .toISOString()
+        .split('T')[0];
+
+    try {
+        // Cập nhật ngày bắt đầu cho lộ trình đang ACTIVE
+        const [result] = await pool.query(
+            "UPDATE user_ai_plans SET start_date = ? WHERE user_id = ? AND status = 'active'",
+            [formattedDate, userId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ msg: "Không tìm thấy lộ trình đang kích hoạt để bắt đầu." });
+        }
+
+        res.json({ msg: "Đã kích hoạt lộ trình thành công! Chúc bạn tập luyện tốt." });
+
+    } catch (error) {
+        console.error("Lỗi kích hoạt:", error);
+        res.status(500).json({ msg: "Lỗi server." });
+    }
+};
+
+// --- 6. HÀM LẤY BÀI TẬP HÔM NAY (Dựa trên Start Date) ---
+exports.getTodayWorkout = async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        // 1. Lấy lộ trình Active và Start Date
+        const [rows] = await pool.query(
+            "SELECT ai_data, start_date FROM user_ai_plans WHERE user_id = ? AND status = 'active' LIMIT 1",
+            [userId]
+        );
+
+        if (rows.length === 0) {
+            return res.json({ hasPlan: false, msg: "Chưa có lộ trình." });
+        }
+
+        const planRow = rows[0];
+
+        // Nếu chưa kích hoạt (start_date là null)
+        if (!planRow.start_date) {
+            return res.json({ hasPlan: true, isStarted: false, msg: "Lộ trình chưa được kích hoạt." });
+        }
+
+        // 2. Tính toán ngày hiện tại là ngày thứ mấy
+        const startDate = new Date(planRow.start_date);
+        const today = new Date();
+        
+        // Reset giờ về 0h00 để tính chênh lệch ngày chính xác
+        startDate.setHours(0,0,0,0);
+        today.setHours(0,0,0,0);
+
+        // Tính số mili-giây chênh lệch -> đổi ra ngày
+        const diffTime = today - startDate; 
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        // Nếu ngày hiện tại < ngày bắt đầu (vô lý nhưng cứ check)
+        if (diffDays < 0) {
+            return res.json({ hasPlan: true, isStarted: true, msg: "Ngày bắt đầu ở tương lai?" });
+        }
+
+        // 3. Xác định Tuần mấy - Ngày mấy
+        // diffDays = 0 -> Ngày 1, Tuần 1
+        // diffDays = 7 -> Ngày 1, Tuần 2
+        const currentWeek = Math.floor(diffDays / 7) + 1; // Tuần 1, 2, 3, 4...
+        const currentDayIndex = diffDays % 7; // 0 = Thứ 2 (hoặc ngày đầu tiên), 6 = Chủ nhật
+
+        // 4. Lấy dữ liệu từ JSON
+        let aiData = planRow.ai_data;
+        if (typeof aiData === 'string') aiData = JSON.parse(aiData);
+
+        const weekKey = `week_${currentWeek}_detail`; // VD: week_1_detail
+
+        // Kiểm tra xem tuần này có trong dữ liệu chưa
+        if (!aiData[weekKey]) {
+            // Có thể user tập nhanh hơn lộ trình được tạo (chưa generate tuần mới)
+            // Hoặc đã hết lộ trình (Tuần > 4)
+            return res.json({ 
+                hasPlan: true, 
+                isStarted: true, 
+                finished: currentWeek > 4,
+                msg: currentWeek > 4 ? "Bạn đã hoàn thành lộ trình!" : "Chưa có dữ liệu cho tuần này. Hãy tạo tuần mới.",
+                week: currentWeek
+            });
+        }
+
+        const todayExercises = aiData[weekKey][currentDayIndex];
+
+        // 5. Trả về kết quả
+        res.json({
+            hasPlan: true,
+            isStarted: true,
+            dayInfo: {
+                date: today.toISOString().split('T')[0],
+                dayIndex: currentDayIndex,
+                week: currentWeek,
+                dayLabel: todayExercises.day // VD: "Thứ 2"
+            },
+            workout: todayExercises // Danh sách bài tập cụ thể của hôm nay
+        });
+
+    } catch (error) {
+        console.error("Lỗi lấy bài tập hôm nay:", error);
+        res.status(500).json({ msg: "Lỗi server." });
+    }
+};

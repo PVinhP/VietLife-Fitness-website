@@ -51,6 +51,7 @@ import LessonManager from '../pages/admin/LessonManager';
 import ExerciseManager from '../pages/admin/ExerciseManager';
 import SportManager from '../pages/admin/SportManager';
 import PlanManager from '../pages/admin/PlanManager';
+import DailyWorkoutSession from '../components/DailyWorkoutSession';
 
 function Allroutes() {
   return (
@@ -96,6 +97,7 @@ function Allroutes() {
       <Route path="/profile/learning" element={<PrivateRoute><UserProgressPage /></PrivateRoute>} />
       <Route path="/profile/settings" element={<PrivateRoute><Setting /></PrivateRoute>} />
       <Route path="/profile/nutrition" element={<PrivateRoute><NutritionDiary /></PrivateRoute>} />
+      <Route path="/workout/today" element={<PrivateRoute><DailyWorkoutSession /></PrivateRoute>} />
       <Route element={<AdminLayout />}>
         
         {/* AdminLayout sẽ bao bọc các trang con bên trong */}

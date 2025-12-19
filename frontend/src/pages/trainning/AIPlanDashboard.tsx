@@ -15,6 +15,8 @@ import {
     FaPlayCircle
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // --- 1. DEFINITIONS & INTERFACES ---
 
@@ -166,7 +168,7 @@ const AIPlanDashboard = () => {
     useEffect(() => {
         fetchAIPlan(false);
     }, []);
-
+    
     // --- MỚI: HÀM HOÀN THÀNH TUẦN (ADAPTIVE LEARNING) ---
     const handleCompleteWeek = async (feedback: string) => {
         if (!plan) return;
@@ -278,6 +280,35 @@ const AIPlanDashboard = () => {
             setPlan(newPlan);
         }
     };
+    // --- THÊM HÀM KÍCH HOẠT LỘ TRÌNH ---
+    const handleActivatePlan = async () => {
+        const confirmStart = window.confirm("Bạn có chắc muốn bắt đầu lộ trình từ hôm nay? Lịch sẽ được tính bắt đầu từ ngày hôm nay.");
+        if (!confirmStart) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:8080/api/ai-plan/activate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                toast.success("🎉 Đã kích hoạt lộ trình! Hãy quay lại Dashboard để xem bài tập hôm nay.");
+                // Tùy chọn: Chuyển hướng ngay về Dashboard chính
+                navigate('/profile/dashboard');
+            } else {
+                toast.error(data.msg || "Không thể kích hoạt.");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Lỗi kết nối server.");
+        }
+    };
     // --- MAIN RENDER ---
     return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans">
@@ -299,6 +330,12 @@ const AIPlanDashboard = () => {
                         </div>
                         
                         <div className="flex gap-3">
+                            <button 
+                            onClick={handleActivatePlan}
+                            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 transition-all px-4 py-2 rounded-full text-sm font-bold shadow-lg shadow-orange-900/20 " 
+                        >
+                            <FaPlayCircle /> Bắt đầu ngay
+                        </button>
                             <button 
                                 onClick={handleEditPreferences}
                                 className="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition-all px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm" 
