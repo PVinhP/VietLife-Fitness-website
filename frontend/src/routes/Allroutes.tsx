@@ -1,4 +1,5 @@
 import React from 'react';
+import AdminRoute from './AdminRoute';
 import { Route, Routes } from 'react-router-dom';
 import Signin from '../pages/Signin';
 import Signup from '../pages/Signup';
@@ -69,14 +70,14 @@ function Allroutes() {
       <Route path="/nutrition/recipes" element={<RecipeSection />} />
       <Route path="/lessons" element={<LessonSection />} />
       <Route path="/nutrition/explore" element={<ExploreSection />} />
-      <Route path="/nutrition/meal-planner" element={<NutritionMealPlanner />} />
+      <Route path="/nutrition/meal-planner" element={<PrivateRoute><NutritionMealPlanner /></PrivateRoute>} />
       <Route path="/nutrition/library-food" element={<LibraryFood />} />
       <Route path="/lesson/:id" element={<LessonDetail />} />
       <Route path="/customexercise" element={<ExerciseInputForm />} />
-      <Route path="/exercise" element={<PrivateRoute><Exercise /></PrivateRoute>} />
+      <Route path="/exercise" element={<Exercise />} />
       <Route path="/training/sports" element={<SportsList/>} />
       <Route path="/training/sports/:slug" element={<SportDetail/>} />
-      <Route path="/training/plans" element={<PlanList/>} />
+      <Route path="/training/plans" element={<PrivateRoute><PlanList/></PrivateRoute>} />
       <Route path="/training/plans/:id" element={<PlanDetail/>} />
       <Route path="/training/tools" element={<ToolsList />} />
       <Route path="/training/tools/1rm" element={<OneRepMax />} />  
@@ -98,6 +99,7 @@ function Allroutes() {
       <Route path="/profile/settings" element={<PrivateRoute><Setting /></PrivateRoute>} />
       <Route path="/profile/nutrition" element={<PrivateRoute><NutritionDiary /></PrivateRoute>} />
       <Route path="/workout/today" element={<PrivateRoute><DailyWorkoutSession /></PrivateRoute>} />
+    <Route element={<AdminRoute />}>
       <Route element={<AdminLayout />}>
         
         {/* AdminLayout sẽ bao bọc các trang con bên trong */}
@@ -124,7 +126,7 @@ function Allroutes() {
           
         </Route>
       </Route>
-
+</Route>
     </Routes>
     
   );

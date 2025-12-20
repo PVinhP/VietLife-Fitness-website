@@ -12,16 +12,18 @@ import {
   FaChartPie,    // Icon cho Dinh dưỡng
   FaBook,        // Icon cho Học tập (MỚI)
   FaTrophy,      // Icon cho Thành tích (MỚI)
-  FaCommentDots  // Icon cho Phản hồi (MỚI)
+  FaCommentDots, // Icon cho Phản hồi (MỚI)
+  FaUserShield
 } from 'react-icons/fa';
 import { MdOutlineDashboard } from "react-icons/md";
 
 interface UserDropdownProps {
   userName: string;
   onLogout: () => void;
+  isAdmin?: boolean;
 }
 
-const UserDropdown: React.FC<UserDropdownProps> = ({ userName, onLogout }) => {
+const UserDropdown: React.FC<UserDropdownProps> = ({ userName, onLogout, isAdmin }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   // 2. Tạo một ref để tham chiếu đến div của dropdown
@@ -71,6 +73,17 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ userName, onLogout }) => {
           
           {/* ===== PHẦN LINKS MỚI VỚI 7 MỤC ===== */}
           <div className="py-1">
+            {/* 4. HIỂN THỊ NÚT ADMIN NẾU LÀ ADMIN */}
+            {isAdmin && (
+              <Link
+                to="/admin/dashboard"
+                className="flex items-center px-4 py-2 text-sm text-blue-600 font-bold hover:bg-red-50"
+                onClick={toggleDropdown}
+              >
+                <FaUserShield className="mr-3 h-5 w-5" />
+                Quản trị hệ thống
+              </Link>
+            )}
             {/* 1. Tổng quan */}
             <Link
               to="/profile/dashboard"

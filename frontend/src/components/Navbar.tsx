@@ -14,6 +14,8 @@ function Navbar() {
 
   const loggeduser = localStorage.getItem("VietLifeuser") || "User";
   const isAuth = !!localStorage.getItem("auth");
+  const userRole = localStorage.getItem("role"); // Hoặc parse từ JSON nếu bạn lưu dạng object
+  const isAdmin = userRole === 'admin';
 
   const showToastMessage = () => {
     toast.success('Đăng xuất thành công!', { position: toast.POSITION.TOP_CENTER });
@@ -41,10 +43,14 @@ function Navbar() {
           </span>
         </Link>
 
-        {/* === User/Login Buttons & Mobile Menu Toggle === */}
-        <div className="flex md:order-2 items-center space-x-3">
+       <div className="flex md:order-2 items-center space-x-3">
           {isAuth ? (
-            <UserDropdown userName={loggeduser} onLogout={handlelogout} />
+            // TRUYỀN THÊM PROP isAdmin VÀO ĐÂY
+            <UserDropdown 
+                userName={loggeduser} 
+                onLogout={handlelogout} 
+                isAdmin={isAdmin} 
+            />
           ) : (
             <div className="hidden md:flex items-center space-x-2">
               <Link to="/signin">
