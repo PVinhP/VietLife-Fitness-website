@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 //import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import RecipeDetailModal from './../../components/RecipeDetailModal';
 
 // --- I. INTERFACES VÀ HẰNG SỐ ---
@@ -179,6 +180,7 @@ const FilterModal: React.FC<{
 // --- III. COMPONENT CHÍNH RECIPESECTION (ĐÃ SỬA) ---
 
 function RecipeSection() {
+    const navigate = useNavigate();
     // (SỬA) Khởi tạo recipes là mảng rỗng
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>('');
@@ -262,6 +264,16 @@ function RecipeSection() {
     }, [searchTerm, activeFilters]); // Phụ thuộc: Chạy lại khi 2 giá trị này thay đổi
 
     const handleOpenDetail = (id: number) => {
+        // --- BẮT ĐẦU ĐOẠN KIỂM TRA ĐĂNG NHẬP ---
+        const token = localStorage.getItem("token"); // Lấy token từ bộ nhớ
+        
+        if (!token) {
+            // Nếu chưa đăng nhập: Hỏi người dùng
+                navigate('/signin'); // Chuyển sang trang đăng nhập
+            
+            return; // Dừng lại, KHÔNG mở Modal lên
+        }
+        // --- KẾT THÚC ĐOẠN KIỂM TRA ---
         setSelectedRecipeId(id);
         setIsDetailOpen(true);
     };

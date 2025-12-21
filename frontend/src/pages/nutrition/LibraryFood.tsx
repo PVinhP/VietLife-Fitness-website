@@ -5,7 +5,7 @@ import IntermediateLevelView from '../../components/LibraryFood/IntermediateLeve
 import AdvancedLevelView from '../../components/LibraryFood/AdvancedLevelView';
 
 function LibraryFood() {
-  const [activeTab, setActiveTab] = useState<1 | 2 | 3>(3);
+  const [activeTab, setActiveTab] = useState<1 | 2 | 3>(1);
   const [showIntro, setShowIntro] = useState(true);
 
   return (

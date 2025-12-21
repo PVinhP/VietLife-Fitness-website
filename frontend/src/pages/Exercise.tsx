@@ -171,6 +171,14 @@ function Exercise() {
     };
 
     const viewExerciseDetails = (exercise: Exercises) => {
+        if (!token) {
+            
+            navigate('/signin', { state: { from: location } }); // Lưu lại trang hiện tại để login xong quay lại            
+            // Cách 2: (Nâng cao) Bật một Modal nhỏ thông báo "Yêu cầu đăng nhập" đẹp hơn
+            // setShowLoginRequestModal(true); 
+
+            return; // QUAN TRỌNG: Dừng lại, không chạy code phía dưới -> Modal không mở
+        }
         setSelectedExercise(exercise);
         // Khóa cuộn trang chính khi mở modal (Optional, làm UX tốt hơn)
         document.body.style.overflow = 'hidden';

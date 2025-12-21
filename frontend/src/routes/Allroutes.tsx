@@ -72,13 +72,13 @@ function Allroutes() {
       <Route path="/nutrition/explore" element={<ExploreSection />} />
       <Route path="/nutrition/meal-planner" element={<PrivateRoute><NutritionMealPlanner /></PrivateRoute>} />
       <Route path="/nutrition/library-food" element={<LibraryFood />} />
-      <Route path="/lesson/:id" element={<LessonDetail />} />
+      <Route path="/lesson/:id" element={<PrivateRoute><LessonDetail /></PrivateRoute>} />
       <Route path="/customexercise" element={<ExerciseInputForm />} />
       <Route path="/exercise" element={<Exercise />} />
       <Route path="/training/sports" element={<SportsList/>} />
-      <Route path="/training/sports/:slug" element={<SportDetail/>} />
+      <Route path="/training/sports/:slug" element={<PrivateRoute><SportDetail/></PrivateRoute>} />
       <Route path="/training/plans" element={<PrivateRoute><PlanList/></PrivateRoute>} />
-      <Route path="/training/plans/:id" element={<PlanDetail/>} />
+      <Route path="/training/plans/:id" element={<PrivateRoute><PlanDetail/></PrivateRoute>} />
       <Route path="/training/tools" element={<ToolsList />} />
       <Route path="/training/tools/1rm" element={<OneRepMax />} />  
       <Route path="/training/tools/heartratezones" element={<HeartRateZones />} />
