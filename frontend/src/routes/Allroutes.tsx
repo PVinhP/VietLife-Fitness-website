@@ -71,8 +71,8 @@ function Allroutes() {
       <Route path="/lessons" element={<LessonSection />} />
       <Route path="/nutrition/explore" element={<ExploreSection />} />
       <Route path="/nutrition/meal-planner" element={<PrivateRoute><NutritionMealPlanner /></PrivateRoute>} />
-      <Route path="/nutrition/library-food" element={<LibraryFood />} />
-      <Route path="/lesson/:id" element={<PrivateRoute><LessonDetail /></PrivateRoute>} />
+      <Route path="/nutrition/library-food" element={<PrivateRoute><LibraryFood /></PrivateRoute>} />
+      <Route path="/lesson/:id" element={<LessonDetail />} />
       <Route path="/customexercise" element={<ExerciseInputForm />} />
       <Route path="/exercise" element={<Exercise />} />
       <Route path="/training/sports" element={<SportsList/>} />

@@ -1,104 +1,93 @@
 // backend/controllers/ChatController.js
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const { pool } = require('../config/db'); // Đảm bảo đường dẫn đúng tới file config db của bạn
+const { pool } = require('../config/db');
 
-// Khởi tạo Gemini AI
+// Khởi tạo Gemini AI (Lưu ý: Dùng model gemini-1.5-flash hoặc pro để hỗ trợ systemInstruction tốt hơn)
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// --- 1. GỬI TIN NHẮN & NHẬN TƯ VẤN (POST) ---
 exports.sendMessage = async (req, res) => {
-    // Giả định bạn đã có middleware xác thực gán user vào req.user
-    // Nếu chưa có auth, bạn có thể tạm dùng: const userId = req.body.userId;
     const userId = req.user?.id || req.body.userId; 
     const { message } = req.body;
 
-    if (!message) {
-        return res.status(400).json({ msg: "Vui lòng nhập nội dung tin nhắn." });
-    }
+    if (!message) return res.status(400).json({ msg: "Vui lòng nhập nội dung." });
 
     try {
-        // A. Lấy thông tin User + Health Profile để làm Context
-        // JOIN bảng users và health_profiles dựa trên hình ảnh bạn cung cấp
-        const query = `
-            SELECT 
-                u.full_name, 
-                hp.age, hp.gender, hp.weight_kg, hp.height_cm,
-                hp.medical_history, hp.activity_level, hp.goal,
-                hp.dietary_preferences, hp.training_preferences
-            FROM users u
-            LEFT JOIN health_profiles hp ON u.id = hp.user_id
+        // --- BƯỚC 1: LẤY THÔNG TIN HEALTH PROFILE (Giữ nguyên) ---
+        const queryProfile = `
+            SELECT u.full_name, hp.* FROM users u LEFT JOIN health_profiles hp ON u.id = hp.user_id 
             WHERE u.id = ?
         `;
-
-        const [rows] = await pool.query(query, [userId]);
-
-        if (rows.length === 0) {
-            return res.status(404).json({ msg: "Không tìm thấy thông tin người dùng." });
-        }
-
-        const userProfile = rows[0];
-
-        // B. Xử lý dữ liệu Context (Đặc biệt là cột JSON training_preferences)
-        let trainingPrefs = "Chưa cập nhật";
-        if (userProfile.training_preferences) {
-            // Nếu MySQL trả về object JSON sẵn thì dùng luôn, nếu là string thì parse
-            trainingPrefs = typeof userProfile.training_preferences === 'string' 
-                ? userProfile.training_preferences 
-                : JSON.stringify(userProfile.training_preferences);
-        }
-
-        const contextData = `
-        THÔNG TIN KHÁCH HÀNG (Dữ liệu thực tế từ Database):
-        - Tên: ${userProfile.full_name}
-        - Thông số: ${userProfile.age || '?'} tuổi, ${userProfile.gender || '?'}, ${userProfile.height_cm}cm, ${userProfile.weight_kg}kg.
-        - Mục tiêu (Goal): ${userProfile.goal || 'Chưa rõ'}
-        - Mức độ vận động: ${userProfile.activity_level || 'Chưa rõ'}
-        - Tiền sử chấn thương/Bệnh lý: ${userProfile.medical_history || 'Không có'}
-        - Sở thích ăn uống: ${userProfile.dietary_preferences || 'Không có'}
-        - Sở thích tập luyện: ${trainingPrefs}
-        `;
-
-        // C. Tạo Prompt cho AI (System Instruction)
-        const systemPrompt = `
-        Bạn là PT (Huấn luyện viên) và Chuyên gia dinh dưỡng AI của hệ thống VietLife.
+        const [rowsProfile] = await pool.query(queryProfile, [userId]);
         
-        ${contextData}
-
-        NHIỆM VỤ:
-        1. Trả lời câu hỏi: "${message}"
-        2. Nguyên tắc an toàn: Dựa vào 'Tiền sử chấn thương' ở trên. Nếu khách hàng có chấn thương, HÃY CẢNH BÁO nếu họ hỏi bài tập nguy hiểm.
-        3. Cá nhân hóa: Dựa vào 'Mục tiêu' (ví dụ: ${userProfile.goal}) để đưa lời khuyên phù hợp (Tăng cơ thì khuyên ăn nhiều đạm, Giảm cân thì khuyên thâm hụt calo).
-        4. Định dạng: Trả lời ngắn gọn, súc tích, sử dụng Markdown (in đậm, gạch đầu dòng).
-        5. Giọng điệu: Thân thiện, động viên.
+        if (rowsProfile.length === 0) return res.status(404).json({ msg: "User not found." });
+        const user = rowsProfile[0];
+        
+        const healthContext = `
+        DỮ LIỆU KHÁCH HÀNG:
+        - Tên: ${user.full_name}
+        - Body: ${user.age}t, ${user.height_cm}cm, ${user.weight_kg}kg.
+        - Goal: ${user.goal}
+        - Bệnh lý: ${user.medical_history || 'Không'}
         `;
 
-        // D. Gọi Gemini AI
+        // --- BƯỚC 2: LẤY LỊCH SỬ CHAT GẦN NHẤT (MỚI) ---
+        // Lấy 10 tin nhắn gần nhất để AI nhớ ngữ cảnh
+        const queryHistory = `
+            SELECT sender, message FROM chat_history 
+            WHERE user_id = ? 
+            ORDER BY created_at DESC LIMIT 10
+        `;
+        const [rowsHistory] = await pool.query(queryHistory, [userId]);
+        
+        // Đảo ngược lại mảng để đúng thứ tự thời gian (Cũ -> Mới)
+        const historyData = rowsHistory.reverse().map(row => {
+            const role = row.sender === 'user' ? 'User' : 'AI PT';
+            return `${role}: ${row.message}`;
+        }).join('\n');
 
-        const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL });
-        const result = await model.generateContent(systemPrompt);
+        // --- BƯỚC 3: XÂY DỰNG PROMPT THÔNG MINH HƠN ---
+        
+        const systemInstruction = `
+        VAI TRÒ: Bạn là PT (Huấn luyện viên) & Chuyên gia dinh dưỡng cá nhân của VietLife.
+        
+        ${healthContext}
+
+        NGUYÊN TẮC TRẢ LỜI (QUAN TRỌNG):
+        1. **Nhận diện ngữ cảnh:** Dưới đây là lịch sử trò chuyện. Nếu đây là câu hỏi tiếp theo của cùng một chủ đề, HÃY TRẢ LỜI THẲNG VÀO VẤN ĐỀ, KHÔNG chào hỏi lại, KHÔNG giới thiệu lại bản thân.
+        2. **An toàn là trên hết:** Cảnh báo nếu bài tập không hợp với tiền sử bệnh lý.
+        3. **Phong cách:** Ngắn gọn, thân thiện, dùng Markdown (bold, list).
+        4. **Ngôn ngữ:** Tiếng Việt tự nhiên.
+        `;
+
+        const finalPrompt = `
+        --- LỊCH SỬ TRÒ CHUYỆN (Để AI tham khảo ngữ cảnh) ---
+        ${historyData}
+        
+        --- TIN NHẮN MỚI CỦA USER ---
+        User: ${message}
+        
+        AI PT (Hãy trả lời User dựa trên lịch sử và tin nhắn mới):
+        `;
+
+        // --- BƯỚC 4: GỌI GEMINI ---
+        const model = genAI.getGenerativeModel({ 
+            model: process.env.GEMINI_MODEL,
+            systemInstruction: systemInstruction // Gemini 1.5 hỗ trợ cái này tách biệt
+        });
+
+        // Nếu dùng model cũ không hỗ trợ systemInstruction, bạn gộp systemInstruction vào finalPrompt cũng được
+        const result = await model.generateContent(finalPrompt);
         const aiResponse = result.response.text();
 
-        // E. Lưu lịch sử chat vào Database (Transaction không bắt buộc nhưng tốt cho toàn vẹn dữ liệu)
-        // Lưu tin nhắn User
-        await pool.query(
-            "INSERT INTO chat_history (user_id, sender, message) VALUES (?, 'user', ?)",
-            [userId, message]
-        );
-        // Lưu tin nhắn Bot
-        await pool.query(
-            "INSERT INTO chat_history (user_id, sender, message) VALUES (?, 'bot', ?)",
-            [userId, aiResponse]
-        );
+        // --- BƯỚC 5: LƯU DB & TRẢ KẾT QUẢ (Giữ nguyên) ---
+        await pool.query("INSERT INTO chat_history (user_id, sender, message) VALUES (?, 'user', ?)", [userId, message]);
+        await pool.query("INSERT INTO chat_history (user_id, sender, message) VALUES (?, 'bot', ?)", [userId, aiResponse]);
 
-        // F. Trả kết quả về Client
-        return res.status(200).json({ 
-            reply: aiResponse,
-            sender: 'bot' 
-        });
+        return res.status(200).json({ reply: aiResponse, sender: 'bot' });
 
     } catch (error) {
         console.error("Lỗi Chat AI:", error);
-        return res.status(500).json({ msg: "Lỗi hệ thống khi xử lý tin nhắn.", error: error.message });
+        return res.status(500).json({ msg: "Lỗi hệ thống.", error: error.message });
     }
 };
 

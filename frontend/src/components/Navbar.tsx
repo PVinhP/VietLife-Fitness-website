@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import logo from "../Assests/WellLogo.png";
+import logo1 from "../Assests/LOGO_VIETLIFE.png";
 import UserDropdown from "./UserDropdown";
 import NavDropdown, { DropdownItem } from "./NavDropdown";
 
@@ -109,13 +110,23 @@ function Navbar() {
               </Link>
             </li>
 
-            {/* KIẾN THỨC */}
+            {/* KIẾN THỨC 
             <li className="w-full md:w-auto">
               <NavDropdown title="Kiến thức">
                 <DropdownItem to="/lessons">Bài học Dinh dưỡng</DropdownItem>
-                <DropdownItem to="/blogs">Khám phá Chuyên sâu</DropdownItem>
+                <DropdownItem to="/blogs">Khám phá Chuyên sâu</DropdownItem>  
               </NavDropdown>
             </li>
+            */}
+             <li>
+              <Link
+                to="/lessons"
+                className="block py-2 px-3 text-white rounded hover:bg-teal-600 md:hover:bg-transparent md:hover:text-teal-200 md:p-0"
+              >
+                Kiến thức
+              </Link>
+            </li>
+
 
            {/* DINH DƯỠNG */}
             <li className="w-full md:w-auto">

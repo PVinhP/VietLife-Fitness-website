@@ -303,7 +303,7 @@ const LessonSection = React.forwardRef<HTMLDivElement>((props, ref) => {
         {/* Header */}
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            📚 Hệ thống bài học dinh dưỡng
+            📚 Hệ thống bài học Dinh dưỡng - Tập luyện
           </h2>
           <p className="text-xl text-gray-600">
             Từ cơ bản đến nâng cao - Xây dựng nền tảng kiến thức vững chắc
@@ -410,7 +410,7 @@ const LessonSection = React.forwardRef<HTMLDivElement>((props, ref) => {
                     : 'text-gray-600 hover:text-gray-800'
                 }`}
               >
-                📚 Cơ bản
+                📚 Dinh dưỡng
               </button>
               <button
                 onClick={() => setActiveLessonCategory('tapluyen')}
