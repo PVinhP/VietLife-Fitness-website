@@ -43,9 +43,19 @@ const NutritionDiary = () => {
     setIsLoading(true);
     setError(null);
     
+    const userStr = localStorage.getItem("user");
+    const user = userStr ? JSON.parse(userStr) : null;
+    
+    if (!user || !user.id) {
+        setError("Vui lòng đăng nhập để xem dữ liệu");
+        setIsLoading(false);
+        return;
+    }
+
     try {
+      // Thay số 1 bằng user.id
       const response = await fetch(
-        `http://localhost:8080/nutrition/meal-logs?user_id=1&date=${selectedDate}`
+        `http://localhost:8080/nutrition/meal-logs?user_id=${user.id}&date=${selectedDate}`
       );
       
       if (!response.ok) {

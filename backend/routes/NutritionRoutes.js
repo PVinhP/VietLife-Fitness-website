@@ -172,5 +172,31 @@ router.get('/foods/:id', async (req, res) => {
   }
 });
 });
+
+// =================================================================
+// [MỚI] API 4: XÓA MỘT MÓN ĂN KHỎI NHẬT KÝ
+// DELETE /api/nutrition/meal-logs/:id
+// =================================================================
+router.delete('/meal-logs/:id', async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ error: 'Thiếu ID món ăn cần xóa' });
+  }
+
+  try {
+    const sql = "DELETE FROM meal_logs WHERE id = ?";
+    const [result] = await pool.query(sql, [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Không tìm thấy món ăn để xóa" });
+    }
+
+    res.status(200).json({ message: "Đã xóa thành công" });
+  } catch (error) {
+    console.error("Lỗi khi xóa món ăn:", error);
+    res.status(500).json({ error: "Lỗi máy chủ khi xóa món ăn" });
+  }
+});
 module.exports = { nutritionRouter: router };
 

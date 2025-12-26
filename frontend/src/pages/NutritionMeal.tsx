@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Search, Plus, Trash2, TrendingUp, Save, CalendarDays } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+
 interface Food {
   id: number;
   food_name: string;
@@ -210,11 +211,19 @@ const NutritionMealPlanner = () => {
       alert('Vui lòng chọn một bữa ăn (sáng, trưa, tối, phụ).');
       return;
     }
-
+    
     setIsSaving(true);
 
+    const userStr = localStorage.getItem("user");
+    const user = userStr ? JSON.parse(userStr) : null;
+
+    if (!user || !user.id) {
+      alert("Bạn chưa đăng nhập! Vui lòng đăng nhập lại.");
+      return;
+    }
+
     const dataToSave = {
-      user_id: 1, // TODO: Thay bằng user_id thật khi có hệ thống đăng nhập
+      user_id: user.id, // Lấy ID thật từ localStorage
       meal_date: mealDate,
       meal_type: mealType,
       mealList: mealList
