@@ -66,12 +66,30 @@ const Dashboard = () => {
   const loadDashboardData = async () => {
     try {
       const todayStr = getTodayDate();
-      const token = localStorage.getItem('token'); 
+      const token = localStorage.getItem('token');
+      
+      // --- SỬA ĐỔI: LẤY USER ID TỪ LOCAL STORAGE ---
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      const userId = user ? user.id : null;
 
-      // 1. FETCH DINH DƯỠNG (Giữ nguyên logic cũ của bạn)
+      if (!userId) {
+        console.error("Không tìm thấy User ID. Vui lòng đăng nhập lại.");
+        return; 
+      }
+      // ---------------------------------------------
+
+      // 1. FETCH DINH DƯỠNG (Đã cập nhật ID động và Token)
       let nutritionTotals = { calories: 0, protein: 0, fats: 0, carbs: 0 };
       try {
-        const res = await fetch(`http://localhost:8080/nutrition/meal-logs?user_id=1&date=${todayStr}`);
+        // Thay số cứng 33 thành ${userId}
+        const res = await fetch(`http://localhost:8080/nutrition/meal-logs?user_id=${userId}&date=${todayStr}`, {
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
         if (res.ok) {
           const logs: MealLog[] = await res.json();
           nutritionTotals = logs.reduce((acc, item) => ({
@@ -80,10 +98,12 @@ const Dashboard = () => {
             fats: acc.fats + item.fats_g,
             carbs: acc.carbs + item.carbs_g
           }), { calories: 0, protein: 0, fats: 0, carbs: 0 });
+        } else {
+            console.error("Lỗi Nutrition status:", res.status);
         }
       } catch (e) { console.error("Lỗi Nutrition:", e); }
 
-      // 2. FETCH NƯỚC (Giữ nguyên logic cũ của bạn)
+      // 2. FETCH NƯỚC (Giữ nguyên)
       let waterData = { glasses: 0, target: 8 };
       try {
         const waterRes = await fetch(`http://localhost:8080/api/water?date=${todayStr}`, {
@@ -95,7 +115,7 @@ const Dashboard = () => {
         }
       } catch (e) { console.error("Lỗi Water API:", e); }
 
-      // --- 3. FETCH BÀI TẬP HÔM NAY (MỚI THÊM) ---
+      // 3. FETCH BÀI TẬP HÔM NAY (Giữ nguyên)
       let workoutDataForCard = { 
           name: "Nghỉ ngơi", 
           duration: 0, 
@@ -110,13 +130,11 @@ const Dashboard = () => {
         const wData = await workoutRes.json();
 
         if (wData.hasPlan && wData.workout) {
-            // Mapping dữ liệu từ API sang cấu trúc Card
             workoutDataForCard = {
                 name: wData.workout.focus || "Tập luyện theo lịch",
                 exercises: wData.workout.exercises ? wData.workout.exercises.length : 0,
-                // Ước lượng thời gian: 10 phút/bài nếu không có dữ liệu
                 duration: (wData.workout.exercises ? wData.workout.exercises.length : 0) * 10,
-                status: "not_started" // Có thể update logic check status sau
+                status: "not_started"
             };
         } else if (wData.hasPlan === false) {
              workoutDataForCard.name = "Chưa có lộ trình";
@@ -124,17 +142,13 @@ const Dashboard = () => {
       } catch (e) {
         console.error("Lỗi lấy bài tập:", e);
       }
-      // ---------------------------------------------
 
       // 4. TỔNG HỢP DỮ LIỆU
       const baseData: DashboardData = {
-        userName: "",
+        userName: user.name || "Bạn", // Có thể lấy tên user để hiển thị chào mừng
         overallScore: 75,
         streak: 3,
-        
-        // Gán dữ liệu bài tập thật vào đây
         todayWorkout: workoutDataForCard, 
-        
         suggestions: [],
         calories: { current: Math.round(nutritionTotals.calories), target: 2500 },
         macros: { 
@@ -151,9 +165,7 @@ const Dashboard = () => {
         lastWeek: { weight: 0, caloriesAvg: 0, workouts: 0 }
       };
 
-      // 5. TẠO GỢI Ý
       baseData.suggestions = generateSuggestions(baseData);
-
       setData(baseData);
     } catch (error) {
       console.error("Lỗi tải dashboard:", error);
