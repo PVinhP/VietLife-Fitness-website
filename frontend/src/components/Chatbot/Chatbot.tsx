@@ -20,14 +20,18 @@ const Chatbot: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Lấy User Info
+  // --- SỬA LỖI TẠI ĐÂY ---
+  // Lấy User Info & Token
   const getUserData = () => {
     const userStr = localStorage.getItem('user'); 
-    const token = localStorage.getItem('token'); 
+    const tokenStr = localStorage.getItem('token'); // Lấy raw string hoặc null
+    
     const user = userStr ? JSON.parse(userStr) : null;
+    
     return { 
-        id: user?.id || null, // Có thể đổi thành số cố định để test nếu cần
-        token 
+        id: user?.id || null, 
+        // Chuyển null thành undefined để khớp với kiểu token?: string của component con
+        token: tokenStr || undefined 
     };
   };
   
@@ -224,6 +228,7 @@ const Chatbot: React.FC = () => {
 
             {/* --- TAB 2: HỎI CHUYÊN GIA --- */}
             {activeTab === 'expert' && (
+              /* Dòng này đã hết lỗi vì token giờ là string | undefined */
               <ConsultationTab userId={userId} token={token} />
             )}
 
