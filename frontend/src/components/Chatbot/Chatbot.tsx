@@ -22,20 +22,20 @@ const Chatbot: React.FC = () => {
 
   // --- SỬA LỖI TẠI ĐÂY ---
   // Lấy User Info & Token
-  const getUserData = () => {
+const getUserData = () => {
     const userStr = localStorage.getItem('user'); 
-    const tokenStr = localStorage.getItem('token'); // Lấy raw string hoặc null
+    const tokenStr = localStorage.getItem('token');
     
     const user = userStr ? JSON.parse(userStr) : null;
     
     return { 
         id: user?.id || null, 
-        // Chuyển null thành undefined để khớp với kiểu token?: string của component con
-        token: tokenStr || undefined 
+        token: tokenStr || undefined,
+        role: user?.role || 'user' // <--- THÊM DÒNG NÀY: Lấy role (admin/user/pt)
     };
-  };
-  
-  const { id: userId, token } = getUserData();
+};
+
+  const { id: userId, token, role } = getUserData();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -229,7 +229,7 @@ const Chatbot: React.FC = () => {
             {/* --- TAB 2: HỎI CHUYÊN GIA --- */}
             {activeTab === 'expert' && (
               /* Dòng này đã hết lỗi vì token giờ là string | undefined */
-              <ConsultationTab userId={userId} token={token} />
+              <ConsultationTab userId={userId} token={token} role={role}/>
             )}
 
           </div>
