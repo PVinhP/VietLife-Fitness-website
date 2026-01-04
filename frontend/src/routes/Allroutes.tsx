@@ -53,7 +53,7 @@ import ExerciseManager from '../pages/admin/ExerciseManager';
 import SportManager from '../pages/admin/SportManager';
 import PlanManager from '../pages/admin/PlanManager';
 import DailyWorkoutSession from '../components/DailyWorkoutSession';
-
+import FeedbackPage from '../pages/FeedbackPage';
 function Allroutes() {
   return (
     <Routes>
@@ -88,7 +88,7 @@ function Allroutes() {
       <Route path="/training/tools/plate-calculator" element={<PlateCalculator />} />
       <Route path="/training/tools/wilks" element={<WilksCalculator />} />
       <Route path="/training/history" element={<WorkoutHistory />} />
-      
+      <Route path="/feedback" element={<FeedbackPage />} />
       <Route path="/training/ai-plan" element={<AIPlanDashboard />} />
       <Route path="/goals" element={<PrivateRoute><UserPage /></PrivateRoute>} />
       <Route path="/addworkout" element={<PrivateRoute><Addworkout /></PrivateRoute>} />

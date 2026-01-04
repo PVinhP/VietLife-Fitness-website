@@ -124,7 +124,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ userName, onLogout, isAdmin
               Tiến trình học tập
             </Link>
 
-            {/* 5. Mục tiêu & Thành tích (MỚI) */}
+            {/* 5. Mục tiêu & Thành tích (MỚI) 
             <Link
               to="/profile/goals"
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -133,6 +133,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ userName, onLogout, isAdmin
               <FaTrophy className="mr-3 h-4 w-4 text-gray-400" />
               Mục tiêu & Thành tích
             </Link>
+            */}
 
             {/* 6. Hồ sơ & Cài đặt */}
             <Link
@@ -146,7 +147,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ userName, onLogout, isAdmin
 
             {/* 7. Phản hồi (MỚI) */}
             <Link
-              to="/profile/feedback"
+              to="/feedback"
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
               onClick={toggleDropdown}
             >
