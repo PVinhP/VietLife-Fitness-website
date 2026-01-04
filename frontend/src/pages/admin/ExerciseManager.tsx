@@ -37,7 +37,7 @@ const ExerciseManager = () => {
     // 1. Fetch Exercises
     const fetchExercises = async () => {
         try {
-            const res = await axios.get('http://localhost:8080/exercise', {
+            const res = await axios.get('https://vietlife-fitness-website-host.onrender.com/exercise', {
                 params: { search: searchTerm }
             });
             setExercises(res.data);
@@ -80,11 +80,11 @@ const ExerciseManager = () => {
             
             if (editingId) {
                 // UPDATE
-                await axios.put(`http://localhost:8080/exercise/${editingId}`, formData, { headers });
+                await axios.put(`https://vietlife-fitness-website-host.onrender.com/exercise/${editingId}`, formData, { headers });
                 toast.success("Cập nhật bài tập thành công!");
             } else {
                 // CREATE
-                await axios.post(`http://localhost:8080/exercise`, formData, { headers });
+                await axios.post(`https://vietlife-fitness-website-host.onrender.com/exercise`, formData, { headers });
                 toast.success("Thêm bài tập mới thành công!");
             }
             setIsFormOpen(false);
@@ -99,7 +99,7 @@ const ExerciseManager = () => {
         if (!window.confirm("Bạn có chắc chắn muốn xóa bài tập này?")) return;
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`http://localhost:8080/exercise/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.delete(`https://vietlife-fitness-website-host.onrender.com/exercise/${id}`, { headers: { Authorization: `Bearer ${token}` } });
             toast.success("Đã xóa bài tập.");
             fetchExercises();
         } catch (error) {

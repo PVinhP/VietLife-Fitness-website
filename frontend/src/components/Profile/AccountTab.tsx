@@ -20,7 +20,7 @@ const AccountTab: React.FC = () => {
             const token = localStorage.getItem('token');
             try {
                 // Dùng lại API GET /api/profile/me để lấy cả thông tin user
-                const res = await axios.get('http://localhost:8080/api/profile/me', {
+                const res = await axios.get('https://vietlife-fitness-website-host.onrender.com/api/profile/me', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setFormData({
@@ -62,7 +62,7 @@ const AccountTab: React.FC = () => {
         try {
             // Bạn cần tạo một API MỚI, ví dụ: PUT /api/users/me
             // để cập nhật bảng 'users'
-            await axios.put('http://localhost:8080/api/users/me', 
+            await axios.put('https://vietlife-fitness-website-host.onrender.com/api/users/me', 
                 { full_name: formData.full_name }, 
                 { headers: { Authorization: `Bearer ${token}` } }
             );

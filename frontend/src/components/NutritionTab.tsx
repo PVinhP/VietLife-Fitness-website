@@ -61,7 +61,7 @@ const NutritionTab: React.FC<NutritionTabProps> = ({ data, onUpdateMeal }) => {
         setSwappingMeal({ dayIdx, mealIdx });
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:8080/api/ai-plan/regenerate-meal', {
+            const response = await fetch('https://vietlife-fitness-website-host.onrender.com/api/ai-plan/regenerate-meal', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ 

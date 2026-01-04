@@ -24,7 +24,7 @@ const DailyWorkoutSession = () => {
         const fetchTodayWorkout = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const res = await fetch('http://localhost:8080/api/ai-plan/today-workout', {
+                const res = await fetch('https://vietlife-fitness-website-host.onrender.com/api/ai-plan/today-workout', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
