@@ -7,9 +7,15 @@ const pool = mysql.createPool({
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '1234',
   database: process.env.DB_NAME || 'workout',
+  port: process.env.DB_PORT,
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+
+  ssl: {
+        minVersion: 'TLSv1.2',
+        rejectUnauthorized: true
+    }
 });
 
   // host: process.env.DB_HOST || 'mydb.crgyamum0k6a.ap-southeast-1.rds.amazonaws.com',
