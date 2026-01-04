@@ -35,7 +35,7 @@ const LessonManager = () => {
     const fetchLessons = async () => {
         try {
             // Gọi API GET cũ của bạn
-            const res = await axios.get('https://vietlife-fitness-website-host.onrender.com/lesson', {
+            const res = await axios.get('http://localhost:8080/lesson', {
                 params: { search: searchTerm }
             });
             // API trả về mảng trực tiếp hoặc object {data: []} tùy logic cũ, ta xử lý cả 2
@@ -80,11 +80,11 @@ const LessonManager = () => {
             
             if (editingId) {
                 // UPDATE
-                await axios.put(`https://vietlife-fitness-website-host.onrender.com/lesson/${editingId}`, formData, { headers });
+                await axios.put(`http://localhost:8080/lesson/${editingId}`, formData, { headers });
                 toast.success("Cập nhật bài học thành công!");
             } else {
                 // CREATE
-                await axios.post(`https://vietlife-fitness-website-host.onrender.com/lesson`, formData, { headers });
+                await axios.post(`http://localhost:8080/lesson`, formData, { headers });
                 toast.success("Tạo bài học mới thành công!");
             }
             setIsFormOpen(false);
@@ -99,7 +99,7 @@ const LessonManager = () => {
         if (!window.confirm("Xóa bài học này?")) return;
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`https://vietlife-fitness-website-host.onrender.com/lesson/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.delete(`http://localhost:8080/lesson/${id}`, { headers: { Authorization: `Bearer ${token}` } });
             toast.success("Đã xóa.");
             fetchLessons();
         } catch (error) {

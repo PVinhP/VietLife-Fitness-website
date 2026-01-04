@@ -21,7 +21,7 @@ interface RequestInfo {
   created_at?: string;
 }
 
-const API_BASE_URL = 'https://vietlife-fitness-website-host.onrender.com/api/consultant';
+const API_BASE_URL = 'http://localhost:8080/api/consultant';
 
 const ConsultationTab: React.FC<{ userId: number, token: string | null | undefined, role?: string }> = ({ userId, token, role = 'user' }) => {
   const [view, setView] = useState<'list' | 'create' | 'chat'>('list');
