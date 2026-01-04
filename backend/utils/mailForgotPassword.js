@@ -1,23 +1,33 @@
 // File: utils/mailForgotPassword.js
+const { google } = require('googleapis');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-// Lấy thông tin từ .env
-const EMAIL_USER = process.env.EMAIL_USER; // Email của bạn (vinhpham...@gmail.com)
-const EMAIL_PASS = process.env.EMAIL_PASS; // Mật khẩu ứng dụng 16 ký tự
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const REDIRECT_URI = process.env.REDIRECT_URI;
+const REFRESH_TOKEN = process.env.REFRESH_TOKEN;
+const EMAIL_USER = process.env.EMAIL_USER;
+
+const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
 
 const SendMailForgotPassword = async (email, otp) => {
     try {
-        // Cấu hình Transporter đơn giản với App Password
+        const accessToken = await oAuth2Client.getAccessToken();
+
         const transport = nodemailer.createTransport({
             service: 'gmail',
             auth: {
+                type: 'OAuth2',
                 user: EMAIL_USER,
-                pass: EMAIL_PASS, 
+                clientId: CLIENT_ID,
+                clientSecret: CLIENT_SECRET,
+                refreshToken: REFRESH_TOKEN,
+                accessToken: accessToken,
             },
         });
 
-        // Gửi email
         const info = await transport.sendMail({
             from: `"VietLife Support" <${EMAIL_USER}>`,
             to: email,
@@ -35,17 +45,15 @@ const SendMailForgotPassword = async (email, otp) => {
                 </div>
                 <p>Mã này sẽ hết hạn sau <b>5 phút</b>.</p>
                 <p style="font-size: 12px; color: #666;">Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
-                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-                <p style="font-size: 12px; color: #999; text-align: center;">VietLife - Đồng hành cùng sức khỏe của bạn</p>
             </div>
             `,
         });
 
-        console.log('✅ Email OTP sent successfully:', info.messageId);
+        console.log('Email sent:', info.messageId);
         return info;
     } catch (error) {
-        console.error('❌ Error sending OTP email:', error);
-        throw error;
+        console.error('Error sending email:', error);
+        throw error; // Ném lỗi để Controller bắt được
     }
 };
 
