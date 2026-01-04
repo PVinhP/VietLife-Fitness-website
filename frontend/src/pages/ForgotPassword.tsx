@@ -3,10 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+https://vietlife-fitness-website-host.onrender.com/
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
+  const API_URL = process.env.REACT_APP_API_URL || "https://vietlife-fitness-website-host.onrender.com";
 
   // Step 1: Nhập email, Step 2: Nhập OTP & Đổi mật khẩu
   const [step, setStep] = useState<1 | 2>(1);
