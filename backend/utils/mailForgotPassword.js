@@ -35,16 +35,18 @@ const SendMailForgotPassword = async (email, otp) => {
             `MIME-Version: 1.0`,
             ``, // Dòng trống ngăn cách Header và Body
             `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                <h2 style="color: #0d9488; text-align: center;">Mã xác nhận OTP</h2>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                <h2 style="color: #0d9488; text-align: center;">Yêu cầu đặt lại mật khẩu</h2>
+                <p>Xin chào,</p>
+                <p>Hệ thống nhận được yêu cầu khôi phục mật khẩu cho tài khoản: <b>${email}</b></p>
+                <p>Mã xác nhận (OTP) của bạn là:</p>
                 <div style="text-align: center; margin: 20px 0;">
-                    <span style="font-size: 24px; font-weight: bold; color: #ffffff; letter-spacing: 5px; background: #0d9488; padding: 15px 30px; border-radius: 8px;">
+                    <span style="font-size: 24px; font-weight: bold; color: #0d9488; letter-spacing: 5px; background: #f0fdfa; padding: 10px 20px; border-radius: 5px; border: 1px dashed #0d9488;">
                         ${otp}
                     </span>
                 </div>
-                <p style="text-align: center; color: #666;">Mã này sẽ hết hạn sau 5 phút.</p>
-                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-                <p style="font-size: 12px; color: #999; text-align: center;">VietLife Fitness App</p>
+                <p>Mã này sẽ hết hạn sau <b>5 phút</b>.</p>
+                <p style="font-size: 12px; color: #666;">Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
             </div>
             `
         ];
