@@ -211,7 +211,7 @@ const AIPlanDashboard = () => {
 
     const handleExerciseClick = (ex: Exercise) => {
         if (ex.is_real && ex.exercise_id) {
-            navigate('/exercises', { 
+            navigate('/exercise', { 
                 state: { 
                     selectedExerciseId: ex.exercise_id,
                     fromPlan: true 
