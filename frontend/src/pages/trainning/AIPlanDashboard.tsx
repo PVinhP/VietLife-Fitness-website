@@ -15,6 +15,7 @@ import {
     FaPlayCircle
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import ExerciseModal, { ExerciseDetail } from './../../components/ExerciseModal';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -92,6 +93,10 @@ const AIPlanDashboard = () => {
     const [isRegenerating, setIsRegenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'workout' | 'nutrition'>('workout');
+
+    const [selectedExerciseDetail, setSelectedExerciseDetail] = useState<ExerciseDetail | null>(null);
+    const [showExerciseModal, setShowExerciseModal] = useState(false);
+    const [loadingDetail, setLoadingDetail] = useState(false);
 
     // MỚI: Quản lý tuần đang xem và trạng thái hoàn thành
     const [currentWeekIndex, setCurrentWeekIndex] = useState(1);
@@ -209,17 +214,45 @@ const AIPlanDashboard = () => {
         }
     };
 
-    const handleExerciseClick = (ex: Exercise) => {
-        if (ex.is_real && ex.exercise_id) {
-            navigate('/exercise', { 
-                state: { 
-                    selectedExerciseId: ex.exercise_id,
-                    fromPlan: true 
-                } 
+    // --- [SỬA LẠI] HÀM XỬ LÝ CLICK BÀI TẬP ---
+    const handleExerciseClick = async (ex: Exercise) => {
+        if (!ex.is_real || !ex.exercise_id) return;
+
+        setLoadingDetail(true);
+        try {
+            const token = localStorage.getItem('token');
+            // Gọi API lấy danh sách bài tập (hoặc API chi tiết nếu có: /exercise/{id})
+            // Ở đây tôi giả định dùng lại endpoint lấy tất cả rồi tìm (giống Exercise.tsx) 
+            // để đảm bảo code chạy được ngay với backend hiện tại của bạn.
+            // TỐT NHẤT: Bạn nên có endpoint: GET /exercise/${ex.exercise_id}
+            
+            const response = await fetch('http://localhost:8080/exercise', {
+                headers: { 'Authorization': `Bearer ${token}` }
             });
+            const data: ExerciseDetail[] = await response.json();
+            
+            const found = data.find(item => item.id === ex.exercise_id);
+            
+            if (found) {
+                setSelectedExerciseDetail(found);
+                setShowExerciseModal(true);
+            } else {
+                toast.error("Không tìm thấy thông tin chi tiết bài tập.");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Lỗi khi tải chi tiết bài tập.");
+        } finally {
+            setLoadingDetail(false);
         }
     };
 
+    // Hàm đóng modal
+    const closeExerciseModal = () => {
+        setShowExerciseModal(false);
+        setSelectedExerciseDetail(null);
+    };
+    
     const handleEditPreferences = () => {
         navigate('/plan', { state: { isEditing: true } });
     };
@@ -312,7 +345,20 @@ const AIPlanDashboard = () => {
     // --- MAIN RENDER ---
     return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans">
-            
+            {loadingDetail && (
+                <div className="fixed inset-0 z-[110] bg-black/20 flex items-center justify-center backdrop-blur-[1px]">
+                    <div className="bg-white p-4 rounded-full shadow-lg animate-spin">
+                        <FaRedo className="text-teal-600" />
+                    </div>
+                </div>
+            )}
+
+            {/* [THÊM] Nhúng Component Modal vào đây */}
+            <ExerciseModal 
+                isOpen={showExerciseModal}
+                exercise={selectedExerciseDetail}
+                onClose={closeExerciseModal}
+            />
             {/* A. HEADER AREA */}
             <div className="bg-gradient-to-br from-slate-900 via-teal-900 to-slate-900 text-white p-6 md:p-10 rounded-b-[40px] shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
@@ -500,7 +546,7 @@ const AIPlanDashboard = () => {
                                                 day.exercises.map((ex, exIdx) => (
                                                     <div 
                                                         key={exIdx} 
-                                                        onClick={() => handleExerciseClick(ex)}
+                                                        onClick={() => handleExerciseClick(ex)} // Đã trỏ vào hàm mới
                                                         className={`p-4 sm:p-5 flex items-center justify-between transition-colors group ${
                                                             ex.is_real ? 'cursor-pointer hover:bg-teal-50/40' : 'cursor-default hover:bg-gray-50'
                                                         }`}
