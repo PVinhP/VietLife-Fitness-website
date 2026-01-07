@@ -88,6 +88,7 @@ const Signup: React.FC = () => {
             if (response.data.token && response.data.user) {
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('auth', 'true');
+                localStorage.setItem("user", JSON.stringify(response.data.user));
                 // Sử dụng full_name từ response hoặc từ form data
                 localStorage.setItem('VietLifeuser', response.data.user.full_name || formdata.full_name);
     }
