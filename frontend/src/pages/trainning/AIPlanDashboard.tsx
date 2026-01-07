@@ -113,11 +113,11 @@ const AIPlanDashboard = () => {
                 return;
             }
 
-            let url = 'https://vietlife-fitness-website-host.onrender.com/api/ai-plan/current';
+            let url = 'http://localhost:8080/api/ai-plan/current';
             let method = 'GET';
 
             if (forceRegenerate) {
-                url = 'https://vietlife-fitness-website-host.onrender.com/api/ai-plan/generate';
+                url = 'http://localhost:8080/api/ai-plan/generate';
                 method = 'POST';
             }
 
@@ -176,7 +176,7 @@ const AIPlanDashboard = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('https://vietlife-fitness-website-host.onrender.com/api/ai-plan/next-week', {
+            const response = await fetch('http://localhost:8080/api/ai-plan/next-week', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -287,7 +287,7 @@ const AIPlanDashboard = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('https://vietlife-fitness-website-host.onrender.com/api/ai-plan/activate', {
+            const response = await fetch('http://localhost:8080/api/ai-plan/activate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

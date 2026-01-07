@@ -35,7 +35,7 @@ const HealthProfileTab: React.FC = () => {
             const token = localStorage.getItem('token');
             try {
                 // API này bạn đã tạo ở Phần 1: GET /api/profile/me
-                const res = await axios.get('https://vietlife-fitness-website-host.onrender.com/api/profile/me', {
+                const res = await axios.get('http://localhost:8080/api/profile/me', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
@@ -63,7 +63,7 @@ const HealthProfileTab: React.FC = () => {
         const token = localStorage.getItem('token');
         try {
             // API này bạn đã tạo ở Phần 1: POST /api/profile
-            await axios.post('https://vietlife-fitness-website-host.onrender.com/api/profile', formData, {
+            await axios.post('http://localhost:8080/api/profile', formData, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success("Đã cập nhật thông tin sức khỏe!");

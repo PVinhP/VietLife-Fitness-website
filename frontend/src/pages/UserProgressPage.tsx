@@ -69,7 +69,7 @@ function UserProgressPage() {
 
   const getImageUrl = (hinh_anh?: string) => {
     if (hinh_anh?.trim()) {
-      return hinh_anh.startsWith('http') ? hinh_anh : `https://vietlife-fitness-website-host.onrender.com/uploads/${hinh_anh}`;
+      return hinh_anh.startsWith('http') ? hinh_anh : `http://localhost:8080/uploads/${hinh_anh}`;
     }
     return "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600";
   };

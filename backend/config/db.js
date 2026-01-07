@@ -12,10 +12,7 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
 
-  ssl: {
-        minVersion: 'TLSv1.2',
-        rejectUnauthorized: true
-    }
+
 });
 
   // host: process.env.DB_HOST || 'mydb.crgyamum0k6a.ap-southeast-1.rds.amazonaws.com',

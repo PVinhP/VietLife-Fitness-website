@@ -62,7 +62,7 @@ function LessonDetail() {
 
     const fetchLesson = async () => {
       try {
-        const response = await fetch(`https://vietlife-fitness-website-host.onrender.com/lesson/${id}`, {
+        const response = await fetch(`http://localhost:8080/lesson/${id}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
         });
@@ -75,7 +75,7 @@ function LessonDetail() {
           setLocalLikes(data.luot_thich || 0);
           
           // Track view count (tăng luot_xem global)
-          fetch(`https://vietlife-fitness-website-host.onrender.com/lesson/${id}/view`, {
+          fetch(`http://localhost:8080/lesson/${id}/view`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
           }).catch(console.error);
@@ -105,7 +105,7 @@ function LessonDetail() {
 
   const fetchRelatedLessons = async (loai: string, currentId: number) => {
     try {
-      const response = await fetch(`https://vietlife-fitness-website-host.onrender.com/lesson`, {
+      const response = await fetch(`http://localhost:8080/lesson`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -129,7 +129,7 @@ function LessonDetail() {
     if (!lesson || isLiked) return;
 
     try {
-      const response = await fetch(`https://vietlife-fitness-website-host.onrender.com/lesson/${lesson.id}/like`, {
+      const response = await fetch(`http://localhost:8080/lesson/${lesson.id}/like`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -218,7 +218,7 @@ function LessonDetail() {
 
   const getImageUrl = (hinh_anh: string) => {
     if (hinh_anh && hinh_anh.trim()) {
-      return hinh_anh.startsWith('http') ? hinh_anh : `https://vietlife-fitness-website-host.onrender.com/uploads/${hinh_anh}`;
+      return hinh_anh.startsWith('http') ? hinh_anh : `http://localhost:8080/uploads/${hinh_anh}`;
     }
     return "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=1200";
   };

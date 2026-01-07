@@ -19,7 +19,7 @@ const SportsList = () => {
         const fetchSports = async () => {
             try {
                 // Đảm bảo URL này đúng với port backend của bạn (8080)
-                const res = await axios.get('https://vietlife-fitness-website-host.onrender.com/api/sports');
+                const res = await axios.get('http://localhost:8080/api/sports');
                 setSports(res.data);
             } catch (error) {
                 console.error("Lỗi khi tải danh sách môn thể thao:", error);
