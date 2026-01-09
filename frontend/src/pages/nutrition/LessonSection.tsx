@@ -11,7 +11,7 @@ interface Lesson {
   hinh_anh: string;
   tom_tat: string;
   noi_dung: string;
-  loai: 'coban' | 'tapluyen';
+  loai: 'dinhduong' | 'tapluyen';
   ngay_tao: string;
   thoi_gian_doc: number;
   do_kho: 'de' | 'trung-binh' | 'kho';
@@ -42,7 +42,7 @@ const LessonSection = React.forwardRef<HTMLDivElement>((props, ref) => {
 
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   // Filters
-  const [activeLessonCategory, setActiveLessonCategory] = useState<'coban' | 'tapluyen' | ''>('');
+  const [activeLessonCategory, setActiveLessonCategory] = useState<'dinhduong' | 'tapluyen' | ''>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [selectedDifficulty, setSelectedDifficulty] = useState<'de' | 'trung-binh' | 'kho' | ''>('');
@@ -235,11 +235,11 @@ const LessonSection = React.forwardRef<HTMLDivElement>((props, ref) => {
           {/* Category & Difficulty */}
           <div className="flex items-center justify-between mb-3">
             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              lesson.loai === 'coban' 
+              lesson.loai === 'dinhduong' 
                 ? 'bg-blue-100 text-blue-700' 
                 : 'bg-purple-100 text-purple-700'
             }`}>
-              {lesson.loai === 'coban' ? '📚 Cơ bản' : '💪 Tập luyện'}
+              {lesson.loai === 'dinhduong' ? '📚 Cơ bản' : '💪 Tập luyện'}
             </span>
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${difficultyInfo.color}`}>
               {difficultyInfo.icon} {difficultyInfo.label}
@@ -403,9 +403,9 @@ const LessonSection = React.forwardRef<HTMLDivElement>((props, ref) => {
                 📖 Tất cả
               </button>
               <button
-                onClick={() => setActiveLessonCategory('coban')}
+                onClick={() => setActiveLessonCategory('dinhduong')}
                 className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-                  activeLessonCategory === 'coban' 
+                  activeLessonCategory === 'dinhduong' 
                     ? 'bg-white text-gray-900 shadow-md' 
                     : 'text-gray-600 hover:text-gray-800'
                 }`}

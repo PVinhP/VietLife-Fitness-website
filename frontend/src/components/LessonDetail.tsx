@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react'; // 👉 Thêm useRef
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
-import ProgressService from '../services/ProgressService'; // ✅ THÊM DÒNG NÀY
+// import ProgressService from '../services/ProgressService'; // Tạm ẩn để dùng fetch trực tiếp cho khớp backend mới
 
 interface Lesson {
   id: number;
@@ -9,7 +9,7 @@ interface Lesson {
   hinh_anh: string;
   tom_tat: string;
   noi_dung: string;
-  loai: 'coban' | 'tapluyen';
+  loai: 'dinhduong' | 'tapluyen';
   ngay_tao: string;
   thoi_gian_doc: number;
   do_kho: 'de' | 'trung-binh' | 'kho';
@@ -17,6 +17,10 @@ interface Lesson {
   luot_thich: number;
   tac_gia: string;
   tags?: string;
+  // 👉 Thêm các trường này để map dữ liệu từ backend
+  user_progress?: number;
+  user_bookmarked?: boolean;
+  user_completed?: boolean;
 }
 
 function LessonDetail() {
@@ -30,7 +34,12 @@ function LessonDetail() {
   const [isLiked, setIsLiked] = useState(false);
   const [localLikes, setLocalLikes] = useState(0);
 
-  // 👉 Có thể dùng để disable nút khi đang lưu (nếu muốn)
+  // 👉 State mới cho tiến trình
+  const [readingProgress, setReadingProgress] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const lastSavedProgress = useRef(0); // Dùng để tránh spam API
+  const contentRef = useRef<HTMLDivElement>(null); // Dùng để tính chiều cao bài viết
+
   const [savingProgress, setSavingProgress] = useState(false);
 
   // Scroll to top
@@ -38,19 +47,59 @@ function LessonDetail() {
     window.scrollTo(0, 0);
   }, [id]);
 
-  // ✅ Helper lưu tiến độ học
-  const saveProgress = async (lessonId: number, payload: any) => {
+  // ✅ [MỚI] Hàm lưu tiến độ chuẩn (gọi API backend mà chúng ta vừa sửa)
+  const saveProgressToBackend = async (percent: number, completed: boolean = false) => {
+    if (!lesson) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
     try {
       setSavingProgress(true);
-      // ⚠️ Đổi tên hàm này cho khớp với ProgressService của bạn nếu khác
-      // Ví dụ: ProgressService.saveProgress(lessonId, payload);
-      await (ProgressService as any).updateProgress(lessonId, payload);
+      await fetch(`https://vietlife-fitness-website-host.onrender.com/lesson/${lesson.id}/progress`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+            progress_percent: percent,
+            completed: completed
+        })
+      });
     } catch (err) {
       console.error('Lỗi lưu tiến độ:', err);
     } finally {
       setSavingProgress(false);
     }
   };
+
+  // ✅ [MỚI] Logic tính toán % khi cuộn chuột
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isCompleted) return; // Nếu xong rồi thì thôi
+
+      // Tính toán % dựa trên toàn bộ body
+      const totalHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrollPosition = document.documentElement.scrollTop;
+      
+      if (totalHeight <= 0) return;
+
+      const percent = Math.min(100, Math.max(0, Math.round((scrollPosition / totalHeight) * 100)));
+      setReadingProgress(percent);
+
+      // Chỉ lưu xuống DB khi tăng thêm 10% hoặc đạt > 90% (để đỡ lag)
+      if (percent > lastSavedProgress.current + 10 || (percent > 90 && lastSavedProgress.current < 90)) {
+        lastSavedProgress.current = percent;
+        const shouldComplete = percent >= 95; // Tự động hoàn thành nếu cuộn tới đáy (95%)
+        saveProgressToBackend(percent, shouldComplete);
+        
+        if (shouldComplete) setIsCompleted(true);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lesson, isCompleted]);
 
   // Fetch lesson
   useEffect(() => {
@@ -62,9 +111,14 @@ function LessonDetail() {
 
     const fetchLesson = async () => {
       try {
+        // 👉 Thêm token vào header để lấy được user_progress
+        const token = localStorage.getItem('token');
+        const headers: any = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
         const response = await fetch(`https://vietlife-fitness-website-host.onrender.com/lesson/${id}`, {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
+          headers: headers
         });
 
         if (!response.ok) throw new Error('Không tìm thấy bài học');
@@ -74,18 +128,16 @@ function LessonDetail() {
           setLesson(data);
           setLocalLikes(data.luot_thich || 0);
           
-          // Track view count (tăng luot_xem global)
-          fetch(`https://vietlife-fitness-website-host.onrender.com/lesson/${id}/view`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-          }).catch(console.error);
+          // 👉 [MỚI] Đồng bộ dữ liệu cũ từ Backend lên UI
+          setIsLiked(!!data.user_bookmarked);
+          setIsCompleted(!!data.user_completed);
+          
+          const savedPercent = data.user_progress || 0;
+          setReadingProgress(savedPercent);
+          lastSavedProgress.current = savedPercent;
 
-          // ✅ Lưu lịch sử: user đã mở / đang học bài này
-          // Tùy ý bạn set progress_percent bao nhiêu, ở đây tạm set 1%
-          saveProgress(data.id, {
-            progress_percent: data.thoi_gian_doc ? 1 : 0,
-            in_progress: true
-          });
+          // Track view count
+          fetch(`https://vietlife-fitness-website-host.onrender.com/lesson/${id}/view`, { method: 'POST' }).catch(console.error);
 
           // Fetch related lessons
           fetchRelatedLessons(data.loai, data.id);
@@ -105,7 +157,7 @@ function LessonDetail() {
 
   const fetchRelatedLessons = async (loai: string, currentId: number) => {
     try {
-      const response = await fetch(`https://vietlife-fitness-website-host.onrender.com/lesson`, {
+      const response = await fetch(`https://vietlife-fitness-website-host.onrender.com/lesson?loai=${loai}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -126,33 +178,40 @@ function LessonDetail() {
   };
 
   const handleLike = async () => {
-    if (!lesson || isLiked) return;
+    if (!lesson) return; // Cho phép like kể cả khi đã like (để unlike - tuỳ logic backend)
+    
+    // Optimistic Update (Cập nhật giao diện trước cho mượt)
+    const newStatus = !isLiked;
+    setIsLiked(newStatus);
+    setLocalLikes(prev => newStatus ? prev + 1 : prev - 1);
 
     try {
-      const response = await fetch(`https://vietlife-fitness-website-host.onrender.com/lesson/${lesson.id}/like`, {
+      // 1. Gọi API Bookmark
+      const token = localStorage.getItem('token');
+      await fetch(`https://vietlife-fitness-website-host.onrender.com/lesson/${lesson.id}/bookmark`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
       });
 
-      if (response.ok) {
-        setIsLiked(true);
-        setLocalLikes(prev => prev + 1);
-        
-        // ✅ Khi thích bài -> lưu vào lịch sử như 1 bài "đã lưu / bookmarked"
-        saveProgress(lesson.id, {
-          bookmark: true
-        });
+      // 2. Gọi API Like Global (nếu cần)
+      if (newStatus) {
+        fetch(`https://vietlife-fitness-website-host.onrender.com/lesson/${lesson.id}/like`, { method: 'POST' }).catch(()=>{});
+      }
 
-        // Animation effect
-        const button = document.getElementById('like-button');
-        if (button) {
-          button.classList.add('animate-pulse');
-          setTimeout(() => button.classList.remove('animate-pulse'), 600);
-        }
+      // Animation effect
+      const button = document.getElementById('like-button');
+      if (button && newStatus) {
+        button.classList.add('animate-pulse');
+        setTimeout(() => button.classList.remove('animate-pulse'), 600);
       }
     } catch (err) {
       console.error('Lỗi khi thích bài học:', err);
-      alert('Không thể thích bài học. Vui lòng thử lại!');
+      // Revert nếu lỗi
+      setIsLiked(!newStatus);
+      setLocalLikes(prev => !newStatus ? prev + 1 : prev - 1);
     }
   };
 
@@ -171,16 +230,15 @@ function LessonDetail() {
     }
   };
 
-  // ✅ Optional: nút "Hoàn thành bài học"
+  // ✅ Nút hoàn thành thủ công
   const handleComplete = async () => {
     if (!lesson) return;
 
     try {
-      await saveProgress(lesson.id, {
-        completed: true,
-        progress_percent: 100,
-        ngay_hoan_thanh: new Date().toISOString()
-      });
+      setIsCompleted(true);
+      setReadingProgress(100);
+      lastSavedProgress.current = 100;
+      await saveProgressToBackend(100, true);
       alert('🎉 Bạn đã hoàn thành bài học!');
     } catch (err) {
       console.error('Lỗi đánh dấu hoàn thành:', err);
@@ -211,7 +269,7 @@ function LessonDetail() {
   };
 
   const getCategoryInfo = (loai: string) => {
-    return loai === 'coban'
+    return loai === 'dinhduong'
       ? { name: 'Kiến thức cơ bản', icon: '📚', color: 'bg-blue-500' }
       : { name: 'Dinh dưỡng & Tập luyện', icon: '💪', color: 'bg-purple-500' };
   };
@@ -261,6 +319,14 @@ function LessonDetail() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+
+      {/* 👉 [MỚI] Thanh tiến độ chạy trên cùng màn hình */}
+      <div className="fixed top-0 left-0 w-full h-1.5 bg-gray-200 z-50">
+        <div 
+            className="h-full bg-teal-500 transition-all duration-300 ease-out"
+            style={{ width: `${readingProgress}%` }}
+        ></div>
+      </div>
       
       {/* Header Section */}
       <div className="bg-gradient-to-r from-teal-500 to-blue-600 text-white shadow-xl">
@@ -290,6 +356,12 @@ function LessonDetail() {
             <span className="px-4 py-2 bg-white bg-opacity-20 rounded-full text-sm font-medium">
               ⏱️ {lesson.thoi_gian_doc} phút đọc
             </span>
+            {/* 👉 [MỚI] Hiển thị trạng thái hoàn thành */}
+            {isCompleted && (
+                 <span className="px-4 py-2 bg-green-500 text-white rounded-full text-sm font-bold shadow-lg border-2 border-white">
+                  ✅ Đã học xong
+                </span>
+            )}
           </div>
 
           {/* Title */}
@@ -318,7 +390,7 @@ function LessonDetail() {
           
           {/* Article */}
           <div className="lg:col-span-2">
-            <article className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <article className="bg-white rounded-xl shadow-lg overflow-hidden" ref={contentRef}>
               
               {/* Featured Image */}
               {lesson.hinh_anh && (
@@ -394,27 +466,26 @@ function LessonDetail() {
               <div className="flex flex-wrap gap-3 items-center">
                 <button
                   onClick={handleComplete}
-                  disabled={savingProgress}
+                  disabled={isCompleted}
                   className={`px-6 py-3 rounded-lg text-white font-semibold transition-all ${
-                    savingProgress
+                    isCompleted
                       ? 'bg-green-300 cursor-not-allowed'
                       : 'bg-green-500 hover:bg-green-600'
                   }`}
                   title="Đánh dấu hoàn thành bài học"
                 >
-                  ✔ Hoàn thành bài học
+                  {isCompleted ? '✔ Đã hoàn thành' : '✔ Hoàn thành bài học'}
                 </button>
 
                 <button
                   id="like-button"
                   onClick={handleLike}
-                  disabled={isLiked}
                   className={`p-3 rounded-lg transition-all ${
                     isLiked
-                      ? 'bg-red-500 text-white cursor-not-allowed'
+                      ? 'bg-red-500 text-white' 
                       : 'bg-white hover:bg-red-50 text-red-500 border-2 border-red-500'
                   }`}
-                  title={isLiked ? 'Đã thích' : 'Thích bài học'}
+                  title={isLiked ? 'Bỏ thích' : 'Thích bài học'}
                 >
                   <svg className="w-6 h-6" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
