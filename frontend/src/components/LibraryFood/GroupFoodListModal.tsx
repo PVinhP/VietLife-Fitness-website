@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, Utensils, Search, Frown } from 'lucide-react';
 import { FoodGroup, FoodItem } from '../../types/nutrition';
 
-const API_BASE_URL = 'http://localhost:8080/api/food-classification';
+const API_BASE_URL = 'https://vietlife-fitness-website-host.onrender.com/api/food-classification';
 
 interface Props {
   group: FoodGroup | null;
