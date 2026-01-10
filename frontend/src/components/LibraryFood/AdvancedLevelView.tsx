@@ -8,7 +8,7 @@ import {
 import FoodDetailModal from './FoodDetailModal'; 
 import { FoodItem } from '../../types/nutrition';
 
-const API_BASE_URL = 'https://vietlife-fitness-website-host.onrender.com/api/food-classification';
+const API_BASE_URL = 'http://localhost:8080/api/food-classification';
 
 interface FilterState {
   fitness: string[];

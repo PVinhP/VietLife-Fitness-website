@@ -27,7 +27,7 @@ const ExerciseSelectorModal = ({ isOpen, onClose, onSelect }: Props) => {
 
     useEffect(() => {
         if (isOpen) {
-            axios.get('https://vietlife-fitness-website-host.onrender.com/exercise')
+            axios.get('http://localhost:8080/exercise')
                 .then(res => setExercises(res.data))
                 .catch(err => console.error(err));
         }

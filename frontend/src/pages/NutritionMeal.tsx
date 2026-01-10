@@ -53,7 +53,7 @@ const NutritionMealPlanner = () => {
     }
     setIsLoading(true);
 
-    fetch(`https://vietlife-fitness-website-host.onrender.com/nutrition/search?name=${encodeURIComponent(searchInput)}`, {
+    fetch(`http://localhost:8080/nutrition/search?name=${encodeURIComponent(searchInput)}`, {
       method: 'GET',
       headers: { 'Content-type': 'application/json' }
     })
@@ -230,7 +230,7 @@ const NutritionMealPlanner = () => {
     };
 
     try {
-      const response = await fetch('https://vietlife-fitness-website-host.onrender.com/nutrition/meal-logs', {
+      const response = await fetch('http://localhost:8080/nutrition/meal-logs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dataToSave)

@@ -32,8 +32,8 @@ UserRouter.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     const [result] = await pool.query(
-      `INSERT INTO users (email, password, full_name) VALUES (?, ?, ?)`,
-      [email, hashedPassword, full_name || null]
+      `INSERT INTO users (email, password, full_name, role) VALUES (?, ?, ?, ?)`,
+      [email, hashedPassword, full_name || null, 'user']
     );
 
     const [newUserRow] = await pool.query("SELECT * FROM users WHERE id = ?", [

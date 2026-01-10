@@ -82,7 +82,7 @@ const Plan: React.FC = () => {
       }
 
       try {
-        const res = await axios.get('https://vietlife-fitness-website-host.onrender.com/api/profile/me', {
+        const res = await axios.get('http://localhost:8080/api/profile/me', {
           headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -182,7 +182,7 @@ const Plan: React.FC = () => {
     
     try {
       // 1. Gọi API lưu dữ liệu vào Database
-      await axios.put('https://vietlife-fitness-website-host.onrender.com/api/profile/preferences', formData, {
+      await axios.put('http://localhost:8080/api/profile/preferences', formData, {
           headers: { Authorization: `Bearer ${token}` }
       });
 

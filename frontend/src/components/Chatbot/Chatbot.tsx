@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ConsultationTab from './ConsultationTab'; // Import Component vừa tạo
 
-const API_CHAT_URL = 'https://vietlife-fitness-website-host.onrender.com/api/chat'; 
+const API_CHAT_URL = 'http://localhost:8080/api/chat'; 
 
 // Kiểu dữ liệu Message
 interface Message {
