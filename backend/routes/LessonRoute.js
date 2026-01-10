@@ -73,9 +73,9 @@ router.get('/', async (req, res) => {
       SELECT 
         l.*, 
         GROUP_CONCAT(lt.ten_tag) as tags,
-        COALESCE(lup.progress_percent, 0) as user_progress,
-        COALESCE(lup.bookmark, 0) as user_bookmarked,
-        COALESCE(lup.completed, 0) as user_completed
+        COALESCE(MAX(lup.progress_percent), 0) as user_progress,
+        COALESCE(MAX(lup.bookmark), 0) as user_bookmarked,
+        COALESCE(MAX(lup.completed), 0) as user_completed
       FROM lesson l
       LEFT JOIN lesson_tag_mapping ltm ON l.id = ltm.lesson_id
       LEFT JOIN lesson_tags lt ON ltm.tag_id = lt.id
