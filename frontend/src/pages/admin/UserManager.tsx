@@ -58,7 +58,7 @@ const UserManager = () => {
     const fetchUsers = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get('https://vietlife-fitness-website-host.onrender.com/user', {
+            const res = await axios.get('http://localhost:8080/user', {
                 params: { search: searchTerm, role: roleFilter },
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -108,12 +108,12 @@ const UserManager = () => {
             
             if (editingId) {
                 // UPDATE
-                await axios.put(`https://vietlife-fitness-website-host.onrender.com/user/${editingId}`, formData, { headers });
+                await axios.put(`http://localhost:8080/user/${editingId}`, formData, { headers });
                 toast.success("Cập nhật thông tin thành công!");
             } else {
                 // CREATE
                 if (!formData.password) return toast.warn("Vui lòng nhập mật khẩu!");
-                await axios.post(`https://vietlife-fitness-website-host.onrender.com/user/create`, formData, { headers });
+                await axios.post(`http://localhost:8080/user/create`, formData, { headers });
                 toast.success("Tạo tài khoản mới thành công!");
             }
 
@@ -130,7 +130,7 @@ const UserManager = () => {
         if(!window.confirm('CẢNH BÁO: Xóa user sẽ mất hết dữ liệu sức khỏe! Tiếp tục?')) return;
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`https://vietlife-fitness-website-host.onrender.com/user/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.delete(`http://localhost:8080/user/${id}`, { headers: { Authorization: `Bearer ${token}` } });
             toast.success("Đã xóa user.");
             fetchUsers();
         } catch (error) {

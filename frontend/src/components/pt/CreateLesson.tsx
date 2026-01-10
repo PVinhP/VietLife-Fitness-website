@@ -27,7 +27,7 @@ function CreateLesson({ onClose, onSuccess }: CreateLessonProps) {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await fetch('https://vietlife-fitness-website-host.onrender.com/lesson', {
+      const response = await fetch('http://localhost:8080/lesson', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

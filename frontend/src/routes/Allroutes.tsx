@@ -54,6 +54,9 @@ import SportManager from '../pages/admin/SportManager';
 import PlanManager from '../pages/admin/PlanManager';
 import DailyWorkoutSession from '../components/DailyWorkoutSession';
 import FeedbackPage from '../pages/FeedbackPage';
+import NutritionAnalysis from '../pages/NutritionAnalytics';
+
+
 function Allroutes() {
   return (
     <Routes>
@@ -99,6 +102,7 @@ function Allroutes() {
       <Route path="/profile/settings" element={<PrivateRoute><Setting /></PrivateRoute>} />
       <Route path="/profile/nutrition" element={<PrivateRoute><NutritionDiary /></PrivateRoute>} />
       <Route path="/workout/today" element={<PrivateRoute><DailyWorkoutSession /></PrivateRoute>} />
+      <Route path="/nutrition/analysis" element={<PrivateRoute><NutritionAnalysis /></PrivateRoute>} />
     <Route element={<AdminRoute />}>
       <Route element={<AdminLayout />}>
         

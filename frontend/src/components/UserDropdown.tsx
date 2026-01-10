@@ -10,7 +10,8 @@ import {
   FaCog, 
   FaSignOutAlt,
   FaChartPie,    // Icon cho Dinh dưỡng
-  FaBook,        // Icon cho Học tập (MỚI)
+  FaBook,     
+  FaChartLine,   // Icon cho Học tập (MỚI)
   FaTrophy,      // Icon cho Thành tích (MỚI)
   FaCommentDots, // Icon cho Phản hồi (MỚI)
   FaUserShield
@@ -124,16 +125,16 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ userName, onLogout, isAdmin
               Tiến trình học tập
             </Link>
 
-            {/* 5. Mục tiêu & Thành tích (MỚI) 
+            {/*5. Mục tiêu & Thành tích (MỚI)   */}
             <Link
-              to="/profile/goals"
+              to="/nutrition/analysis"
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
               onClick={toggleDropdown}
             >
-              <FaTrophy className="mr-3 h-4 w-4 text-gray-400" />
-              Mục tiêu & Thành tích
+              < FaChartLine className="mr-3 h-4 w-4 text-gray-400" />
+              Thống kê và Phân tích
             </Link>
-            */}
+            
 
             {/* 6. Hồ sơ & Cài đặt */}
             <Link

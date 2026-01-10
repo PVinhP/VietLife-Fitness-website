@@ -67,7 +67,7 @@ function NutritionTools() {
             if (!token) return; // Nếu chưa đăng nhập thì giữ mặc định
 
             try {
-                const response = await fetch('https://vietlife-fitness-website-host.onrender.com/api/profile/me', {
+                const response = await fetch('http://localhost:8080/api/profile/me', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -126,7 +126,7 @@ function NutritionTools() {
             setList([]);
             return;
         }
-        fetch(`https://vietlife-fitness-website-host.onrender.com/nutrition/search?name=${searchResults}`, {
+        fetch(`http://localhost:8080/nutrition/search?name=${searchResults}`, {
             method: "GET",
             headers: { "Content-type": "application/json" }
         })
