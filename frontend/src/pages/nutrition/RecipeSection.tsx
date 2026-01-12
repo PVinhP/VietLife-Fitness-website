@@ -238,8 +238,8 @@ function RecipeSection() {
                     const formattedData = data.recipes.map((recipe: any) => ({
                         ...recipe,
                         // Đảm bảo các trường khớp 100%
-                        recipeId: recipe.recipe_id,
-                        imageUrl: recipe.image_url,
+                        recipeId: recipe.recipe_id || recipe.Recipe_id || recipe.id, 
+                        imageUrl: recipe.image_url || recipe.Image_url,
                         calories: recipe.calories,
                         prep_time: recipe.prep_time,
                         cook_time: recipe.cook_time,
