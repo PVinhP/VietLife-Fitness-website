@@ -147,10 +147,12 @@ const getRecipeByIdPublic = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Query lấy chi tiết đầy đủ của 1 recipe
+        // SỬA: Liệt kê rõ các cột thay vì r.* để kiểm soát Group By
+        // SỬA: Đưa tất cả các cột Select vào Group By để tránh lỗi trên Render
         const sql = `
             SELECT 
-                r.*,
+                r.recipe_id, r.name, r.description, r.image_url, r.video_url,
+                r.prep_time, r.cook_time, r.difficulty, r.instructions, r.serving_size,
                 n.calories, n.protein_g, n.fats_g, n.carbs_g,
                 GROUP_CONCAT(DISTINCT CASE WHEN t.tag_type = 'MEAL' THEN t.tag_name END) AS mealTypes,
                 GROUP_CONCAT(DISTINCT CASE WHEN t.tag_type = 'GOAL' THEN t.tag_name END) AS goals
@@ -159,7 +161,10 @@ const getRecipeByIdPublic = async (req, res) => {
             LEFT JOIN recipe_tags rt ON r.recipe_id = rt.recipe_id
             LEFT JOIN tags t ON rt.tag_id = t.tag_id
             WHERE r.recipe_id = ?
-            GROUP BY r.recipe_id
+            GROUP BY 
+                r.recipe_id, r.name, r.description, r.image_url, r.video_url,
+                r.prep_time, r.cook_time, r.difficulty, r.instructions, r.serving_size,
+                n.calories, n.protein_g, n.fats_g, n.carbs_g
         `;
 
         const [rows] = await pool.query(sql, [id]);
@@ -170,19 +175,17 @@ const getRecipeByIdPublic = async (req, res) => {
 
         const recipe = rows[0];
         
-        // Format lại dữ liệu cho đẹp
         const formattedRecipe = {
             ...recipe,
             mealType: recipe.mealTypes ? recipe.mealTypes.split(',')[0] : null,
             goal: recipe.goals ? recipe.goals.split(',')[0] : null,
-            // Xử lý hướng dẫn: Tách dòng nếu lưu dạng text
             instructionsList: recipe.instructions ? recipe.instructions.split('\n') : []
         };
 
         res.json({ success: true, recipe: formattedRecipe });
 
     } catch (error) {
-        console.error(error);
+        console.error("Lỗi chi tiết:", error); // Log ra console của Render để dễ debug
         res.status(500).json({ success: false, message: error.message });
     }
 };
