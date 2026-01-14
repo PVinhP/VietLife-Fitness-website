@@ -10,7 +10,7 @@ import GroupFoodListModal from './GroupFoodListModal';
 import FoodDetailModal from './FoodDetailModal';
 import { FoodGroup, FoodItem } from '../../types/nutrition'; 
 
-const API_BASE_URL = 'https://vietlife-fitness-website-host.onrender.com/api/food-classification';
+const API_BASE_URL = 'http://localhost:8080/api/food-classification';
 
 // 2. Tạo một hàm helper để lấy Icon dựa trên ID nhóm
 // Cách này an toàn nhất, dù API có trả về icon lỗi thì FE vẫn hiển thị đúng icon đẹp

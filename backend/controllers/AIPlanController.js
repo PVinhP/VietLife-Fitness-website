@@ -157,11 +157,13 @@ exports.generatePlan = async (req, res) => {
     --- KẾT THÚC DANH SÁCH ---
 
     YÊU CẦU QUAN TRỌNG:
-    1. ƯU TIÊN TUYỆT ĐỐI chọn bài tập từ danh sách trên để người dùng có video hướng dẫn.
-    2. Khi chọn bài từ danh sách, BẮT BUỘC phải trả về đúng "exercise_id".
-    3. Nếu bài tập rất cần thiết mà không có trong danh sách, bạn được phép tự thêm nhưng để "exercise_id": null.
-    4. Các món ăn mục nutrition phải quen thuộc với người Việt Nam, dễ tìm nguyên liệu và nấu nướng.
-    5. Chỉ trả về JSON thuần, không Markdown, không lời dẫn.
+    1. Nếu người dùng muốn giảm nhanh (>0.8kg/tuần): Hãy thiết kế mức thâm hụt Calo (Deficit) lớn hơn (nhưng không dưới BMR) và tăng cường bài tập Cardio/HIIT.
+    2. Nếu người dùng muốn giảm chậm (0.5kg/tuần): Ưu tiên bảo toàn cơ bắp, thâm hụt vừa phải.
+    3. ƯU TIÊN TUYỆT ĐỐI chọn bài tập từ danh sách trên để người dùng có video hướng dẫn.
+    4. Khi chọn bài từ danh sách, BẮT BUỘC phải trả về đúng "exercise_id".
+    5. Nếu bài tập rất cần thiết mà không có trong danh sách, bạn được phép tự thêm nhưng để "exercise_id": null.
+    6. Các món ăn mục nutrition phải quen thuộc với người Việt Nam, dễ tìm nguyên liệu và nấu nướng.
+    7. Chỉ trả về JSON thuần, không Markdown, không lời dẫn.
 
     CẤU TRÚC JSON OUTPUT (Tuyệt đối tuân thủ):
     {

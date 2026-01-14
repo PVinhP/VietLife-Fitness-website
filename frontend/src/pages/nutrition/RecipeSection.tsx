@@ -219,7 +219,7 @@ function RecipeSection() {
             
             // 2. Gọi API (Giả định backend chạy trên port 8080)
             // Đảm bảo backend đã bật CORS (bạn đã làm trong index.js)
-            const API_URL = 'https://vietlife-fitness-website-host.onrender.com/recipes';
+            const API_URL = 'http://localhost:8080/recipes';
             const queryString = params.toString();
 
             try {

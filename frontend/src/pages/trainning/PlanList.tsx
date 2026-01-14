@@ -28,7 +28,7 @@ const PlanList = () => {
     // Fetch dữ liệu
     const fetchPlans = async () => {
         try {
-            const res = await axios.get('https://vietlife-fitness-website-host.onrender.com/api/plans');
+            const res = await axios.get('http://localhost:8080/api/plans');
             setPlans(res.data);
         } catch (error) {
             console.error("Lỗi tải giáo án:", error);
