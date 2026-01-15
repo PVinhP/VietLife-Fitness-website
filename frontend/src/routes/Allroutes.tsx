@@ -55,6 +55,7 @@ import PlanManager from '../pages/admin/PlanManager';
 import DailyWorkoutSession from '../components/DailyWorkoutSession';
 import FeedbackPage from '../pages/FeedbackPage';
 import NutritionAnalysis from '../pages/NutritionAnalytics';
+import StatisticsCalo from '../pages/StatisticsCalo';
 
 
 function Allroutes() {
@@ -100,6 +101,7 @@ function Allroutes() {
       <Route path="/cardio" element={<PrivateRoute><CardioGuide /></PrivateRoute>} />
       <Route path="/profile/learning" element={<PrivateRoute><UserProgressPage /></PrivateRoute>} />
       <Route path="/profile/settings" element={<PrivateRoute><Setting /></PrivateRoute>} />
+      <Route path="/profile/statistics" element={<PrivateRoute><StatisticsCalo /></PrivateRoute>} />
       <Route path="/profile/nutrition" element={<PrivateRoute><NutritionDiary /></PrivateRoute>} />
       <Route path="/workout/today" element={<PrivateRoute><DailyWorkoutSession /></PrivateRoute>} />
       <Route path="/nutrition/analysis" element={<PrivateRoute><NutritionAnalysis /></PrivateRoute>} />

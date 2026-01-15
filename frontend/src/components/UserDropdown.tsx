@@ -14,7 +14,8 @@ import {
   FaChartLine,   // Icon cho Học tập (MỚI)
   FaTrophy,      // Icon cho Thành tích (MỚI)
   FaCommentDots, // Icon cho Phản hồi (MỚI)
-  FaUserShield
+  FaUserShield,
+  FaChartBar,
 } from 'react-icons/fa';
 import { MdOutlineDashboard } from "react-icons/md";
 
@@ -124,15 +125,24 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ userName, onLogout, isAdmin
               <FaBook className="mr-3 h-4 w-4 text-gray-400" />
               Tiến trình học tập
             </Link>
-
-            {/*5. Mục tiêu & Thành tích (MỚI)   */}
+            {/* 5. Phân tích Dinh dưỡng */}
+            <Link
+              to="/profile/statistics"
+              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+              onClick={toggleDropdown}
+            >
+              < FaChartLine className="mr-3 h-4 w-4 text-gray-400" />
+              Thống kê Năng Lượng
+            </Link>
+            
+            {/* 5. Phân tích Dinh dưỡng */}
             <Link
               to="/nutrition/analysis"
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
               onClick={toggleDropdown}
             >
-              < FaChartLine className="mr-3 h-4 w-4 text-gray-400" />
-              Thống kê và Phân tích
+              < FaChartBar className="mr-3 h-4 w-4 text-gray-400" />
+              Phân tích Dinh dưỡng
             </Link>
             
 

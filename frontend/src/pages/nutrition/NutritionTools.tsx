@@ -150,13 +150,21 @@ function NutritionTools() {
     };
     const handleCalculateTDEE = (e: React.FormEvent) => {
         e.preventDefault();
-        const { age, gender, weight, height, activity } = calculatorInput;
-        let bmr = 0;
-        if (gender === 1) { // Nam
-            bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
-        } else { // Nữ
-            bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
-        }
+            const { age, gender, weight, height, activity } = calculatorInput;
+            
+            let bmr = 0;
+            
+            // --- SỬA LẠI THEO MIFFLIN-ST JEOR (Giống Backend) ---
+            // Công thức: (10 × weight) + (6.25 × height) - (5 × age) + s
+            // s: +5 cho nam, -161 cho nữ
+            
+            const baseBmr = (10 * weight) + (6.25 * height) - (5 * age);
+            
+            if (gender === 1) { // Nam
+                bmr = baseBmr + 5;
+            } else { // Nữ
+                bmr = baseBmr - 161;
+            }
         const tdee = bmr * activity;
         const roundedTDEE = Math.round(tdee);
         
