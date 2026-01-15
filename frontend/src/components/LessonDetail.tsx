@@ -55,7 +55,7 @@ function LessonDetail() {
 
     try {
       setSavingProgress(true);
-      await fetch(`http://localhost:8080/lesson/${lesson.id}/progress`, {
+      await fetch(`https://vietlife-fitness-website-host.onrender.com/lesson/${lesson.id}/progress`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
@@ -116,7 +116,7 @@ function LessonDetail() {
         const headers: any = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        const response = await fetch(`http://localhost:8080/lesson/${id}`, {
+        const response = await fetch(`https://vietlife-fitness-website-host.onrender.com/lesson/${id}`, {
           method: 'GET',
           headers: headers
         });
@@ -137,7 +137,7 @@ function LessonDetail() {
           lastSavedProgress.current = savedPercent;
 
           // Track view count
-          fetch(`http://localhost:8080/lesson/${id}/view`, { method: 'POST' }).catch(console.error);
+          fetch(`https://vietlife-fitness-website-host.onrender.com/lesson/${id}/view`, { method: 'POST' }).catch(console.error);
 
           // Fetch related lessons
           fetchRelatedLessons(data.loai, data.id);
@@ -157,7 +157,7 @@ function LessonDetail() {
 
   const fetchRelatedLessons = async (loai: string, currentId: number) => {
     try {
-      const response = await fetch(`http://localhost:8080/lesson?loai=${loai}`, {
+      const response = await fetch(`https://vietlife-fitness-website-host.onrender.com/lesson?loai=${loai}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -188,7 +188,7 @@ function LessonDetail() {
     try {
       // 1. Gọi API Bookmark
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:8080/lesson/${lesson.id}/bookmark`, {
+      await fetch(`https://vietlife-fitness-website-host.onrender.com/lesson/${lesson.id}/bookmark`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
@@ -198,7 +198,7 @@ function LessonDetail() {
 
       // 2. Gọi API Like Global (nếu cần)
       if (newStatus) {
-        fetch(`http://localhost:8080/lesson/${lesson.id}/like`, { method: 'POST' }).catch(()=>{});
+        fetch(`https://vietlife-fitness-website-host.onrender.com/lesson/${lesson.id}/like`, { method: 'POST' }).catch(()=>{});
       }
 
       // Animation effect
@@ -276,7 +276,7 @@ function LessonDetail() {
 
   const getImageUrl = (hinh_anh: string) => {
     if (hinh_anh && hinh_anh.trim()) {
-      return hinh_anh.startsWith('http') ? hinh_anh : `http://localhost:8080/uploads/${hinh_anh}`;
+      return hinh_anh.startsWith('http') ? hinh_anh : `https://vietlife-fitness-website-host.onrender.com/uploads/${hinh_anh}`;
     }
     return "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=1200";
   };

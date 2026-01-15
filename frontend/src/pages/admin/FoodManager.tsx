@@ -50,7 +50,7 @@ const FoodManager = () => {
     const fetchGroups = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get('http://localhost:8080/food/groups', {
+            const res = await axios.get('https://vietlife-fitness-website-host.onrender.com/food/groups', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setGroups(res.data);
@@ -63,7 +63,7 @@ const FoodManager = () => {
     const fetchFoods = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get('http://localhost:8080/food', {
+            const res = await axios.get('https://vietlife-fitness-website-host.onrender.com/food', {
                 params: { search: searchTerm, group: groupFilter }, // groupFilter giờ gửi ID (VD: "1") lên server
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -118,10 +118,10 @@ const FoodManager = () => {
             };
 
             if (editingId) {
-                await axios.put(`http://localhost:8080/food/${editingId}`, submitData, { headers });
+                await axios.put(`https://vietlife-fitness-website-host.onrender.com/food/${editingId}`, submitData, { headers });
                 toast.success("Cập nhật thành công!");
             } else {
-                await axios.post(`http://localhost:8080/food/create`, submitData, { headers });
+                await axios.post(`https://vietlife-fitness-website-host.onrender.com/food/create`, submitData, { headers });
                 toast.success("Thêm món mới thành công!");
             }
             setIsFormOpen(false);
@@ -135,7 +135,7 @@ const FoodManager = () => {
         if (!window.confirm("Bạn có chắc muốn xóa món này?")) return;
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`http://localhost:8080/food/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.delete(`https://vietlife-fitness-website-host.onrender.com/food/${id}`, { headers: { Authorization: `Bearer ${token}` } });
             toast.success("Đã xóa.");
             fetchFoods();
         } catch (error) {

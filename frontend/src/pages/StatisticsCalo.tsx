@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 // --- 1. CẤU HÌNH & INTERFACE ---
-const API_BASE = 'http://localhost:8080/api'; // Đảm bảo đúng đường dẫn API
+const API_BASE = 'https://vietlife-fitness-website-host.onrender.com/api'; // Đảm bảo đúng đường dẫn API
 
 const formatDateLocal = (date: Date) => {
   const year = date.getFullYear();
@@ -156,7 +156,7 @@ const StatisticsCalo: React.FC = () => {
       const user = userStr ? JSON.parse(userStr) : { id: 1 };
       
       // Gọi API với ngày người dùng chọn
-      await axios.post(`http://localhost:8080/api/workout-calo`, {
+      await axios.post(`https://vietlife-fitness-website-host.onrender.com/api/workout-calo`, {
         user_id: user.id,
         workout_date: workoutForm.date, // Sử dụng ngày từ form
         activity_name: workoutForm.name,

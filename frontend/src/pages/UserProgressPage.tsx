@@ -43,7 +43,7 @@ function UserProgressPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/lesson/my-progress', {
+      const response = await fetch('https://vietlife-fitness-website-host.onrender.com/lesson/my-progress', {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -91,7 +91,7 @@ function UserProgressPage() {
   // Helper hiển thị ảnh
   const getImageUrl = (img?: string) => {
     if (img?.startsWith('http')) return img;
-    return img ? `http://localhost:8080/uploads/${img}` : "https://via.placeholder.com/400x200?text=No+Image";
+    return img ? `https://vietlife-fitness-website-host.onrender.com/uploads/${img}` : "https://via.placeholder.com/400x200?text=No+Image";
   };
 
   // Helper format ngày

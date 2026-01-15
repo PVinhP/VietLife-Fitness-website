@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Giả sử bạn đã cấu hình base URL và interceptor để tự động gắn Token
 // Nếu chưa, hãy thêm header Authorization thủ công
-const API_URL = 'http://localhost:8080/api/tracking'; 
+const API_URL = 'https://vietlife-fitness-website-host.onrender.com/api/tracking'; 
 
 export const getTrackingHistory = async (token) => {
   const response = await axios.get(`${API_URL}/history`, {
