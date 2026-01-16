@@ -1,6 +1,6 @@
 // frontend/src/services/ProgressService.ts
 
-const API_URL = 'https://vietlife-fitness-website-host.onrender.com/api/progress';
+const API_URL = 'http://localhost:8080/api/progress';
 
 // Helper function để lấy token
 const getAuthToken = () => {

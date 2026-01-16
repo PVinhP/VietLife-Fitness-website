@@ -37,7 +37,7 @@ const WorkoutHistory = () => {
         }
         const fetchHistory = async () => {
             try {
-                const res = await axios.get('https://vietlife-fitness-website-host.onrender.com/api/workout-progress/history', {
+                const res = await axios.get('http://localhost:8080/api/workout-progress/history', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setHistory(res.data);

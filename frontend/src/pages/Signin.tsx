@@ -20,7 +20,7 @@ const Signin: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   
-  const API_URL = process.env.REACT_APP_API_URL || "https://vietlife-fitness-website-host.onrender.com";
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

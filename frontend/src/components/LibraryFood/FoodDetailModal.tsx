@@ -4,7 +4,7 @@ import { X, Flame, Info } from 'lucide-react';
 import { FoodItem } from '../../types/nutrition';
 
 // Định nghĩa URL API Nutrition
-const NUTRITION_API_URL = 'https://vietlife-fitness-website-host.onrender.com/api/nutrition';
+const NUTRITION_API_URL = 'http://localhost:8080/api/nutrition';
 
 interface Props {
   food: FoodItem | null;

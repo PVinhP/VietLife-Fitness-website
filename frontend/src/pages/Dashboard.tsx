@@ -83,7 +83,7 @@ const Dashboard = () => {
       let nutritionTotals = { calories: 0, protein: 0, fats: 0, carbs: 0 };
       try {
         // Thay số cứng 33 thành ${userId}
-        const res = await fetch(`https://vietlife-fitness-website-host.onrender.com/nutrition/meal-logs?user_id=${userId}&date=${todayStr}`, {
+        const res = await fetch(`http://localhost:8080/nutrition/meal-logs?user_id=${userId}&date=${todayStr}`, {
             headers: { 
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -106,7 +106,7 @@ const Dashboard = () => {
       // 2. FETCH NƯỚC (Giữ nguyên)
       let waterData = { glasses: 0, target: 8 };
       try {
-        const waterRes = await fetch(`https://vietlife-fitness-website-host.onrender.com/api/water?date=${todayStr}`, {
+        const waterRes = await fetch(`http://localhost:8080/api/water?date=${todayStr}`, {
            headers: { 'Authorization': `Bearer ${token}` }
         });
         if (waterRes.ok) {
@@ -124,7 +124,7 @@ const Dashboard = () => {
       };
 
       try {
-        const workoutRes = await fetch('https://vietlife-fitness-website-host.onrender.com/api/ai-plan/today-workout', {
+        const workoutRes = await fetch('http://localhost:8080/api/ai-plan/today-workout', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const wData = await workoutRes.json();
@@ -217,7 +217,7 @@ const Dashboard = () => {
 
           try {
               const token = localStorage.getItem('token');
-              await fetch('https://vietlife-fitness-website-host.onrender.com/api/water/log', {
+              await fetch('http://localhost:8080/api/water/log', {
                   method: 'POST',
                   headers: { 
                       'Content-Type': 'application/json',

@@ -208,7 +208,7 @@ const OnboardingPage: React.FC = () => {
             };
 
             // Gọi API
-            await axios.post('https://vietlife-fitness-website-host.onrender.com/api/profile', dataToSend, {
+            await axios.post('http://localhost:8080/api/profile', dataToSend, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

@@ -1,5 +1,6 @@
 // src/components/NutritionAnalytics.tsx
 import React, { useState, useEffect, useMemo } from 'react';
+import AIInsightCard from '../components/AIInsightCard'; // Thêm dòng này
 import axios from 'axios';
 import {
   ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -12,7 +13,7 @@ import {
 } from 'lucide-react';
 
 // --- 1. CẤU HÌNH & INTERFACE ---
-const API_BASE = 'https://vietlife-fitness-website-host.onrender.com/api'; // Đảm bảo đúng đường dẫn API
+const API_BASE = 'http://localhost:8080/api'; // Đảm bảo đúng đường dẫn API
 
 const formatDateLocal = (date: Date) => {
   const year = date.getFullYear();
@@ -156,7 +157,7 @@ const StatisticsCalo: React.FC = () => {
       const user = userStr ? JSON.parse(userStr) : { id: 1 };
       
       // Gọi API với ngày người dùng chọn
-      await axios.post(`https://vietlife-fitness-website-host.onrender.com/api/workout-calo`, {
+      await axios.post(`http://localhost:8080/api/workout-calo`, {
         user_id: user.id,
         workout_date: workoutForm.date, // Sử dụng ngày từ form
         activity_name: workoutForm.name,
@@ -323,6 +324,7 @@ const chartDomainMax = useMemo(() => {
           </div>
         </div>
 
+        
         {/* === MAIN CHART SECTION === */}
         <div className="bg-white p-6 rounded-3xl shadow-lg border border-slate-100">
           <div className="flex flex-wrap justify-between items-center mb-6">
@@ -332,7 +334,7 @@ const chartDomainMax = useMemo(() => {
             
             <div className="flex gap-4">
               <label className="flex items-center gap-2 cursor-pointer select-none group">
-                <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors ${visibleKeys.food ? 'bg-rose-500 text-white' : 'bg-slate-200'}`}>
+                <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors ${visibleKeys.food ? 'bg-emerald-500 text-white' : 'bg-slate-200'}`}>
                   {visibleKeys.food && <div className="w-2 h-2 bg-white rounded-full"/>}
                 </div>
                 <input type="checkbox" className="hidden" checked={visibleKeys.food} onChange={() => setVisibleKeys(p => ({...p, food: !p.food}))} />
@@ -340,7 +342,7 @@ const chartDomainMax = useMemo(() => {
               </label>
 
               <label className="flex items-center gap-2 cursor-pointer select-none group">
-                <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors ${visibleKeys.workout ? 'bg-emerald-500 text-white' : 'bg-slate-200'}`}>
+                <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors ${visibleKeys.workout ? 'bg-rose-500 text-white' : 'bg-slate-200'}`}>
                    {visibleKeys.workout && <div className="w-2 h-2 bg-white rounded-full"/>}
                 </div>
                 <input type="checkbox" className="hidden" checked={visibleKeys.workout} onChange={() => setVisibleKeys(p => ({...p, workout: !p.workout}))} />
@@ -427,6 +429,13 @@ const chartDomainMax = useMemo(() => {
           </div>
         </div>
       </div>
+      
+      <div className="mt-8">
+          <AIInsightCard 
+            startDate={dateRange.startStr} 
+            endDate={dateRange.endStr} 
+          />
+        </div>
 
       {/* === [MỚI] MODAL NHẬP CALO TẬP LUYỆN === */}
       {showWorkoutModal && (

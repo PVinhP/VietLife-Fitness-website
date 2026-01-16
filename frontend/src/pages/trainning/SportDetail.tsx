@@ -38,7 +38,7 @@ const SportDetail = () => {
     useEffect(() => {
         const fetchDetail = async () => {
             try {
-                const res = await axios.get(`https://vietlife-fitness-website-host.onrender.com/api/sports/${slug}`);
+                const res = await axios.get(`http://localhost:8080/api/sports/${slug}`);
                 setSport(res.data);
             } catch (error) {
                 console.error("Lỗi tải trang chi tiết", error);

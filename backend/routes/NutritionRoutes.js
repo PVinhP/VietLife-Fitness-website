@@ -200,10 +200,7 @@ router.delete('/meal-logs/:id', async (req, res) => {
     res.status(500).json({ error: "Lỗi máy chủ khi xóa món ăn" });
   }
 });
-router.post('/analyze', authMiddleware, AINutritionController.analyzeNutrition);
-
-
-router.get('/reviews', authMiddleware, AINutritionController.getReviewHistory);
+router.get('/quick-insight', authMiddleware, AINutritionController.getQuickAnalysis);
 
 
 module.exports = { nutritionRouter: router };

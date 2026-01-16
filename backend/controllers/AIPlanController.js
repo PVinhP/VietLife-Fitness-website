@@ -147,7 +147,7 @@ exports.generatePlan = async (req, res) => {
         const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL });
         
         const prompt = `
-    Bạn là PT Gym chuyên nghiệp với 10 năm kinh nghiệm (VietLife AI). Hãy thiết kế một LỘ TRÌNH 4 TUẦN dành riêng cho người dùng.
+    Bạn là PT Gym chuyên nghiệp với 10 năm kinh nghiệm (VietLife AI). Hãy thiết kế một LỘ TRÌNH 4 TUẦN tuy nhiên phải bắt buộc tuân theo mục tiêu cân nặng của người dùng (giảm, tăng, duy trì) và tốc độ mong muốn (kg/tuần). Không nhất thiết phải đạt mục tiêu cân nặng trong 4 tuần.
 
     Dữ liệu người dùng: ${userContext}
 
@@ -157,13 +157,12 @@ exports.generatePlan = async (req, res) => {
     --- KẾT THÚC DANH SÁCH ---
 
     YÊU CẦU QUAN TRỌNG:
-    1. Nếu người dùng muốn giảm nhanh (>0.8kg/tuần): Hãy thiết kế mức thâm hụt Calo (Deficit) lớn hơn (nhưng không dưới BMR) và tăng cường bài tập Cardio/HIIT.
-    2. Nếu người dùng muốn giảm chậm (0.5kg/tuần): Ưu tiên bảo toàn cơ bắp, thâm hụt vừa phải.
-    3. ƯU TIÊN TUYỆT ĐỐI chọn bài tập từ danh sách trên để người dùng có video hướng dẫn.
-    4. Khi chọn bài từ danh sách, BẮT BUỘC phải trả về đúng "exercise_id".
-    5. Nếu bài tập rất cần thiết mà không có trong danh sách, bạn được phép tự thêm nhưng để "exercise_id": null.
-    6. Các món ăn mục nutrition phải quen thuộc với người Việt Nam, dễ tìm nguyên liệu và nấu nướng.
-    7. Chỉ trả về JSON thuần, không Markdown, không lời dẫn.
+    1. Dựa vào mục tiêu cân nặng và tốc độ mong muốn (kg/tuần) để xây dựng lộ trình phù hợp.
+    2. ƯU TIÊN TUYỆT ĐỐI chọn bài tập từ danh sách trên để người dùng có video hướng dẫn.
+    3. Khi chọn bài từ danh sách, BẮT BUỘC phải trả về đúng "exercise_id".
+    4. Nếu bài tập rất cần thiết mà không có trong danh sách, bạn được phép tự thêm nhưng để "exercise_id": null.
+    5. Các món ăn mục nutrition phải quen thuộc với người Việt Nam, dễ tìm nguyên liệu và nấu nướng.
+    6. Chỉ trả về JSON thuần, không Markdown, không lời dẫn.
 
     CẤU TRÚC JSON OUTPUT (Tuyệt đối tuân thủ):
     {

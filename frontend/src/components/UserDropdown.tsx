@@ -135,7 +135,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ userName, onLogout, isAdmin
               Thống kê Năng Lượng
             </Link>
             
-            {/* 5. Phân tích Dinh dưỡng */}
+            {/* 5. Phân tích Dinh dưỡng 
             <Link
               to="/nutrition/analysis"
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -144,7 +144,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ userName, onLogout, isAdmin
               < FaChartBar className="mr-3 h-4 w-4 text-gray-400" />
               Phân tích Dinh dưỡng
             </Link>
-            
+            */}
 
             {/* 6. Hồ sơ & Cài đặt */}
             <Link

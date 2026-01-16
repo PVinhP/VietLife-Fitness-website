@@ -52,7 +52,7 @@ function Exercise() {
         const fetchInitialData = async () => {
             setIsLoadingGuide(true); 
             try {
-                const exerciseRes = await axios.get("https://vietlife-fitness-website-host.onrender.com/exercise", {
+                const exerciseRes = await axios.get("http://localhost:8080/exercise", {
                     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }
                 });
                 
@@ -62,7 +62,7 @@ function Exercise() {
                 const uniqueMuscleGroups = extractUniqueMuscleGroups(exerciseData);
                 setMuscleGroups(["Tất cả", ...uniqueMuscleGroups]);
 
-                const guideRes = await axios.get(`https://vietlife-fitness-website-host.onrender.com/api/guides/Tất cả`, {
+                const guideRes = await axios.get(`http://localhost:8080/api/guides/Tất cả`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setGuide(guideRes.data);
@@ -152,7 +152,7 @@ function Exercise() {
         setIsGuideExpanded(false); 
         try {
             const encodedGroup = encodeURIComponent(muscleGroup);
-            const res = await axios.get(`https://vietlife-fitness-website-host.onrender.com/api/guides/${encodedGroup}`, {
+            const res = await axios.get(`http://localhost:8080/api/guides/${encodedGroup}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setGuide(res.data); 
