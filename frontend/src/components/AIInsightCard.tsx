@@ -1,7 +1,8 @@
 // src/components/AIInsightCard.tsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Bot, Lightbulb, Info, AlertTriangle, Trophy, Frown, CheckCircle } from 'lucide-react';
+// 1. [THÊM] Import icon RefreshCw
+import { Bot, Lightbulb, Info, AlertTriangle, Trophy, Frown, RefreshCw } from 'lucide-react';
 
 interface AIInsightCardProps {
   startDate: string;
@@ -19,17 +20,21 @@ const AIInsightCard: React.FC<AIInsightCardProps> = ({ startDate, endDate }) => 
   const [data, setData] = useState<InsightData | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Hàm gọi API
-  const fetchInsight = async () => {
+  // 2. [SỬA] Thêm tham số force (mặc định là false)
+  const fetchInsight = async (force = false) => {
     setLoading(true);
     try {
       const userStr = localStorage.getItem("user");
       const user = userStr ? JSON.parse(userStr) : null;
-      const token = localStorage.getItem("token"); // Nếu có dùng token
+      const token = localStorage.getItem("token");
 
-      // Đảm bảo đúng đường dẫn API của bạn
+      // Đảm bảo đúng đường dẫn API
       const res = await axios.get('http://localhost:8080/nutrition/quick-insight', {
-        params: { startDate, endDate },
+        params: { 
+          startDate, 
+          endDate,
+          force: force // Truyền cờ force xuống Backend
+        },
         headers: { Authorization: `Bearer ${token}` }
       });
       setData(res.data);
@@ -40,23 +45,27 @@ const AIInsightCard: React.FC<AIInsightCardProps> = ({ startDate, endDate }) => 
     }
   };
 
-  // Gọi lại khi ngày tháng thay đổi
+  // Gọi lần đầu (force = false -> Lấy Cache)
   useEffect(() => {
     if (startDate && endDate) {
-      fetchInsight();
+      fetchInsight(false);
     }
   }, [startDate, endDate]);
 
-  // --- LOGIC CHỌN MÀU SẮC & ICON THEO KỊCH BẢN ---
+  // 3. [THÊM] Hàm xử lý khi bấm nút
+  const handleRefresh = () => {
+    fetchInsight(true); // Force = true -> Bỏ qua Cache, tính lại
+  };
+
   const getTheme = (scenario: string) => {
     const s = scenario?.toUpperCase() || "";
-    if (s.includes("SKINNY FAT") || s.includes("TÍCH MỠ") || s.includes("CÔNG CỐC")) {
+    if (s.includes("SKINNY FAT") || s.includes("TÍCH MỠ") || s.includes("CÔNG CỐC") || s.includes("DƯ")) {
       return { color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", icon: <AlertTriangle /> };
     }
-    if (s.includes("XUẤT SẮC") || s.includes("SIẾT CƠ") || s.includes("CHUẨN")) {
+    if (s.includes("XUẤT SẮC") || s.includes("SIẾT CƠ") || s.includes("CHUẨN") || s.includes("ĐẠT MỤC TIÊU")) {
       return { color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200", icon: <Trophy /> };
     }
-    if (s.includes("THIẾU CHẤT")) {
+    if (s.includes("THIẾU CHẤT") || s.includes("THIẾU")) {
       return { color: "text-rose-600", bg: "bg-rose-50", border: "border-rose-200", icon: <Frown /> };
     }
     return { color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-200", icon: <Bot /> };
@@ -65,13 +74,29 @@ const AIInsightCard: React.FC<AIInsightCardProps> = ({ startDate, endDate }) => 
   const theme = data ? getTheme(data.scenario) : { color: "text-gray-500", bg: "bg-gray-50", border: "border-gray-200", icon: <Bot /> };
 
   return (
-    <div className={`w-full p-6 rounded-2xl border shadow-sm transition-all duration-300 ${theme.bg} ${theme.border} mb-8`}>
+    <div className={`relative w-full p-6 rounded-2xl border shadow-sm transition-all duration-300 ${theme.bg} ${theme.border} mb-8`}>
+      
+      {/* 4. [THÊM] NÚT CẬP NHẬT (Góc trên phải) */}
+      {!loading && data && (
+        <button 
+          onClick={handleRefresh}
+          className="absolute top-4 right-4 flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-indigo-600 transition-colors bg-white/50 px-2 py-1 rounded-lg border border-transparent hover:border-indigo-200"
+          title="Nhấn để AI phân tích lại dựa trên dữ liệu mới nhất vừa nhập"
+        >
+          <RefreshCw size={14} /> Cập nhật
+        </button>
+      )}
+
       {loading ? (
-        // Giao diện Skeleton khi đang tải
+        // Giao diện Skeleton
         <div className="animate-pulse flex gap-4">
           <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
           <div className="flex-1 space-y-3">
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            <div className="flex justify-between">
+                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                {/* Skeleton cho nút refresh */}
+                <div className="h-4 bg-gray-200 rounded w-16"></div> 
+            </div>
             <div className="h-4 bg-gray-200 rounded w-3/4"></div>
             <div className="h-4 bg-gray-200 rounded w-1/2"></div>
           </div>
@@ -84,13 +109,14 @@ const AIInsightCard: React.FC<AIInsightCardProps> = ({ startDate, endDate }) => 
             <div className={`w-14 h-14 rounded-full flex items-center justify-center bg-white shadow-sm border-2 ${theme.border} ${theme.color}`}>
               {theme.icon}
             </div>
-            <span className={`text-[10px] font-bold px-2 py-1 rounded-full bg-white border ${theme.border} ${theme.color}`}>
+            {/* Scenario Label */}
+            <span className={`text-[10px] font-bold px-2 py-1 rounded-full bg-white border ${theme.border} ${theme.color} text-center max-w-[120px]`}>
               {data.scenario}
             </span>
           </div>
 
           {/* Cột phải: Nội dung */}
-          <div className="flex-1 space-y-3">
+          <div className="flex-1 space-y-3 pt-1">
             <div>
               <h4 className={`font-bold text-sm uppercase mb-1 flex items-center gap-2 ${theme.color}`}>
                 PT AI Nhắn nhủ:
@@ -110,14 +136,19 @@ const AIInsightCard: React.FC<AIInsightCardProps> = ({ startDate, endDate }) => 
             </div>
 
             {/* Footer */}
-            <div className="pt-2 border-t border-gray-200/50 flex items-center gap-2 text-xs text-slate-400">
-              <Info size={14} />
-              {data.footer}
+            <div className="pt-2 border-t border-gray-200/50 flex items-center justify-between gap-2 text-xs text-slate-400">
+              <div className="flex items-center gap-2">
+                  <Info size={14} />
+                  {data.footer}
+              </div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="text-center text-slate-400 py-4">Không có dữ liệu phân tích.</div>
+        <div className="text-center text-slate-400 py-4">
+            <p>Không có dữ liệu phân tích.</p>
+            <button onClick={handleRefresh} className="mt-2 text-indigo-500 underline text-sm">Thử lại</button>
+        </div>
       )}
     </div>
   );

@@ -5,8 +5,7 @@ require('dotenv').config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// --- CÁC HÀM HỖ TRỢ LẤY DATA (Copy từ code cũ hoặc dùng lại) ---
-// Hàm 1: Lấy dữ liệu ăn uống (Kèm tên món ăn)
+// --- CÁC HÀM HỖ TRỢ LẤY DATA (GIỮ NGUYÊN) ---
 const getWeeklyNutritionStats = async (userId, startDateStr, endDateStr) => {
     const sql = `
         SELECT 
@@ -20,7 +19,6 @@ const getWeeklyNutritionStats = async (userId, startDateStr, endDateStr) => {
     `;
     const [rows] = await pool.query(sql, [userId, startDateStr, endDateStr]);
     
-    // Tính trung bình (cho phần tổng quan)
     let totalCals = 0, totalP = 0;
     rows.forEach(r => { 
         totalCals += Number(r.total_calories); 
@@ -34,7 +32,6 @@ const getWeeklyNutritionStats = async (userId, startDateStr, endDateStr) => {
     };
 };
 
-// Hàm 2: Lấy dữ liệu tập luyện
 const getWeeklyWorkoutStats = async (userId, startDateStr, endDateStr) => {
     const sql = `
         SELECT 
@@ -51,23 +48,43 @@ const getWeeklyWorkoutStats = async (userId, startDateStr, endDateStr) => {
     
     return {
         daily_stats: rows,
-        average_burned_daily: Math.round(totalBurned / 7) // Chia 7 để lấy trung bình tuần
+        average_burned_daily: Math.round(totalBurned / 7)
     };
 };
 
-// --- API CHÍNH: PHÂN TÍCH NHANH (7 KỊCH BẢN) ---
+// --- API CHÍNH: PHÂN TÍCH NHANH (CÓ CACHING & LOGIC MỚI) ---
 exports.getQuickAnalysis = async (req, res) => {
     const userId = req.user.id;
-    // Mặc định lấy 7 ngày gần nhất
+    
+    // 0. CẤU HÌNH NGÀY & CACHE
+    const today = new Date().toISOString().split('T')[0]; // Key cho Cache
     const end = new Date();
     const start = new Date();
     start.setDate(end.getDate() - 6); 
     
     const endDateStr = req.query.endDate || end.toISOString().split('T')[0];
     const startDateStr = req.query.startDate || start.toISOString().split('T')[0];
+    const forceRefresh = req.query.force === 'true'; // Cờ bắt buộc làm mới
 
     try {
-        // 1. LẤY DỮ LIỆU TỪ DB
+        // --- BƯỚC 1: KIỂM TRA CACHE (MỚI) ---
+        if (!forceRefresh) {
+            const [cachedRows] = await pool.query(
+                "SELECT ai_response FROM ai_daily_cache WHERE user_id = ? AND log_date = ?", 
+                [userId, today]
+            );
+
+            if (cachedRows.length > 0) {
+                // console.log(`[CACHE HIT] User ${userId}`);
+                const cachedData = cachedRows[0].ai_response;
+                // Trả về luôn, không chạy code bên dưới
+                return res.json(typeof cachedData === 'string' ? JSON.parse(cachedData) : cachedData);
+            }
+        }
+
+        // --- BƯỚC 2: NẾU KHÔNG CÓ CACHE -> TÍNH TOÁN ---
+        
+        // 2.1. LẤY DỮ LIỆU TỪ DB
         const [userRows] = await pool.query("SELECT * FROM health_profiles WHERE user_id = ?", [userId]);
         if (userRows.length === 0) return res.status(404).json({ msg: "Chưa có hồ sơ." });
         const profile = userRows[0];
@@ -75,11 +92,10 @@ exports.getQuickAnalysis = async (req, res) => {
         const nutritionData = await getWeeklyNutritionStats(userId, startDateStr, endDateStr);
         const workoutData = await getWeeklyWorkoutStats(userId, startDateStr, endDateStr);
 
-        // 2. TÍNH TOÁN TARGET (MỤC TIÊU)
+        // 2.2. TÍNH TOÁN TARGET (MỤC TIÊU)
         const weight = Number(profile.weight_kg);
-        // Công thức Mifflin-St Jeor
         let bmr = (10 * weight) + (6.25 * Number(profile.height_cm)) - (5 * Number(profile.age)) + ((profile.gender === 'male') ? 5 : -161);
-        //const tdee = Math.round(bmr * 1.2); // Base TDEE (ít vận động)
+        
         const activityMultipliers = {
             'sedentary': 1.2,
             'lightly_active': 1.375,
@@ -87,10 +103,9 @@ exports.getQuickAnalysis = async (req, res) => {
             'very_active': 1.725,
             'extra_active': 1.9
         };
-        // Lấy level từ profile, nếu không có thì mặc định 1.2
         const multiplier = activityMultipliers[profile.activity_level] || 1.2;
         const tdee = Math.round(bmr * multiplier);
-        // Tính Target dựa trên Goal
+        
         const weeklyGoal = Number(profile.weekly_goal) || 0.5;
         const dailyDeficit = Math.round((weeklyGoal * 7700) / 7);
         
@@ -98,19 +113,17 @@ exports.getQuickAnalysis = async (req, res) => {
         if (profile.goal === 'lose_weight') targetCalories = Math.max(tdee - dailyDeficit, 1200);
         else if (profile.goal === 'gain_muscle') targetCalories = tdee + 300;
 
-        // 3. XỬ LÝ DỮ LIỆU CHI TIẾT (Lấp đầy ngày trống & Map món ăn)
+        // 2.3. XỬ LÝ DỮ LIỆU CHI TIẾT (MAP DATA)
         let dailyMap = {};
         let currDate = new Date(startDateStr);
         const lastDate = new Date(endDateStr);
         
-        // Tạo khung ngày liên tục
         while (currDate <= lastDate) {
             const dKey = currDate.toISOString().split('T')[0];
             dailyMap[dKey] = { in: 0, burn: 0, items: '', hasLog: false };
             currDate.setDate(currDate.getDate() + 1);
         }
 
-        // Fill dữ liệu Ăn
         nutritionData.daily_stats.forEach(d => {
             const dKey = new Date(d.date).toISOString().split('T')[0];
             if (dailyMap[dKey]) {
@@ -120,7 +133,6 @@ exports.getQuickAnalysis = async (req, res) => {
             }
         });
 
-        // Fill dữ liệu Tập
         workoutData.daily_stats.forEach(d => {
             const dKey = new Date(d.date).toISOString().split('T')[0];
             if (dailyMap[dKey]) {
@@ -129,58 +141,50 @@ exports.getQuickAnalysis = async (req, res) => {
             }
         });
 
-        // 4. TÍNH TOÁN CÁC CHỈ SỐ PHÂN LOẠI (METRICS)
-        // 4. TÍNH TOÁN CÁC CHỈ SỐ PHÂN LOẠI (METRICS) - ĐÃ SỬA
-        
-        // -- [CODE CŨ BỊ LỖI] --
-        // const avgIn = nutritionData.average.calories || 0;
-        // const avgBurn = workoutData.average_burned_daily || 0;
-        // const avgNet = avgIn - avgBurn;
-
-        // -- [CODE MỚI CHÍNH XÁC HƠN] --
-        // 4. TÍNH TOÁN CÁC CHỈ SỐ PHÂN LOẠI (METRICS)
+        // 2.4. TÍNH TOÁN METRICS (LOGIC CHÍNH XÁC)
         let totalNet = 0;
         let countDays = 0;
         let totalIn = 0;
-        let totalBurn = 0; // <--- Thêm biến này
+        let totalBurn = 0;
 
-        // Duyệt qua dailyMap
+        // Chỉ tính trung bình trên những ngày CÓ DỮ LIỆU
         Object.values(dailyMap).forEach(day => {
             if (day.hasLog) { 
                 totalNet += (day.in - day.burn);
                 totalIn += day.in;
-                totalBurn += day.burn; // <--- Cộng dồn calo tập
+                totalBurn += day.burn; 
                 countDays++;
             }
         });
 
-        // Tính trung bình
+        // Tránh chia cho 0
         const avgNet = countDays > 0 ? Math.round(totalNet / countDays) : 0;
         const avgIn = countDays > 0 ? Math.round(totalIn / countDays) : 0;
-        const avgBurn = countDays > 0 ? Math.round(totalBurn / countDays) : 0; // <--- Tính trung bình tập
+        const avgBurn = countDays > 0 ? Math.round(totalBurn / countDays) : 0;
         
-        // Các chỉ số còn lại giữ nguyên
         const netDiff = avgNet - targetCalories;
         const proteinPerKg = (nutritionData.average.protein / weight).toFixed(1);
-        
-        
-        // Đếm số ngày tập (Chỉ tính ngày tập > 50kcal)
         const workoutDays = workoutData.daily_stats.filter(d => Number(d.total_burned) > 50).length;
-        
         // Đếm số ngày quên log
         let missingCount = 0;
-        Object.values(dailyMap).forEach(d => { if(!d.hasLog) missingCount++; });
+        const todayStr = new Date().toISOString().split('T')[0]; // Lấy ngày hiện tại YYYY-MM-DD
 
-        // Tạo chuỗi Log text chi tiết để gửi AI
+        Object.entries(dailyMap).forEach(([dateKey, day]) => { 
+            // Chỉ coi là "Quên" nếu không có log VÀ ngày đó nhỏ hơn ngày hôm nay
+            // (Tức là ngày hôm qua trở về trước)
+            if (!day.hasLog && dateKey < todayStr) {
+                missingCount++; 
+            }
+        });
+
+        // Tạo log text
         const dailyLogText = Object.entries(dailyMap).map(([date, data]) => {
             const dStr = new Date(date).toLocaleDateString('vi-VN', {weekday: 'short', day:'2-digit', month:'2-digit'});
-            
             if (!data.hasLog) return `- ${dStr}: [QUÊN NHẬP LIỆU]`;
-
+            
             const dailyNet = data.in - data.burn;
             const dailyDiff = dailyNet - targetCalories;
             
-            // Tag trạng thái từng ngày để AI dễ soi
             let dayStatus = "OK";
             if (dailyDiff > 250) dayStatus = "DƯ_NHIỀU";
             else if (dailyDiff < -300) dayStatus = "THIẾU_NHIỀU";
@@ -189,7 +193,6 @@ exports.getQuickAnalysis = async (req, res) => {
             return `- ${dStr}: Net ${dailyNet} (${dayStatus}) ${foodInfo}`;
         }).join('\n');
 
-        // Xác định sơ bộ trạng thái để gửi vào Prompt (Gợi ý cho AI)
         let activityLevel = "ÍT"; 
         if (workoutDays >= 3) activityLevel = "ĐỀU";
         
@@ -197,10 +200,10 @@ exports.getQuickAnalysis = async (req, res) => {
         if (Number(proteinPerKg) >= 1.2) proteinStatus = "ĐỦ";
 
         let caloStatus = "CHUẨN (Đạt mục tiêu)";
-        if (netDiff > 250) caloStatus = "DƯ (Vượt quá mức cho phép)"; // Nới lỏng lên 250
+        if (netDiff > 250) caloStatus = "DƯ (Vượt quá mức cho phép)"; 
         else if (netDiff < -250) caloStatus = "THIẾU (Cần nạp thêm)";
         
-
+        // 3. TẠO PROMPT (ĐÃ BỔ SUNG avgIn/avgBurn)
         const prompt = `
             Bạn là PT AI Cá nhân hóa (Phong cách: Thấu hiểu, Động viên, Tích cực, nhưng Thẳng thắn về chất lượng đồ ăn).
 
@@ -211,7 +214,7 @@ exports.getQuickAnalysis = async (req, res) => {
             --> ĐÁNH GIÁ CALO: ${caloStatus} (Tuyệt đối tin tưởng đánh giá này. Nếu là CHUẨN, không được nói khách hàng ăn dư calo).
             - Tần suất tập: ${workoutDays}/7 ngày (Trạng thái: ${activityLevel})
             - Protein: ${proteinPerKg} g/kg (Trạng thái: ${proteinStatus})
-
+            - Số ngày quên nhập liệu: ${missingCount} ngày (Nếu > 3 ngày, hãy nhắc nhở nhẹ ở cuối lời khuyên).
             NHẬT KÝ CHI TIẾT:
             ${dailyLogText}
 
@@ -232,10 +235,11 @@ exports.getQuickAnalysis = async (req, res) => {
             -> Tôn vinh lối sống lành mạnh hoàn hảo.
             7. [BÌNH THƯỜNG]: Các trường hợp còn lại.
             -> Nhận xét nhẹ nhàng, khuyên duy trì hoặc cải thiện nhẹ.
+
             YÊU CẦU OUTPUT:
             - Nếu rơi vào [DIRTY MAINTAIN]: Hãy khen ngợi nỗ lực tập luyện đã "cứu" lại được lượng calo nạp vào. Sau đó khuyên thay đổi món ăn để body đẹp hơn (VD: "Calo thì ổn rồi, nhưng thay Cơm chiên bằng Khoai lang thì cơ bắp sẽ nét hơn").
             - **message**: Viết 2-3 câu nhận xét theo giọng văn người bạn. 
-                + BẮT BUỘC: Phải nhắc đến **tên món ăn** hoặc **ngày cụ thể** trong log để chứng minh nhận định (VD: "Thứ 3 ăn Bún đậu hơi lố nè", "Thứ 5 quên log uổng quá").
+                + BẮT BUỘC: Phải nhắc đến **tên món ăn** hoặc **ngày cụ thể** trong log để chứng minh nhận định.
                 + Nếu là Kịch bản xấu (1,2,3,4): Đừng mắng, hãy động viên quay lại đường đua.
             - **action**: Một hành động cụ thể cho ngày mai.
             - **footer**: "Nếu có gì thắc mắc cần giải thích thêm, bạn hãy hỏi Trợ lý sức khỏe nhé!"
@@ -247,58 +251,10 @@ exports.getQuickAnalysis = async (req, res) => {
                 "action": "...",
                 "footer": "..."
             }
-            `;
-           /*} 
-        // 5. PROMPT: KẾT HỢP MA TRẬN 7 KỊCH BẢN & SOI MÓN ĂN
-        const prompt = `
-        Bạn là PT AI Cá nhân hóa (Phong cách: Thấu hiểu, Động viên, Tích cực).
-        
-        DỮ LIỆU TỔNG QUAN:
-        - Mục tiêu: ${profile.goal}
-        - Target Net Calorie: ${targetCalories} kcal
-        - Thực tế Net Calorie: ${avgNet} kcal (Trạng thái: ${caloStatus})
-        - Tần suất tập: ${workoutDays}/7 ngày (Trạng thái: ${activityLevel})
-        - Protein: ${proteinPerKg} g/kg (Trạng thái: ${proteinStatus})
-        - Số ngày quên log: ${missingCount} ngày.
-
-        NHẬT KÝ CHI TIẾT (Đọc kỹ để tìm nguyên nhân):
-        ${dailyLogText}
-
-        HÃY XÁC ĐỊNH TÌNH TRẠNG CỦA KHÁCH HÀNG DỰA TRÊN 7 KỊCH BẢN SAU:
-        1. "SKINNY FAT" (Nhịn ăn tiêu cực): Tập ÍT + Calo THIẾU.
-           -> Cảnh báo mất cơ, người lỏng lẻo. Khuyên đi tập ngay.
-        2. "LƯỜI BIẾNG TÍCH MỠ" (Couch Potato): Tập ÍT + Calo DƯ.
-           -> Cảnh báo béo bụng. Khuyên vận động nhẹ ngay (đi bộ).
-        3. "CÔNG CỐC" (Tập khỏe ăn bậy): Tập ĐỀU + Calo DƯ.
-           -> Khen tập tốt nhưng nhắc nhở cái miệng hại cái thân. Soi món ăn gây béo trong log.
-        4. "THIẾU CHẤT" (Cơ đói): Tập ĐỀU + Protein THIẾU.
-           -> Khen tập chăm nhưng cảnh báo chai cơ. Khuyên ăn thêm thịt/trứng.
-        5. "SIẾT CƠ CHUẨN" (Pro Cutting): Tập ĐỀU + Calo THIẾU + Protein ĐỦ.
-           -> Khen ngợi nhiệt liệt. Đây là chế độ giảm mỡ chuyên nghiệp.
-        6. "XUẤT SẮC" (High Flux): Tập ĐỀU + Calo CHUẨN + Protein ĐỦ.
-           -> Tôn vinh lối sống lành mạnh hoàn hảo.
-        7. "BÌNH THƯỜNG" (Duy trì thụ động): Các trường hợp còn lại.
-           -> Nhận xét nhẹ nhàng, khuyên duy trì hoặc cải thiện nhẹ.
-
-        YÊU CẦU OUTPUT (Cần sự tinh tế và cụ thể):
-        - **message**: Viết 2-3 câu nhận xét theo giọng văn người bạn. 
-          + BẮT BUỘC: Phải nhắc đến **tên món ăn** hoặc **ngày cụ thể** trong log để chứng minh nhận định (VD: "Thứ 3 ăn Bún đậu hơi lố nè", "Thứ 5 quên log uổng quá").
-          + Nếu là Kịch bản xấu (1,2,3,4): Đừng mắng, hãy động viên quay lại đường đua.
-        - **action**: Một hành động cụ thể cho ngày mai.
-        - **footer**: "Nếu có gì thắc mắc cần giải thích thêm, bạn hãy hỏi Trợ lý sức khỏe nhé!"
-
-        OUTPUT FORMAT (JSON ONLY):
-        {
-            "scenario": "Tên kịch bản (VD: CÔNG CỐC)",
-            "message": "...",
-            "action": "...",
-            "footer": "..."
-        }
         `;
-        /*/ 
 
-        // Gọi Gemini
-        const model = genAI.getGenerativeModel({model: process.env.GEMINI_MODEL });
+        // 4. GỌI GEMINI
+        const model = genAI.getGenerativeModel({model: process.env.GEMINI_MODEL || "gemini-pro"});
         const result = await model.generateContent(prompt);
         const response = await result.response;
         
@@ -307,14 +263,29 @@ exports.getQuickAnalysis = async (req, res) => {
             const jsonMatch = response.text().match(/\{[\s\S]*\}/);
             aiResult = JSON.parse(jsonMatch[0]);
         } catch (e) {
+            console.error("Lỗi parse JSON:", e);
             aiResult = {
-                scenario: "Cần thêm dữ liệu",
-                message: "Hệ thống cần bạn nhập liệu đầy đủ hơn để phân tích chính xác.",
-                action: "Hãy nhớ log lại các bữa ăn hôm nay nhé.",
-                footer: "Nếu có gì thắc mắc cần giải thích thêm, bạn hãy hỏi Trợ lý sức khỏe nhé!"
+                scenario: "Lỗi hiển thị",
+                message: "Hệ thống đang bận, vui lòng thử lại sau.",
+                action: "Kiểm tra lại nhật ký.",
+                footer: "..."
             };
         }
 
+        // --- BƯỚC 3: LƯU VÀO CACHE (MỚI) ---
+        try {
+            // Lưu kết quả vào DB để lần sau dùng lại
+            const query = `
+                INSERT INTO ai_daily_cache (user_id, log_date, ai_response, created_at) 
+                VALUES (?, ?, ?, NOW())
+                ON DUPLICATE KEY UPDATE ai_response = VALUES(ai_response), created_at = NOW()
+            `;
+            await pool.query(query, [userId, today, JSON.stringify(aiResult)]);
+        } catch (cacheError) {
+            console.error("Lỗi lưu Cache:", cacheError);
+        }
+
+        // Trả về kết quả
         res.json(aiResult);
 
     } catch (error) {
@@ -322,4 +293,3 @@ exports.getQuickAnalysis = async (req, res) => {
         res.status(500).json({ msg: "Lỗi Server" });
     }
 };
-
