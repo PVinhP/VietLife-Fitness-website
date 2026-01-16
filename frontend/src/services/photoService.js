@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Đổi port nếu backend của bạn khác (3000 hoặc 8080)
-const API_URL = 'http://localhost:8080/api/checkin'; 
+const API_URL = 'https://vietlife-fitness-website-host.onrender.com/api/checkin'; 
 
 // Lấy lịch sử ảnh
 export const getCheckInPhotos = async (token) => {

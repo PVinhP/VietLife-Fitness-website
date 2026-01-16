@@ -56,7 +56,7 @@ const HealthProfileTab: React.FC = () => {
             setIsLoading(true);
             const token = localStorage.getItem('token');
             try {
-                const res = await axios.get('http://localhost:8080/api/profile/me', {
+                const res = await axios.get('https://vietlife-fitness-website-host.onrender.com/api/profile/me', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
@@ -216,7 +216,7 @@ const HealthProfileTab: React.FC = () => {
                 sleep_quality_rating: Number(formData.sleep_quality_rating)
             };
 
-            await axios.post('http://localhost:8080/api/profile', payload, {
+            await axios.post('https://vietlife-fitness-website-host.onrender.com/api/profile', payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success("Đã cập nhật hồ sơ sức khỏe!");

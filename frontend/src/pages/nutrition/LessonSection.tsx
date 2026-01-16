@@ -55,7 +55,7 @@ const LessonSection = React.forwardRef<HTMLDivElement>((props, ref) => {
       setIsLoading(true);
       setError('');
       try {
-        const response = await fetch('http://localhost:8080/lesson', {
+        const response = await fetch('https://vietlife-fitness-website-host.onrender.com/lesson', {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
         });
@@ -81,7 +81,7 @@ const LessonSection = React.forwardRef<HTMLDivElement>((props, ref) => {
 
   // Fetch tags (nếu backend đã implement)
   useEffect(() => {
-    fetch('http://localhost:8080/lesson/tags')
+    fetch('https://vietlife-fitness-website-host.onrender.com/lesson/tags')
       .then(res => res.json())
       .then(tags => setAvailableTags(tags))
       .catch(err => console.error('Không thể tải tags:', err));
@@ -153,7 +153,7 @@ const LessonSection = React.forwardRef<HTMLDivElement>((props, ref) => {
 
   const getImageUrl = (hinh_anh: string) => {
     if (hinh_anh && hinh_anh.trim()) {
-      return hinh_anh.startsWith('http') ? hinh_anh : `http://localhost:8080/uploads/${hinh_anh}`;
+      return hinh_anh.startsWith('http') ? hinh_anh : `https://vietlife-fitness-website-host.onrender.com/uploads/${hinh_anh}`;
     }
     const defaults = [
       "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600",

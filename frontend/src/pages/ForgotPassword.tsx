@@ -6,7 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
+  const API_URL = process.env.REACT_APP_API_URL || "https://vietlife-fitness-website-host.onrender.com";
 
   // Step 1: Nhập email, Step 2: Nhập OTP & Đổi mật khẩu
   const [step, setStep] = useState<1 | 2>(1);
