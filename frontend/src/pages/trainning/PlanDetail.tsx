@@ -77,7 +77,7 @@ const PlanDetail = () => {
         const fetchData = async () => {
             try {
                 // Gọi API lấy chi tiết giáo án (Cấu trúc mới từ 3 bảng)
-                const planRes = await axios.get(`https://vietlife-fitness-website-host.onrender.com/api/plans/${id}`);
+                const planRes = await axios.get(`http://localhost:8080/api/plans/${id}`);
                 setPlan(planRes.data);
 
                 // Mặc định mở ngày đầu tiên
@@ -88,7 +88,7 @@ const PlanDetail = () => {
                 // Lấy tiến độ tập luyện của User
                 if (token) {
                     try {
-                        const progressRes = await axios.get(`https://vietlife-fitness-website-host.onrender.com/api/workout-progress/check-status`, {
+                        const progressRes = await axios.get(`http://localhost:8080/api/workout-progress/check-status`, {
                             params: { planId: id, date: today },
                             headers: { Authorization: `Bearer ${token}` }
                         });
@@ -147,7 +147,7 @@ const PlanDetail = () => {
         }
 
         try {
-            await axios.post(`https://vietlife-fitness-website-host.onrender.com/api/workout-progress/toggle`, {
+            await axios.post(`http://localhost:8080/api/workout-progress/toggle`, {
                 planId: id,
                 exerciseId: exerciseId,
                 date: today
@@ -171,7 +171,7 @@ const PlanDetail = () => {
         setSelectedExercise({ id: exerciseId, name: exerciseName });
         
         try {
-            const historyRes = await axios.get(`https://vietlife-fitness-website-host.onrender.com/api/workout-progress/note-history`, {
+            const historyRes = await axios.get(`http://localhost:8080/api/workout-progress/note-history`, {
                 params: { planId: id, exerciseId },
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -188,7 +188,7 @@ const PlanDetail = () => {
         if (!selectedExercise) return;
         
         try {
-            await axios.post(`https://vietlife-fitness-website-host.onrender.com/api/workout-progress/note`, {
+            await axios.post(`http://localhost:8080/api/workout-progress/note`, {
                 planId: id,
                 exerciseId: selectedExercise.id,
                 date: today,

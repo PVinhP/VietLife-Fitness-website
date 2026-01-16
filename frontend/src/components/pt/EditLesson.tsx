@@ -30,7 +30,7 @@ function EditLesson({ lessonData, onClose, onSuccess }: EditLessonProps) {
     setIsSubmitting(true);
     try {
       // Gọi API PUT để cập nhật
-      const response = await fetch(`https://vietlife-fitness-website-host.onrender.com/lesson/${lessonData.id}`, {
+      const response = await fetch(`http://localhost:8080/lesson/${lessonData.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

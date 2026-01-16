@@ -33,7 +33,7 @@ const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({ isOpen, onClose, 
             const fetchDetail = async () => {
                 setLoading(true);
                 try {
-                    const res = await fetch(`https://vietlife-fitness-website-host.onrender.com/recipes/${recipeId}`);
+                    const res = await fetch(`http://localhost:8080/recipes/${recipeId}`);
                     const data = await res.json();
                     if (data.success) {
                         setRecipe(data.recipe);

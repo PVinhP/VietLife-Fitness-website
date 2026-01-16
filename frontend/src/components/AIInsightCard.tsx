@@ -29,7 +29,7 @@ const AIInsightCard: React.FC<AIInsightCardProps> = ({ startDate, endDate }) => 
       const token = localStorage.getItem("token");
 
       // Đảm bảo đúng đường dẫn API
-      const res = await axios.get('https://vietlife-fitness-website-host.onrender.com/nutrition/quick-insight', {
+      const res = await axios.get('http://localhost:8080/nutrition/quick-insight', {
         params: { 
           startDate, 
           endDate,

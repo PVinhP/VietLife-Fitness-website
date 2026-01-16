@@ -51,7 +51,7 @@ interface HistoryChartData {
   fullDate: string;
 }
 
-const API_BASE = 'https://vietlife-fitness-website-host.onrender.com/nutrition'; 
+const API_BASE = 'http://localhost:8080/nutrition'; 
 
 // --- 2. HELPER FUNCTIONS ---
 

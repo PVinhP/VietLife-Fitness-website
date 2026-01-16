@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 
 // --- 1. CẤU HÌNH & INTERFACE ---
-const API_BASE = 'https://vietlife-fitness-website-host.onrender.com/api'; // Đảm bảo đúng đường dẫn API
+const API_BASE = 'http://localhost:8080/api'; // Đảm bảo đúng đường dẫn API
 
 const formatDateLocal = (date: Date) => {
   const year = date.getFullYear();
@@ -157,7 +157,7 @@ const StatisticsCalo: React.FC = () => {
       const user = userStr ? JSON.parse(userStr) : { id: 1 };
       
       // Gọi API với ngày người dùng chọn
-      await axios.post(`https://vietlife-fitness-website-host.onrender.com/api/workout-calo`, {
+      await axios.post(`http://localhost:8080/api/workout-calo`, {
         user_id: user.id,
         workout_date: workoutForm.date, // Sử dụng ngày từ form
         activity_name: workoutForm.name,
@@ -196,14 +196,36 @@ const StatisticsCalo: React.FC = () => {
   };
 
   // --- 6. TÍNH TRUNG BÌNH ---
+// --- 6. TÍNH TRUNG BÌNH (ĐÃ SỬA: CHỈ TÍNH NGÀY CÓ DỮ LIỆU) ---
   const averages = useMemo(() => {
     if (stats.length === 0) return { in: 0, out: 0, net: 0 };
-    const totalIn = stats.reduce((sum, item) => sum + item.calories_in, 0);
-    const totalOut = stats.reduce((sum, item) => sum + item.calories_out, 0);
+
+    let totalIn = 0;
+    let totalOut = 0;
+    let countIn = 0;   // Đếm số ngày có ăn > 0
+    let countOut = 0;  // Đếm số ngày có tập > 0
+    let countActive = 0; // Đếm số ngày có bất kỳ hoạt động nào (để tính Net)
+
+    stats.forEach(item => {
+      totalIn += item.calories_in;
+      totalOut += item.calories_out;
+
+      // Chỉ đếm những ngày có dữ liệu thực
+      if (item.calories_in > 0) countIn++;
+      if (item.calories_out > 0) countOut++;
+      
+      // Ngày "Active" là ngày có ăn HOẶC có tập
+      if (item.calories_in > 0 || item.calories_out > 0) countActive++;
+    });
+
     return {
-      in: Math.round(totalIn / stats.length),
-      out: Math.round(totalOut / stats.length),
-      net: Math.round((totalIn - totalOut) / stats.length)
+      // Logic: Tổng Calo / Số ngày thực tế có nhập (tránh chia cho 0)
+      in: countIn > 0 ? Math.round(totalIn / countIn) : 0,
+      
+      out: countOut > 0 ? Math.round(totalOut / countOut) : 0,
+      
+      // Net Calo: Tính trung bình trên những ngày người dùng có tương tác với app
+      net: countActive > 0 ? Math.round((totalIn - totalOut) / countActive) : 0
     };
   }, [stats]);
 

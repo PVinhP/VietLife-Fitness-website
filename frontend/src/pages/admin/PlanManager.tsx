@@ -23,7 +23,7 @@ const PlanManager = () => {
     // 1. Fetch Plans
     const fetchPlans = async () => {
         try {
-            const res = await axios.get('https://vietlife-fitness-website-host.onrender.com/api/plans');
+            const res = await axios.get('http://localhost:8080/api/plans');
             setPlans(res.data);
         } catch (error) {
             console.error(error);
@@ -51,7 +51,7 @@ const PlanManager = () => {
         if (!window.confirm("Bạn có chắc chắn muốn xóa giáo án này không?")) return;
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`https://vietlife-fitness-website-host.onrender.com/api/plans/${id}`, {
+            await axios.delete(`http://localhost:8080/api/plans/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success("Đã xóa giáo án.");
