@@ -9,7 +9,7 @@ import FoodDetailModal from './FoodDetailModal';
 import { FoodGroup, FoodItem } from '../../types/nutrition';
 
 // Cấu hình URL API
-const API_BASE_URL = 'http://localhost:8080/api/food-classification';
+const API_BASE_URL = 'https://vietlife-fitness-website-host.onrender.com/api/food-classification';
 
 // --- ĐỊNH NGHĨA INTERFACE CHO DỮ LIỆU ---
 interface SubGroupItem {

@@ -64,7 +64,7 @@ const PlanBuilder = ({ onClose, onSuccess, editingPlanId }: PlanBuilderProps) =>
         if (editingPlanId) {
             const fetchPlanData = async () => {
                 try {
-                    const res = await axios.get(`http://localhost:8080/api/plans/${editingPlanId}`);
+                    const res = await axios.get(`https://vietlife-fitness-website-host.onrender.com/api/plans/${editingPlanId}`);
                     const data = res.data;
 
                     // 1. Điền thông tin chung (Map từ DB sang State)
@@ -181,13 +181,13 @@ const PlanBuilder = ({ onClose, onSuccess, editingPlanId }: PlanBuilderProps) =>
             // 🔥 LOGIC PHÂN BIỆT TẠO MỚI / CẬP NHẬT 🔥
             if (editingPlanId) {
                 // Nếu đang sửa -> Gọi PUT
-                await axios.put(`http://localhost:8080/api/plans/${editingPlanId}`, payload, {
+                await axios.put(`https://vietlife-fitness-website-host.onrender.com/api/plans/${editingPlanId}`, payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 toast.success("✅ Cập nhật giáo án thành công!");
             } else {
                 // Nếu tạo mới -> Gọi POST
-                await axios.post('http://localhost:8080/api/plans', payload, {
+                await axios.post('https://vietlife-fitness-website-host.onrender.com/api/plans', payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 toast.success("🎉 Tạo giáo án mới thành công!");

@@ -63,13 +63,13 @@ const RecipeManager = () => {
             const token = localStorage.getItem("token");
             const headers = { Authorization: `Bearer ${token}` };
 
-            const resRecipe = await axios.get('http://localhost:8080/recipes', {
+            const resRecipe = await axios.get('https://vietlife-fitness-website-host.onrender.com/recipes', {
                 params: { search: searchTerm }, headers
             });
             
             setRecipes(resRecipe.data.recipes || []);
 
-            const resFood = await axios.get('http://localhost:8080/food', { headers });
+            const resFood = await axios.get('https://vietlife-fitness-website-host.onrender.com/food', { headers });
             setNutritionList(resFood.data);
 
         } catch (error) {
@@ -116,7 +116,7 @@ const RecipeManager = () => {
         try {
             // Gọi API chi tiết để lấy "instructions" đầy đủ
             // Giả định API chi tiết là: GET /recipes/:id (giống bên DetailModal)
-            const res = await axios.get(`http://localhost:8080/recipes/${recipe.recipe_id}`);
+            const res = await axios.get(`https://vietlife-fitness-website-host.onrender.com/recipes/${recipe.recipe_id}`);
             const data = res.data;
             
             if (data.success && data.recipe) {
@@ -149,10 +149,10 @@ const RecipeManager = () => {
             const headers = { Authorization: `Bearer ${token}` };
             
             if (editingId) {
-                await axios.put(`http://localhost:8080/recipes/${editingId}`, formData, { headers });
+                await axios.put(`https://vietlife-fitness-website-host.onrender.com/recipes/${editingId}`, formData, { headers });
                 toast.success("Đã cập nhật công thức!");
             } else {
-                await axios.post(`http://localhost:8080/recipes/create`, formData, { headers });
+                await axios.post(`https://vietlife-fitness-website-host.onrender.com/recipes/create`, formData, { headers });
                 toast.success("Đã tạo công thức mới!");
             }
             setIsFormOpen(false);
@@ -167,7 +167,7 @@ const RecipeManager = () => {
         if (!window.confirm("Xóa công thức này?")) return;
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`http://localhost:8080/recipes/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.delete(`https://vietlife-fitness-website-host.onrender.com/recipes/${id}`, { headers: { Authorization: `Bearer ${token}` } });
             toast.success("Đã xóa.");
             fetchData();
         } catch (error) {

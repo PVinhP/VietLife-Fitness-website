@@ -55,7 +55,7 @@ const SportManager = () => {
     // --- FETCH DATA ---
     const fetchSports = async () => {
         try {
-            const res = await axios.get('http://localhost:8080/api/sports');
+            const res = await axios.get('https://vietlife-fitness-website-host.onrender.com/api/sports');
             setSports(res.data);
         } catch (error) {
             console.error(error);
@@ -67,7 +67,7 @@ const SportManager = () => {
     const fetchAllExercises = async () => {
         // Lấy danh sách bài tập để dropdown
         try {
-            const res = await axios.get('http://localhost:8080/exercise'); // Dùng API Exercise cũ
+            const res = await axios.get('https://vietlife-fitness-website-host.onrender.com/exercise'); // Dùng API Exercise cũ
             setAllExercisesList(res.data);
         } catch (error) { console.error(error); }
     };
@@ -92,7 +92,7 @@ const SportManager = () => {
         setActiveTab('info');
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get(`http://localhost:8080/api/sports/${id}/detail`, {
+            const res = await axios.get(`https://vietlife-fitness-website-host.onrender.com/api/sports/${id}/detail`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const { skills, exercises, ...info } = res.data;
@@ -112,10 +112,10 @@ const SportManager = () => {
             const token = localStorage.getItem("token");
             const headers = { Authorization: `Bearer ${token}` };
             if (editingSportId) {
-                await axios.put(`http://localhost:8080/api/sports/${editingSportId}`, sportForm, { headers });
+                await axios.put(`https://vietlife-fitness-website-host.onrender.com/api/sports/${editingSportId}`, sportForm, { headers });
                 toast.success("Cập nhật thông tin thành công");
             } else {
-                const res = await axios.post(`http://localhost:8080/api/sports`, sportForm, { headers });
+                const res = await axios.post(`https://vietlife-fitness-website-host.onrender.com/api/sports`, sportForm, { headers });
                 setEditingSportId(res.data.id); // Set ID để chuyển sang tab khác được
                 toast.success("Tạo môn thể thao thành công. Hãy thêm kỹ năng!");
             }
@@ -130,7 +130,7 @@ const SportManager = () => {
         if (!editingSportId) return toast.warn("Vui lòng lưu thông tin môn thể thao trước");
         try {
             const token = localStorage.getItem("token");
-            await axios.post(`http://localhost:8080/api/sports/skill`, { ...newSkill, sport_id: editingSportId }, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.post(`https://vietlife-fitness-website-host.onrender.com/api/sports/skill`, { ...newSkill, sport_id: editingSportId }, { headers: { Authorization: `Bearer ${token}` } });
             toast.success("Đã thêm kỹ năng");
             // Refresh local
             handleEdit(editingSportId); 
@@ -142,7 +142,7 @@ const SportManager = () => {
         if(!window.confirm("Xóa kỹ năng này?")) return;
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`http://localhost:8080/api/sports/skill/${skillId}`, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.delete(`https://vietlife-fitness-website-host.onrender.com/api/sports/skill/${skillId}`, { headers: { Authorization: `Bearer ${token}` } });
             toast.success("Đã xóa kỹ năng");
             if(editingSportId) handleEdit(editingSportId);
         } catch (error) { toast.error("Lỗi xóa"); }
@@ -155,7 +155,7 @@ const SportManager = () => {
         
         try {
             const token = localStorage.getItem("token");
-            await axios.post(`http://localhost:8080/api/sports/exercise`, { ...newExerciseLink, sport_id: editingSportId }, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.post(`https://vietlife-fitness-website-host.onrender.com/api/sports/exercise`, { ...newExerciseLink, sport_id: editingSportId }, { headers: { Authorization: `Bearer ${token}` } });
             toast.success("Đã liên kết bài tập");
             handleEdit(editingSportId);
         } catch (error: any) { toast.error(error.response?.data?.message || "Lỗi liên kết"); }
@@ -165,7 +165,7 @@ const SportManager = () => {
         if(!window.confirm("Gỡ bài tập này khỏi môn thể thao?")) return;
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`http://localhost:8080/api/sports/exercise/${editingSportId}/${exerciseId}`, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.delete(`https://vietlife-fitness-website-host.onrender.com/api/sports/exercise/${editingSportId}/${exerciseId}`, { headers: { Authorization: `Bearer ${token}` } });
             toast.success("Đã gỡ bài tập");
             if(editingSportId) handleEdit(editingSportId);
         } catch (error) { toast.error("Lỗi xóa"); }
@@ -176,7 +176,7 @@ const SportManager = () => {
         if (!window.confirm("CẢNH BÁO: Xóa môn thể thao sẽ xóa hết kỹ năng liên quan!")) return;
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`http://localhost:8080/api/sports/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.delete(`https://vietlife-fitness-website-host.onrender.com/api/sports/${id}`, { headers: { Authorization: `Bearer ${token}` } });
             toast.success("Đã xóa môn thể thao");
             fetchSports();
         } catch (error) { toast.error("Lỗi xóa"); }
