@@ -1,7 +1,5 @@
 # HCMUTE
 # Hệ thống VietLife Website quản lý sức khỏe toàn diện theo hướng cá nhân hóa (tích hợp AI)
-Tên SV: Phạm Phú Vinh
-
 # VIETLIFE FITNESS - Personalized Health Management System 🏋️‍♂️🥗
 
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
