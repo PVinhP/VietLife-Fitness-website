@@ -1,31 +1,48 @@
 # HCMUTE
-# Website Cung Cấp Thông Tin về Dinh Dưỡng và Tập luyện Sức khỏe
-## GVHD: TS. Mai Anh Thơ
+# Hệ thống VietLife Website quản lý sức khỏe toàn diện theo hướng cá nhân hóa (tích hợp AI)
 Tên SV: Phạm Phú Vinh
-MSSV: 21110941
-## Đặc tả
-Đề tài nhằm xây dựng một website cung cấp thông tin toàn diện, dễ hiểu và dễ truy cập về dinh dưỡng và luyện tập sức khỏe, dành riêng cho người Việt. Website cung cấp kiến thức nền tảng và khoa học về dinh dưỡng, tra cứu dinh dưỡng thực phẩm để người dùng có thể tự thiết kế các bữa ăn phù hợp với túi tiền, sở thích  và mục tiêu của từng cá nhân, gia đình. Bên cạnh việc ăn uống, website còn hướng dẫn các phương pháp, bài tập đa dạng để người dùng có thể linh hoạt trong tập luyện, gợi ý cho người dùng các công cụ để theo dõi tiến trình, thực đơn ăn uống và lộ trình tập luyện cá nhân hóa. Từ đó, người dùng có thể tăng hiệu suất tập luyện, hạn chế được các chấn thương không mong muốn và tăng cường sức khỏe thông qua chế độ ăn uống lành mạnh.
-Mục đích chính của đề tài là tạo ra được một thư viện học tập trực tuyến ( giống như “trường học sức khỏe”), giúp người dùng tiếp cận thông tin một cách bài bản, có hệ thống.Nhờ đó, góp phần nâng cao nhận thức cộng đồng về lối sống lành mạnh, giảm thiểu nguy cơ mắc các bệnh không lây nhiễm.
 
-## Link Deploy hệ thống:
-- **Link Backend**: https://backend-rjhh.onrender.com
-- **Link Frontend**: https://vietlife-fitness-website-owpj.onrender.com
-![image](https://github.com/user-attachments/assets/025eb2d3-0125-495e-8b93-69ea39e9636c)
+# VIETLIFE FITNESS - Personalized Health Management System 🏋️‍♂️🥗
 
-## Công nghệ sử dụng:
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![React](https://img.shields.io/badge/Frontend-ReactJS-61DAFB?logo=react&logoColor=black)
+![Node](https://img.shields.io/badge/Backend-NodeJS-339933?logo=node.js&logoColor=white)
+![MySQL](https://img.shields.io/badge/Database-MySQL-4479A1?logo=mysql&logoColor=white)
+![AI](https://img.shields.io/badge/AI-Google_Gemini-8E75B2?logo=google&logoColor=white)
 
-### Frontend: ReactJS + TailwindCSS
-- **ReactJS:** Xây dựng giao diện người dùng với các component linh hoạt.
-- **React Router DOM:** Điều hướng giữa các trang.
-- **Axios:** Gửi và nhận dữ liệu từ API.
-- **TailwindCSS:** Thiết kế giao diện bằng các lớp tiện ích CSS.
-- Kết nối và giao tiếp với Backend thông qua API.
+> **Graduation Thesis (Khóa luận tốt nghiệp)**
+> **Student:** Pham Phu Vinh
+> **Supervisor:** Dr. Mai Anh Tho
 
-### Backend: NodeJS, ExpressJS
-- **NodeJS:** Nền tảng chạy JavaScript phía máy chủ.
-- **ExpressJS:** Xây dựng các API endpoint phục vụ frontend.
-- **MySQL2:** Dùng để giao tiếp với cơ sở dữ liệu MySQL.
-- **JWT & Bcrypt:** Xác thực và bảo mật người dùng.
-- **SQL Server Database:** Sử dụng MySQL để lưu trữ thông tin.
-- **Cloudinary:** Dùng để lưu trữ ảnh và video trên cloud và trả về link URL.
+## 📖 Introduction (Giới thiệu)
+
+**VietLife Fitness** là hệ thống website hỗ trợ sức khoẻ toàn diện theo hướng cá nhân hoá. Dự án không chỉ giúp người dùng theo dõi chỉ số cơ thể (BMI, TDEE, BMR) mà còn ứng dụng **Generative AI (Google Gemini)** để tự động xây dựng lộ trình tập luyện và thực đơn dinh dưỡng riêng biệt cho từng cá nhân.
+
+🔗 **Live Demo:** [https://viet-life-fitness-website-4qu7.vercel.app/](https://viet-life-fitness-website-4qu7.vercel.app/)
+
+## ✨ Key Features (Tính năng nổi bật)
+
+* 🤖 **AI Smart Chatbot:** Trợ lý ảo thông minh tích hợp **Google Gemini API** & **Prompt Engineering**, hỗ trợ tư vấn sức khỏe và giải đáp thắc mắc 24/7.
+* 📊 **Personalization Engine:** Tự động tính toán chỉ số y học vận động (BMI, TDEE) để đề xuất lộ trình tập luyện và dinh dưỡng cá nhân hóa.
+* 🍎 **AI Nutrition Analysis:** Phân tích và đánh giá chế độ dinh dưỡng tự động.
+* 🔐 **Secure System:** Hệ thống xác thực bảo mật với **JWT**, phân quyền User/Admin.
+* 📱 **Responsive Design:** Giao diện tối ưu trải nghiệm người dùng trên cả Desktop và Mobile.
+
+## 🛠 Tech Stack (Công nghệ sử dụng)
+
+| Category | Technologies |
+|----------|--------------|
+| **Frontend** | ReactJS, Tailwind CSS, Axios, Redux (nếu có) |
+| **Backend** | Node.js, Express.js, RESTful API |
+| **Database** | MySQL (Relational Database Design) |
+| **AI Integration** | Google Gemini API (Generative AI) |
+| **Services** | Cloudinary (Media Management), Nodemailer (SMTP Email) |
+| **DevOps/Tools** | Git, GitHub, Postman, Vercel/Render |
+
+## 🚀 Installation & Setup (Cài đặt & Chạy dự án)
+
+### 1. Clone the repository
+```bash
+git clone [https://github.com/PVinhP/VietLife-Fitness-website.git](https://github.com/PVinhP/VietLife-Fitness-website.git)
+cd VietLife-Fitness-website
 
