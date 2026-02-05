@@ -69,16 +69,20 @@ npm start
 <img width="1918" height="1031" alt="image" src="https://github.com/user-attachments/assets/d81b3e4f-798c-48f2-be69-cf72febfecb3" />
 
 <img width="1920" height="880" alt="image" src="https://github.com/user-attachments/assets/14398c19-636b-4b3d-aa46-661c80c90604" />
+
 ### Kiến thức
+
 <img width="1920" height="1033" alt="image" src="https://github.com/user-attachments/assets/c0ba09d9-a4d9-4ac4-8578-31a095b25899" />
 <img width="1920" height="880" alt="image" src="https://github.com/user-attachments/assets/bd76ee61-3e5d-4c09-a45f-f10b660b7f1a" />
 ### Dinh Dưỡng
+
 <img width="1920" height="885" alt="image" src="https://github.com/user-attachments/assets/18527882-3c0b-4cf9-ae5e-d745f7ca10cb" />
 <img width="1920" height="1032" alt="image" src="https://github.com/user-attachments/assets/560ec56d-b58b-4fcb-bbc5-d000e82054c0" />
 <img width="1920" height="888" alt="image" src="https://github.com/user-attachments/assets/f1217f9b-7363-426c-a900-7cee2064d78d" />
 <img width="1920" height="1015" alt="image" src="https://github.com/user-attachments/assets/a3fc60ee-63d4-4c7a-9057-0a5b9ec0bcac" />
 <img width="1920" height="1036" alt="image" src="https://github.com/user-attachments/assets/e2034d0c-2a7d-4794-b147-f74630d35aae" />
 ### Tập luyện 
+
 Bắt đầu ngay
 <img width="1920" height="1033" alt="image" src="https://github.com/user-attachments/assets/fe4a6a1b-44b8-43ea-a9a9-81fb036accf1" />
 Thư viện bài tập
@@ -125,7 +129,7 @@ Trang ADmin
 
 
 ## 🤝 Contact (Liên hệ)
-Author: Phạm Phú Vinh
-Email: Vinhpham753951@gmail.com
-SDT: 0987228178
+- Author: Phạm Phú Vinh.
+- Email: Vinhpham753951@gmail.com
+- SDT: 0987228178
 
