@@ -30,12 +30,12 @@
 
 | Category | Technologies |
 |----------|--------------|
-| **Frontend** | ReactJS, Tailwind CSS, Axios, Redux (nếu có) |
+| **Frontend** | ReactJS, Tailwind CSS, Axios |
 | **Backend** | Node.js, Express.js, RESTful API |
 | **Database** | MySQL (Relational Database Design) |
 | **AI Integration** | Google Gemini API (Generative AI) |
 | **Services** | Cloudinary (Media Management), Nodemailer (SMTP Email) |
-| **DevOps/Tools** | Git, GitHub, Postman, Vercel/Render |
+| **DevOps/Tools** | Git, GitHub, Postman, Vercel/Render, AWS |
 
 ## 🚀 Installation & Setup (Cài đặt & Chạy dự án)
 
