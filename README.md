@@ -21,7 +21,7 @@
 ## ✨ Key Features (Tính năng nổi bật)
 
 * 🤖 **AI Smart Chatbot:** Trợ lý ảo thông minh tích hợp **Google Gemini API** & **Prompt Engineering**, hỗ trợ tư vấn sức khỏe và giải đáp thắc mắc 24/7.
-* 🎯 **Personalization Engine:** Tự động tính toán chỉ số y học vận động (BMI, TDEE) và dựa vào mục tiêu, thông tin sức khỏe đầu vào. Sau đó **AI** sẽ phân tích và tạo lộ trình tập luyện và gợi ý dinh dưỡng phù hợp.
+* 🎯 **Personalization Engine:** Tự động tính toán chỉ số y học vận động (BMI, TDEE) và dựa vào mục tiêu, thông tin sức khỏe đầu vào. Sau đó **AI** sẽ phân tích và tạo **lộ trình tập luyện và gợi ý dinh dưỡng** phù hợp.
 * 📊 **AI Nutrition Analysis:** Tự động **thống kê** dữ liệu người dùng, kết hợp **AI** để phân tích, đánh giá hiệu quả dinh dưỡng & tập luyện, từ đó đưa ra lời khuyên cải thiện cụ thể.
 * 🔐 **Secure System:** Hệ thống xác thực bảo mật với **JWT**, phân quyền User/Admin.
 * 📱 **Responsive Design:** Giao diện tối ưu trải nghiệm người dùng trên cả Desktop và Mobile.
