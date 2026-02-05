@@ -74,6 +74,7 @@ npm start
 
 <img width="1920" height="1033" alt="image" src="https://github.com/user-attachments/assets/c0ba09d9-a4d9-4ac4-8578-31a095b25899" />
 <img width="1920" height="880" alt="image" src="https://github.com/user-attachments/assets/bd76ee61-3e5d-4c09-a45f-f10b660b7f1a" />
+
 ### Dinh Dưỡng
 
 <img width="1920" height="885" alt="image" src="https://github.com/user-attachments/assets/18527882-3c0b-4cf9-ae5e-d745f7ca10cb" />
@@ -81,6 +82,7 @@ npm start
 <img width="1920" height="888" alt="image" src="https://github.com/user-attachments/assets/f1217f9b-7363-426c-a900-7cee2064d78d" />
 <img width="1920" height="1015" alt="image" src="https://github.com/user-attachments/assets/a3fc60ee-63d4-4c7a-9057-0a5b9ec0bcac" />
 <img width="1920" height="1036" alt="image" src="https://github.com/user-attachments/assets/e2034d0c-2a7d-4794-b147-f74630d35aae" />
+
 ### Tập luyện 
 
 Bắt đầu ngay
@@ -104,7 +106,9 @@ Lộ trình tập luyện
 <img width="1914" height="790" alt="image" src="https://github.com/user-attachments/assets/3905ca18-d348-4a41-9272-3a05b1253897" />
 Gợi ý thực đơn
 <img width="1920" height="879" alt="image" src="https://github.com/user-attachments/assets/126c1243-de74-4343-b858-f0838149a009" />
+
 ### Phần cá Nhân
+
 Trang Tổng quan 
 <img width="1920" height="881" alt="image" src="https://github.com/user-attachments/assets/3099756e-cb84-4d53-99b9-eb95ba83b4bd" />
 Nhật ký ăn uống
