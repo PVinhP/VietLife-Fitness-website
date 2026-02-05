@@ -22,7 +22,7 @@
 
 * 🤖 **AI Smart Chatbot:** Trợ lý ảo thông minh tích hợp **Google Gemini API** & **Prompt Engineering**, hỗ trợ tư vấn sức khỏe và giải đáp thắc mắc 24/7.
 * 🎯 **Personalization Engine:** Tự động tính toán chỉ số y học vận động (BMI, TDEE) và dựa vào mục tiêu, thông tin sức khỏe đầu vào. Sau đó **AI** sẽ phân tích và tạo **lộ trình tập luyện và gợi ý dinh dưỡng** phù hợp.
-* 📊 **AI Nutrition Analysis:** Tự động **thống kê** dữ liệu người dùng, kết hợp **AI** để phân tích, đánh giá hiệu quả dinh dưỡng & tập luyện, từ đó đưa ra lời khuyên cải thiện cụ thể.
+* 📊 **Statistics & AI Analysis:** Tự động **thống kê** dữ liệu người dùng, kết hợp **AI** để phân tích, đánh giá hiệu quả dinh dưỡng & tập luyện, từ đó đưa ra lời khuyên cải thiện cụ thể.
 * 🔐 **Secure System:** Hệ thống xác thực bảo mật với **JWT**, phân quyền User/Admin.
 * 📱 **Responsive Design:** Giao diện tối ưu trải nghiệm người dùng trên cả Desktop và Mobile.
 
@@ -76,11 +76,21 @@ npm start
 <img width="1920" height="880" alt="image" src="https://github.com/user-attachments/assets/bd76ee61-3e5d-4c09-a45f-f10b660b7f1a" />
 
 ### Dinh Dưỡng
+Công cụ dinh dưỡng
 
 <img width="1920" height="885" alt="image" src="https://github.com/user-attachments/assets/18527882-3c0b-4cf9-ae5e-d745f7ca10cb" />
+
+Thư viện công thức nấu ăn
+
 <img width="1920" height="1032" alt="image" src="https://github.com/user-attachments/assets/560ec56d-b58b-4fcb-bbc5-d000e82054c0" />
 <img width="1920" height="888" alt="image" src="https://github.com/user-attachments/assets/f1217f9b-7363-426c-a900-7cee2064d78d" />
+
+Nhật ký ăn uống
+
 <img width="1920" height="1015" alt="image" src="https://github.com/user-attachments/assets/a3fc60ee-63d4-4c7a-9057-0a5b9ec0bcac" />
+
+Thư Viện Thực Phẩm
+
 <img width="1920" height="1036" alt="image" src="https://github.com/user-attachments/assets/e2034d0c-2a7d-4794-b147-f74630d35aae" />
 
 ### Tập luyện 
